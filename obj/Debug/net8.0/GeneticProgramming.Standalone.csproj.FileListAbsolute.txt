@@ -9,3 +9,6 @@ C:\Users\Guilherme\source\GeneticProgramming.Standalone\obj\Debug\net8.0\Genetic
 C:\Users\Guilherme\source\GeneticProgramming.Standalone\obj\Debug\net8.0\refint\GeneticProgramming.Standalone.dll
 C:\Users\Guilherme\source\GeneticProgramming.Standalone\obj\Debug\net8.0\GeneticProgramming.Standalone.pdb
 C:\Users\Guilherme\source\GeneticProgramming.Standalone\obj\Debug\net8.0\ref\GeneticProgramming.Standalone.dll
+C:\Users\Guilherme\source\GeneticProgramming.Standalone\bin\Debug\net8.0\GeneticProgramming.Standalone.exe
+C:\Users\Guilherme\source\GeneticProgramming.Standalone\bin\Debug\net8.0\GeneticProgramming.Standalone.runtimeconfig.json
+C:\Users\Guilherme\source\GeneticProgramming.Standalone\obj\Debug\net8.0\GeneticProgramming.Standalone.genruntimeconfig.cache

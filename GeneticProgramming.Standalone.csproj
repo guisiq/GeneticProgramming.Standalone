@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -8,6 +7,7 @@
     <Authors>Extracted from HeuristicLab</Authors>
     <Description>Standalone Genetic Programming library extracted from HeuristicLab</Description>
     <Copyright>Based on HeuristicLab - GNU GPL v3</Copyright>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
