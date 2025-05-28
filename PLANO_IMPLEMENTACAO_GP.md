@@ -7,12 +7,11 @@ Extrair e isolar todos os componentes relacionados à programação genética (G
 
 ---
 
-## Fase 1: Análise e Descoberta
+## Fase 1: Análise e Descoberta HeuristicLab
 ### ✅ Criação do plano de implementação
 ### 🔄 Identificação de componentes GP
-- [ ] Buscar por "GeneticProgramming" no código
-- [ ] Buscar por "SymbolicRegression" 
-- [ ] Buscar por "Expression" related classes
+- [x] Buscar por "SymbolicRegression" 
+- [x] Buscar por "Expression" related classes
 - [ ] Identificar algoritmos GP
 - [ ] Mapear dependências
 
