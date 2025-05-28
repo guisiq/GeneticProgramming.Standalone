@@ -1,10 +1,10 @@
-using GeneticProgramming.Standalone.Core;
-using GeneticProgramming.Standalone.Expressions;
+using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeneticProgramming.Standalone.Operators
+namespace GeneticProgramming.Operators
 {
     /// <summary>
     /// Performs subtree crossover between two symbolic expression trees

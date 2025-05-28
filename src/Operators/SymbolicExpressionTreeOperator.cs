@@ -1,7 +1,7 @@
-using GeneticProgramming.Standalone.Core;
-using GeneticProgramming.Standalone.Expressions;
+using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
 
-namespace GeneticProgramming.Standalone.Operators
+namespace GeneticProgramming.Operators
 {
     /// <summary>
     /// Base class for all symbolic expression tree operators

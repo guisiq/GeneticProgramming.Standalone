@@ -1,10 +1,11 @@
-using GeneticProgramming.Standalone.Core;
-using GeneticProgramming.Standalone.Expressions;
+using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
+using GeneticProgramming.Expressions.Symbols;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeneticProgramming.Standalone.Operators
+namespace GeneticProgramming.Operators
 {
     /// <summary>
     /// Mutates a tree by replacing a randomly selected subtree with a newly generated one
@@ -333,17 +334,23 @@ namespace GeneticProgramming.Standalone.Operators
                 constantNode.Value = currentValue + delta;
             }
             else if (terminalToMutate is VariableTreeNode variableNode && SymbolicExpressionTreeGrammar != null)
-            {
-                // Change to a different variable
+            {                // Change to a different variable
                 var variableSymbols = SymbolicExpressionTreeGrammar.Symbols
                     .OfType<Variable>()
-                    .Where(v => v.Enabled && v.VariableName != variableNode.VariableName)
+                    .Where(v => v.Enabled)
                     .ToList();
 
                 if (variableSymbols.Any())
                 {
                     var newVariable = variableSymbols[random.Next(variableSymbols.Count)];
-                    variableNode.VariableName = newVariable.VariableName;
+                    // Just change to a different variable name - for simplicity, use a random name
+                    var variableNames = new[] { "X0", "X1", "X2", "X3", "X4" };
+                    var currentName = variableNode.VariableName;
+                    var availableNames = variableNames.Where(name => name != currentName).ToList();
+                    if (availableNames.Any())
+                    {
+                        variableNode.VariableName = availableNames[random.Next(availableNames.Count)];
+                    }
                 }
             }
 
