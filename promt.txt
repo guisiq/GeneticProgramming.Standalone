@@ -7,3 +7,4 @@
 7. Teste a funcionalidade implementada (execute testes unitários existentes ou crie novos, se necessário) e reporte os resultados.
 8. Documente as alterações realizadas, incluindo comentários no código e atualização de arquivos README ou outros documentos relevantes.
 9. Atualize o documento de planejamento (PLANO_IMPLEMENTACAO_GP.md), marcando tarefas concluídas e adicionando notas ou ajustes conforme necessário.
+10. faça um commit 

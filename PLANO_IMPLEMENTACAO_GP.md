@@ -90,9 +90,9 @@ GeneticProgramming.Standalone/
 - [x] Criar estrutura base do projeto
 - [x] Extrair e implementar classes core
 - [x] Implementar SymbolicExpressionTree e SymbolicExpressionTreeNode
-- [ ] Implementar sistema de símbolos (Add, Mul, Variable, Constant)
-- [ ] Implementar gramáticas básicas
-- [ ] Implementar operadores genéticos
+- [x] Implementar sistema de símbolos (Add, Mul, Variable, Constant)
+- [x] Implementar gramáticas básicas
+- [x] Implementar operadores genéticos básicos
 - [ ] Criar abstrações necessárias
 - [ ] Implementar exemplos
 - [ ] Testes básicos

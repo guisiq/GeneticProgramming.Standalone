@@ -3,6 +3,8 @@ using GeneticProgramming.Expressions;
 using GeneticProgramming.Expressions.Grammars;
 using GeneticProgramming.Operators;
 using GeneticProgramming.Algorithms;
+using GeneticProgramming.Data;
+using GeneticProgramming.Expressions.Symbols;
 using System;
 using System.Linq;
 
@@ -46,10 +48,10 @@ namespace GeneticProgramming.Standalone.Examples
             Console.WriteLine("1. Testing Core Framework...");
             
             // Test data types
-            var intVal = new IntValue(42);
-            var doubleVal = new DoubleValue(3.14);
-            var boolVal = new BoolValue(true);
-            var stringVal = new StringValue("test");
+            var intVal = new Data.IntValue(42);
+            var doubleVal = new Data.DoubleValue(3.14);
+            var boolVal = new Data.BoolValue(true);
+            var stringVal = new Data.StringValue("test");
             
             Console.WriteLine($"   IntValue: {intVal.Value}");
             Console.WriteLine($"   DoubleValue: {doubleVal.Value}");
@@ -58,7 +60,7 @@ namespace GeneticProgramming.Standalone.Examples
             
             // Test cloning
             var cloner = new Cloner();
-            var clonedInt = cloner.Clone(intVal);
+            var clonedInt = (Data.IntValue)cloner.Clone(intVal);
             Console.WriteLine($"   Cloned IntValue: {clonedInt.Value}");
             
             // Test random number generator
@@ -74,9 +76,9 @@ namespace GeneticProgramming.Standalone.Examples
             
             // Create a simple tree: (X + 5)
             var tree = new SymbolicExpressionTree();
-            var addNode = new Addition().CreateTreeNode();
-            var varNode = new VariableTreeNode(new Variable(), "X");
-            var constNode = new ConstantTreeNode(new Constant(), 5.0);
+            var addNode = new Symbols.Addition().CreateTreeNode();
+            var varNode = new VariableTreeNode(new Symbols.Variable(), "X");
+            var constNode = new ConstantTreeNode(new Symbols.Constant(), 5.0);
             
             addNode.AddSubtree(varNode);
             addNode.AddSubtree(constNode);
@@ -158,7 +160,7 @@ namespace GeneticProgramming.Standalone.Examples
             Console.WriteLine("   Testing Mutation:");
             var subtreeMutator = new SubtreeMutator { SymbolicExpressionTreeGrammar = grammar };
             var nodeTypeMutator = new ChangeNodeTypeMutator { SymbolicExpressionTreeGrammar = grammar };
-            var terminalMutator = new ChangeTerminalMutator { SymbolicExpressionTreeGrammar = grammar };
+            var terminalMutator = new ChangeNodeTypeMutator { SymbolicExpressionTreeGrammar = grammar };
             
             var mutated1 = subtreeMutator.Mutate(random, grownTree);
             var mutated2 = nodeTypeMutator.Mutate(random, fullTree);
@@ -176,7 +178,7 @@ namespace GeneticProgramming.Standalone.Examples
             Console.WriteLine("5. Testing Complete GP Algorithm...");
             
             // Create a simple symbolic regression problem: f(x) = x^2 + 2x + 1
-            var algorithm = new TestGPAlgorithm();
+            var algorithm = new GeneticProgrammingAlgorithm();
             
             // Configure algorithm
             algorithm.PopulationSize = 20;

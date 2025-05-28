@@ -69,6 +69,11 @@ namespace GeneticProgramming.Expressions
             return root.IterateNodesBreadth();
         }
 
+        public IEnumerable<ISymbolicExpressionTreeNode> IterateNodesBreadthFirst()
+        {
+            return IterateNodesBreadth();
+        }
+
         public IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPrefix()
         {
             if (root == null)

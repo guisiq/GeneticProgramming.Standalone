@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "IZIc2h7GGJw=",
+  "dgSpecHash": "BMHJ4NFAqLo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Guilherme\\source\\GeneticProgramming.Standalone\\GeneticProgramming.Standalone.csproj",
+  "projectFilePath": "/workspaces/GeneticProgramming.Standalone/GeneticProgramming.Standalone.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Guilherme\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+    "/home/codespace/.nuget/packages/system.componentmodel.annotations/5.0.0/system.componentmodel.annotations.5.0.0.nupkg.sha512"
   ],
   "logs": []
 }

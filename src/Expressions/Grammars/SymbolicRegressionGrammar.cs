@@ -52,12 +52,18 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
+        /// Initializes a new instance of the SymbolicRegressionGrammar class with default variable "X".
+        /// </summary>
+        public SymbolicRegressionGrammar() : this(new[] { "X" }, allowConstants: true, allowDivision: true) { }
+
+        /// <summary>
         /// Initializes a new instance of the SymbolicRegressionGrammar class.
         /// </summary>
         /// <param name="variableNames">The names of input variables.</param>
         /// <param name="allowConstants">Whether to allow constants in expressions.</param>
         /// <param name="allowDivision">Whether to allow division operations.</param>
         public SymbolicRegressionGrammar(IEnumerable<string> variableNames, bool allowConstants = true, bool allowDivision = true)
+            : base()
         {
             _variableNames = new List<string>(variableNames ?? throw new ArgumentNullException(nameof(variableNames)));
             _allowConstants = allowConstants;
@@ -240,44 +246,10 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
-        /// Gets the probability distribution for selecting terminals vs functions.
+        /// Validates the grammar for regression problems.
         /// </summary>
-        /// <param name="currentDepth">The current depth in the tree.</param>
-        /// <param name="maxDepth">The maximum allowed depth.</param>
-        /// <returns>A tuple with (terminalProbability, functionProbability).</returns>
-        public (double TerminalProbability, double FunctionProbability) GetSelectionProbabilities(int currentDepth, int maxDepth)
-        {
-            // Increase terminal probability as we approach maximum depth
-            if (currentDepth >= maxDepth - 1)
-                return (1.0, 0.0); // Force terminals at maximum depth
-
-            var depthRatio = (double)currentDepth / maxDepth;
-            var terminalProb = Math.Min(0.8, depthRatio + 0.2); // Gradually increase from 0.2 to 0.8
-            var functionProb = 1.0 - terminalProb;
-
-            return (terminalProb, functionProb);
-        }
-
-        /// <summary>
-        /// Validates that the grammar is suitable for symbolic regression.
-        /// </summary>
-        /// <returns>True if valid for regression, false otherwise.</returns>
-        public bool ValidateForRegression()
-        {
-            // Must have at least one variable
-            if (!_variableNames.Any())
-                return false;
-
-            // Must have at least one mathematical operation
-            var hasOperations = Symbols.Any(s => s.MinimumArity > 0);
-            if (!hasOperations)
-                return false;
-
-            // Must have start symbols
-            if (!StartSymbols.Any())
-                return false;
-
-            return Validate(); // Use base validation
+        public bool ValidateForRegression() {
+            return Validate();
         }
     }
 }

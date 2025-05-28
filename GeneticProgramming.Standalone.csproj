@@ -13,5 +13,8 @@
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
-
+  <ItemGroup>
+    <!-- Exclude only ComprehensiveGPTest.cs from build -->
+    <Compile Remove="examples/ComprehensiveGPTest.cs" />
+  </ItemGroup>
 </Project>
