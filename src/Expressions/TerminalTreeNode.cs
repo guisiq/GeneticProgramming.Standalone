@@ -162,9 +162,8 @@ namespace GeneticProgramming.Expressions
         {
             get { return value; }
             set
-            {
-                this.value = value;
-                OnPropertyChanged();
+            {                this.value = value;
+                OnPropertyChanged(nameof(Value));
             }
         }
 
@@ -230,9 +229,8 @@ namespace GeneticProgramming.Expressions
         {
             get { return variableName; }
             set
-            {
-                variableName = value ?? throw new ArgumentNullException(nameof(value));
-                OnPropertyChanged();
+            {                variableName = value ?? throw new ArgumentNullException(nameof(value));
+                OnPropertyChanged(nameof(VariableName));
             }
         }
 

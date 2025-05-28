@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Expressions.Grammars
 {
@@ -17,23 +16,25 @@ namespace GeneticProgramming.Expressions.Grammars
         public DefaultSymbolicExpressionTreeGrammar()
         {
             Initialize();
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
-        protected DefaultSymbolicExpressionTreeGrammar(DefaultSymbolicExpressionTreeGrammar original) : base(original)
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
+        private DefaultSymbolicExpressionTreeGrammar(DefaultSymbolicExpressionTreeGrammar original, Core.Cloner cloner) 
+            : base(original, cloner)
         {
+            // Base class handles all the cloning
         }
 
         /// <summary>
-        /// Creates a deep clone of this grammar.
+        /// Creates a deep clone of this grammar using the specified cloner.
         /// </summary>
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
         /// <returns>A cloned instance of the grammar.</returns>
-        public override Core.IDeepCloneable Clone()
+        public override Core.IDeepCloneable Clone(Core.Cloner cloner)
         {
-            return new DefaultSymbolicExpressionTreeGrammar(this);
+            return new DefaultSymbolicExpressionTreeGrammar(this, cloner);
         }
 
         /// <summary>
@@ -42,10 +43,10 @@ namespace GeneticProgramming.Expressions.Grammars
         private void Initialize()
         {
             // Add mathematical operation symbols
-            var addition = new Addition();
-            var subtraction = new Subtraction();
-            var multiplication = new Multiplication();
-            var division = new Division();
+            var addition = new Symbols.Addition();
+            var subtraction = new Symbols.Subtraction();
+            var multiplication = new Symbols.Multiplication();
+            var division = new Symbols.Division();
 
             AddSymbol(addition);
             AddSymbol(subtraction);
@@ -53,8 +54,8 @@ namespace GeneticProgramming.Expressions.Grammars
             AddSymbol(division);
 
             // Add terminal symbols
-            var variable = new Variable();
-            var constant = new Constant();
+            var variable = new Symbols.Variable();
+            var constant = new Symbols.Constant();
 
             AddSymbol(variable);
             AddSymbol(constant);
@@ -109,12 +110,10 @@ namespace GeneticProgramming.Expressions.Grammars
             // Remove the default variable symbol
             var defaultVariable = grammar.GetSymbol("Variable");
             if (defaultVariable != null)
-                grammar.RemoveSymbol(defaultVariable);
-
-            // Add specific variables
+                grammar.RemoveSymbol(defaultVariable);            // Add specific variables
             foreach (var variableName in variableNames)
             {
-                var variable = new Variable { Name = variableName };
+                var variable = new Symbols.Variable { Name = variableName };
                 grammar.AddSymbol(variable);
                 grammar.AddStartSymbol(variable);
             }
@@ -159,13 +158,11 @@ namespace GeneticProgramming.Expressions.Grammars
             // Examples: Sin, Cos, Log, Exp, Power, etc.
             
             return grammar;
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Validates that the grammar is properly configured.
         /// </summary>
         /// <returns>True if the grammar is valid, false otherwise.</returns>
-        public bool Validate()
+        public override bool Validate()
         {
             // Check that there are start symbols
             if (!StartSymbols.Any())

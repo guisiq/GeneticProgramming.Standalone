@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Expressions.Grammars
 {
@@ -29,10 +28,9 @@ namespace GeneticProgramming.Expressions.Grammars
             set
             {
                 if (_allowConstants != value)
-                {
-                    _allowConstants = value;
+                {                    _allowConstants = value;
                     UpdateConstants();
-                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(AllowConstants));
                 }
             }
         }
@@ -46,10 +44,9 @@ namespace GeneticProgramming.Expressions.Grammars
             set
             {
                 if (_allowDivision != value)
-                {
-                    _allowDivision = value;
+                {                    _allowDivision = value;
                     UpdateDivision();
-                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(AllowDivision));
                 }
             }
         }
@@ -70,13 +67,13 @@ namespace GeneticProgramming.Expressions.Grammars
                 throw new ArgumentException("At least one variable name must be provided.", nameof(variableNames));
 
             Initialize();
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
-        protected SymbolicRegressionGrammar(SymbolicRegressionGrammar original) : base(original)
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
+        private SymbolicRegressionGrammar(SymbolicRegressionGrammar original, Core.Cloner cloner)
+            : base(original, cloner)
         {
             _variableNames = new List<string>(original._variableNames);
             _allowConstants = original._allowConstants;
@@ -84,12 +81,13 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
-        /// Creates a deep clone of this grammar.
+        /// Creates a deep clone of this grammar using the specified cloner.
         /// </summary>
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
         /// <returns>A cloned instance of the grammar.</returns>
-        public override Core.IDeepCloneable Clone()
+        public override Core.IDeepCloneable Clone(Core.Cloner cloner)
         {
-            return new SymbolicRegressionGrammar(this);
+            return new SymbolicRegressionGrammar(this, cloner);
         }
 
         /// <summary>
@@ -98,23 +96,23 @@ namespace GeneticProgramming.Expressions.Grammars
         private void Initialize()
         {
             // Add basic mathematical operations
-            AddSymbol(new Addition());
-            AddSymbol(new Subtraction());
-            AddSymbol(new Multiplication());
+            AddSymbol(new Symbols.Addition());
+            AddSymbol(new Symbols.Subtraction());
+            AddSymbol(new Symbols.Multiplication());
 
             if (_allowDivision)
-                AddSymbol(new Division());
+                AddSymbol(new Symbols.Division());
 
             // Add variables
             foreach (var variableName in _variableNames)
             {
-                var variable = new Variable { Name = variableName };
+                var variable = new Symbols.Variable { Name = variableName };
                 AddSymbol(variable);
             }
 
             // Add constant if allowed
             if (_allowConstants)
-                AddSymbol(new Constant());
+                AddSymbol(new Symbols.Constant());
 
             // Configure grammar rules
             ConfigureRegressionRules();
@@ -162,10 +160,8 @@ namespace GeneticProgramming.Expressions.Grammars
                 throw new ArgumentException("Variable name cannot be null or empty.", nameof(variableName));
 
             if (_variableNames.Contains(variableName))
-                return; // Variable already exists
-
-            _variableNames.Add(variableName);
-            var variable = new Variable { Name = variableName };
+                return; // Variable already exists            _variableNames.Add(variableName);
+            var variable = new Symbols.Variable { Name = variableName };
             AddSymbol(variable);
             AddStartSymbol(variable);
 
@@ -195,10 +191,9 @@ namespace GeneticProgramming.Expressions.Grammars
         private void UpdateConstants()
         {
             var constant = GetSymbol("Constant");
-            
-            if (_allowConstants && constant == null)
+              if (_allowConstants && constant == null)
             {
-                AddSymbol(new Constant());
+                AddSymbol(new Symbols.Constant());
                 ConfigureRegressionRules();
             }
             else if (!_allowConstants && constant != null)
@@ -213,10 +208,9 @@ namespace GeneticProgramming.Expressions.Grammars
         private void UpdateDivision()
         {
             var division = GetSymbol("Division");
-            
-            if (_allowDivision && division == null)
+              if (_allowDivision && division == null)
             {
-                AddSymbol(new Division());
+                AddSymbol(new Symbols.Division());
                 ConfigureRegressionRules();
             }
             else if (!_allowDivision && division != null)

@@ -43,9 +43,8 @@ namespace GeneticProgramming.Expressions
                     throw new ArgumentOutOfRangeException(nameof(value), "Maximum expression length must be at least 1.");
                 if (value < _minimumExpressionLength)
                     throw new ArgumentOutOfRangeException(nameof(value), "Maximum expression length must be greater than or equal to minimum expression length.");
-                
-                _maximumExpressionLength = value;
-                OnPropertyChanged();
+                  _maximumExpressionLength = value;
+                OnPropertyChanged(nameof(MaximumExpressionLength));
             }
         }
 
@@ -61,9 +60,8 @@ namespace GeneticProgramming.Expressions
                     throw new ArgumentOutOfRangeException(nameof(value), "Maximum expression depth must be at least 1.");
                 if (value < _minimumExpressionDepth)
                     throw new ArgumentOutOfRangeException(nameof(value), "Maximum expression depth must be greater than or equal to minimum expression depth.");
-                
-                _maximumExpressionDepth = value;
-                OnPropertyChanged();
+                  _maximumExpressionDepth = value;
+                OnPropertyChanged(nameof(MaximumExpressionDepth));
             }
         }
 
@@ -79,9 +77,8 @@ namespace GeneticProgramming.Expressions
                     throw new ArgumentOutOfRangeException(nameof(value), "Minimum expression length must be at least 1.");
                 if (value > _maximumExpressionLength)
                     throw new ArgumentOutOfRangeException(nameof(value), "Minimum expression length must be less than or equal to maximum expression length.");
-                
-                _minimumExpressionLength = value;
-                OnPropertyChanged();
+                  _minimumExpressionLength = value;
+                OnPropertyChanged(nameof(MinimumExpressionLength));
             }
         }
 
@@ -97,9 +94,8 @@ namespace GeneticProgramming.Expressions
                     throw new ArgumentOutOfRangeException(nameof(value), "Minimum expression depth must be at least 1.");
                 if (value > _maximumExpressionDepth)
                     throw new ArgumentOutOfRangeException(nameof(value), "Minimum expression depth must be less than or equal to maximum expression depth.");
-                
-                _minimumExpressionDepth = value;
-                OnPropertyChanged();
+                  _minimumExpressionDepth = value;
+                OnPropertyChanged(nameof(MinimumExpressionDepth));
             }
         }
 
@@ -117,13 +113,12 @@ namespace GeneticProgramming.Expressions
             _symbolsByName = new Dictionary<string, ISymbol>();
             _symbols = new List<ISymbol>();
             _startSymbols = new List<ISymbol>();
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
-        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar original) : base(original)
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
+        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar original, Core.Cloner cloner) : base(original, cloner)
         {
             _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
             _symbolsByName = new Dictionary<string, ISymbol>();
@@ -132,13 +127,12 @@ namespace GeneticProgramming.Expressions
 
             _maximumExpressionLength = original._maximumExpressionLength;
             _maximumExpressionDepth = original._maximumExpressionDepth;
-            _minimumExpressionLength = original._minimumExpressionLength;
-            _minimumExpressionDepth = original._minimumExpressionDepth;
+            _minimumExpressionLength = original._minimumExpressionLength;            _minimumExpressionDepth = original._minimumExpressionDepth;
 
             // Deep copy symbols
             foreach (var symbol in original._symbols)
             {
-                var clonedSymbol = (ISymbol)symbol.Clone();
+                var clonedSymbol = (ISymbol)symbol.Clone(cloner);
                 AddSymbol(clonedSymbol);
             }
 
@@ -162,19 +156,17 @@ namespace GeneticProgramming.Expressions
                         var clonedChild = GetSymbol(childSymbol.Name);
                         if (clonedChild != null)
                             allowedChildren.Add(clonedChild);
-                    }
-                    _allowedChildSymbols[parentSymbol] = new ReadOnlyCollection<ISymbol>(allowedChildren);
+                    }                _allowedChildSymbols[parentSymbol] = new ReadOnlyCollection<ISymbol>(allowedChildren);
                 }
             }
-        }
-
-        /// <summary>
-        /// Creates a deep clone of this grammar.
+        }        /// <summary>
+        /// Creates a deep clone of this grammar using the specified cloner.
         /// </summary>
+        /// <param name="cloner">The cloner to use for deep cloning.</param>
         /// <returns>A cloned instance of the grammar.</returns>
-        public override Core.IDeepCloneable Clone()
+        public override Core.IDeepCloneable Clone(Core.Cloner cloner)
         {
-            return new SymbolicExpressionTreeGrammar(this);
+            return new SymbolicExpressionTreeGrammar(this, cloner);
         }
 
         /// <summary>
@@ -367,6 +359,16 @@ namespace GeneticProgramming.Expressions
         protected virtual void OnChanged()
         {
             Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Validates the grammar configuration.
+        /// </summary>
+        /// <returns>True if the grammar is valid, false otherwise.</returns>
+        public virtual bool Validate()
+        {
+            // Basic validation: must have at least one symbol and one start symbol
+            return _symbols.Count > 0 && _startSymbols.Count > 0;
         }
     }
 }

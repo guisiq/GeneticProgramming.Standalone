@@ -17,11 +17,9 @@ namespace GeneticProgramming.Expressions.Symbols
 
         protected TerminalSymbol(TerminalSymbol original, Cloner cloner) : base(original, cloner)
         {
-        }
-
-        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        }        public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
-            return new TerminalTreeNode(this);
+            return new SymbolicExpressionTreeNode(this);
         }
     }
 
@@ -36,11 +34,14 @@ namespace GeneticProgramming.Expressions.Symbols
 
         private Variable(Variable original, Cloner cloner) : base(original, cloner)
         {
-        }
-
-        public override IDeepCloneable Clone(Cloner cloner)
+        }        public override IDeepCloneable Clone(Cloner cloner)
         {
             return new Variable(this, cloner);
+        }
+
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        {
+            return new VariableTreeNode(this);
         }
 
         public override string GetFormatString()
@@ -60,21 +61,17 @@ namespace GeneticProgramming.Expressions.Symbols
 
         private Constant(Constant original, Cloner cloner) : base(original, cloner)
         {
-        }
-
-        public override IDeepCloneable Clone(Cloner cloner)
+        }        public override IDeepCloneable Clone(Cloner cloner)
         {
             return new Constant(this, cloner);
-        }
-
-        public override string GetFormatString()
-        {
-            return "C";
         }
 
         public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
             return new ConstantTreeNode(this);
+        }        public override string GetFormatString()
+        {
+            return "C";
         }
     }
 }

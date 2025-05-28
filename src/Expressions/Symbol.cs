@@ -9,6 +9,7 @@ namespace GeneticProgramming.Expressions
     public abstract class Symbol : Item, ISymbol
     {
         private double initialFrequency = 1.0;
+        private double weight = 1.0;
         private bool enabled = true;
 
         /// <summary>
@@ -22,6 +23,11 @@ namespace GeneticProgramming.Expressions
         public abstract int MaximumArity { get; }
 
         /// <summary>
+        /// Gets the name of this symbol
+        /// </summary>
+        public virtual string SymbolName => GetType().Name;
+
+        /// <summary>
         /// Gets or sets the initial frequency of this symbol in random generation
         /// </summary>
         public virtual double InitialFrequency
@@ -30,9 +36,22 @@ namespace GeneticProgramming.Expressions
             set
             {
                 if (value < 0.0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "InitialFrequency must be >= 0.0");
-                initialFrequency = value;
-                OnPropertyChanged();
+                    throw new ArgumentOutOfRangeException(nameof(value), "InitialFrequency must be >= 0.0");                initialFrequency = value;
+                OnPropertyChanged(nameof(InitialFrequency));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the weight of this symbol for selection
+        /// </summary>
+        public virtual double Weight
+        {
+            get { return weight; }
+            set
+            {
+                if (value < 0.0)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Weight must be >= 0.0");                weight = value;
+                OnPropertyChanged(nameof(Weight));
             }
         }
 
@@ -43,19 +62,18 @@ namespace GeneticProgramming.Expressions
         {
             get { return enabled; }
             set
-            {
-                enabled = value;
-                OnPropertyChanged();
+            {                enabled = value;
+                OnPropertyChanged(nameof(Enabled));
             }
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// Creates a new symbol with the specified name and description
         /// </summary>
         /// <param name="name">Symbol name</param>
         /// <param name="description">Symbol description</param>
-        protected Symbol(string name, string description) : base(name, description)
+        protected Symbol(string name, string description) : base()
         {
+            Name = name;
+            Description = description;
         }
 
         /// <summary>

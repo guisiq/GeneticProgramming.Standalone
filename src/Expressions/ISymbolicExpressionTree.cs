@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions
     /// </summary>
     public interface ISymbolicExpressionTreeNode : IDeepCloneable
     {
-        ISymbolicExpressionTreeGrammar Grammar { get; }
+        ISymbolicExpressionTreeGrammar? Grammar { get; }
         ISymbolicExpressionTreeNode? Parent { get; set; }
         ISymbol Symbol { get; }
         bool HasLocalParameters { get; }
@@ -50,41 +50,6 @@ namespace GeneticProgramming.Expressions
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesBreadth();
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPrefix();
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPostfix();
-    }
-
-    /// <summary>
-    /// Interface for symbols in the expression tree
-    /// </summary>
-    public interface ISymbol : IItem
-    {
-        int MinimumArity { get; }
-        int MaximumArity { get; }
-        bool Enabled { get; set; }
-        double Weight { get; set; }
-        string SymbolName { get; }
-    }
-
-    /// <summary>
-    /// Interface for grammars that define allowed symbols and rules
-    /// </summary>
-    public interface ISymbolicExpressionTreeGrammar : IItem
-    {
-        IEnumerable<ISymbol> Symbols { get; }
-        IEnumerable<ISymbol> AllowedSymbols { get; }
-        ISymbol ProgramRootSymbol { get; }
-        ISymbol DefunSymbol { get; }
-
-        bool ContainsSymbol(ISymbol symbol);
-        void AddSymbol(ISymbol symbol);
-        void RemoveSymbol(ISymbol symbol);
-
-        IEnumerable<ISymbol> GetAllowedChildSymbols(ISymbol parent);
-        IEnumerable<ISymbol> GetAllowedChildSymbols(ISymbol parent, int argumentIndex);
-
-        int GetMinimumSubtreeCount(ISymbol symbol);
-        int GetMaximumSubtreeCount(ISymbol symbol);
-
-        void SetSubtreeCount(ISymbol symbol, int minimumSubtreeCount, int maximumSubtreeCount);
     }
 
     /// <summary>

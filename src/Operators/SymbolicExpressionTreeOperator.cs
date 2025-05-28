@@ -1,0 +1,72 @@
+using GeneticProgramming.Standalone.Core;
+using GeneticProgramming.Standalone.Expressions;
+
+namespace GeneticProgramming.Standalone.Operators
+{
+    /// <summary>
+    /// Base class for all symbolic expression tree operators
+    /// </summary>
+    public abstract class SymbolicExpressionTreeOperator : Item, ISymbolicExpressionTreeOperator
+    {
+        private ISymbolicExpressionTreeGrammar? _symbolicExpressionTreeGrammar;
+
+        /// <summary>
+        /// Gets or sets the symbolic expression tree grammar used by this operator
+        /// </summary>
+        public ISymbolicExpressionTreeGrammar? SymbolicExpressionTreeGrammar
+        {
+            get => _symbolicExpressionTreeGrammar;
+            set
+            {
+                if (_symbolicExpressionTreeGrammar != value)
+                {
+                    _symbolicExpressionTreeGrammar = value;
+                    OnPropertyChanged(nameof(SymbolicExpressionTreeGrammar));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the SymbolicExpressionTreeOperator class
+        /// </summary>
+        protected SymbolicExpressionTreeOperator() : base()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the SymbolicExpressionTreeOperator class
+        /// </summary>
+        /// <param name="original">The original operator to copy from</param>
+        /// <param name="cloner">The cloner to use for deep copying</param>
+        protected SymbolicExpressionTreeOperator(SymbolicExpressionTreeOperator original, Cloner cloner) : base(original, cloner)
+        {
+            _symbolicExpressionTreeGrammar = cloner.Clone(original._symbolicExpressionTreeGrammar);
+        }
+
+        /// <summary>
+        /// Creates a deep clone of this operator
+        /// </summary>
+        /// <param name="cloner">The cloner to use</param>
+        /// <returns>A deep clone of this operator</returns>
+        public override IDeepCloneable Clone(Cloner cloner)
+        {
+            return new ConcreteSymbolicExpressionTreeOperator(this, cloner);
+        }
+
+        /// <summary>
+        /// Concrete implementation for cloning purposes
+        /// </summary>
+        private class ConcreteSymbolicExpressionTreeOperator : SymbolicExpressionTreeOperator
+        {
+            public ConcreteSymbolicExpressionTreeOperator(SymbolicExpressionTreeOperator original, Cloner cloner) 
+                : base(original, cloner)
+            {
+            }
+
+            public override IDeepCloneable Clone(Cloner cloner)
+            {
+                return new ConcreteSymbolicExpressionTreeOperator(this, cloner);
+            }
+        }
+    }
+}

@@ -15,13 +15,21 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Gets the maximum number of arguments (subtrees) this symbol can have
         /// </summary>
-        int MaximumArity { get; }
-
-        /// <summary>
+        int MaximumArity { get; }        /// <summary>
         /// Gets or sets the initial frequency of this symbol in the grammar
         /// Used for random generation of trees
         /// </summary>
         double InitialFrequency { get; set; }
+
+        /// <summary>
+        /// Gets or sets the weight of this symbol for selection
+        /// </summary>
+        double Weight { get; set; }
+
+        /// <summary>
+        /// Gets the name of this symbol
+        /// </summary>
+        string SymbolName { get; }
 
         /// <summary>
         /// Gets or sets whether this symbol is enabled in the grammar
