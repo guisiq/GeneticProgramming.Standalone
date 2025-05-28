@@ -1,0 +1,9 @@
+1. Analise a etapa atual do projeto de Programação Genética (conforme o plano em PLANO_IMPLEMENTACAO_GP.md) e descreva o que já foi implementado e o que ainda falta.
+2. Gere uma lista de tarefas para a próxima etapa (ex.: implementação de símbolos, gramáticas, operadores, etc.).
+3. Caso a etapa seja muito grande, divida-a em subetapas menores e documente essa divisão.
+4. Crie ou atualize o arquivo de status da etapa, seguindo o padrão: PROJETO_STATUS_{nEtapa}_{descricaoEtapa}.md, registrando o andamento, tarefas e mudanças de planejamento.
+5. Implemente ou atualize o código-fonte necessário para realizar as tarefas definidas, exibindo os trechos de código a serem inseridos ou alterados.
+6. Execute o build do projeto (ex.: dotnet build) e valide se não há erros de compilação. Corrija eventuais erros até que o build seja bem-sucedido.
+7. Teste a funcionalidade implementada (execute testes unitários existentes ou crie novos, se necessário) e reporte os resultados.
+8. Documente as alterações realizadas, incluindo comentários no código e atualização de arquivos README ou outros documentos relevantes.
+9. Atualize o documento de planejamento (PLANO_IMPLEMENTACAO_GP.md), marcando tarefas concluídas e adicionando notas ou ajustes conforme necessário.

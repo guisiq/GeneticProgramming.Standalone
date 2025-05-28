@@ -166,3 +166,21 @@ Este é o componente crítico que permitirá:
 # Implementar SymbolicExpressionTreeNode
 # Extrair do HeuristicLab.Encodings.SymbolicExpressionTreeEncoding
 ```
+
+## 🔍 Detalhes do Sistema de Símbolos (Próximo Objetivo)
+
+O sistema de símbolos será responsável por:
+- Definir operações matemáticas (Add, Sub, Mul, Div)
+- Implementar variáveis e constantes
+- Suportar avaliação de expressões
+- Permitir simplificação de árvores
+
+### Componentes a serem implementados:
+- [ ] `ISymbol` - Interface base para todos os símbolos
+- [ ] `Symbol` - Classe base abstrata para símbolos
+- [ ] `BinarySymbol` - Base para operações binárias (Add, Mul, etc.)
+- [ ] `UnarySymbol` - Base para operações unárias (Sin, Cos, etc.)
+- [ ] `VariableSymbol` - Para representar variáveis
+- [ ] `ConstantSymbol` - Para representar constantes
+
+**Última atualização:** [Data Atual]

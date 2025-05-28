@@ -87,9 +87,12 @@ GeneticProgramming.Standalone/
 ---
 
 ## Fase 4: Implementação
-- [ ] Criar estrutura base do projeto
-- [ ] Extrair classes core
-- [ ] Adaptar dependências
+- [x] Criar estrutura base do projeto
+- [x] Extrair e implementar classes core
+- [x] Implementar SymbolicExpressionTree e SymbolicExpressionTreeNode
+- [ ] Implementar sistema de símbolos (Add, Mul, Variable, Constant)
+- [ ] Implementar gramáticas básicas
+- [ ] Implementar operadores genéticos
 - [ ] Criar abstrações necessárias
 - [ ] Implementar exemplos
 - [ ] Testes básicos
