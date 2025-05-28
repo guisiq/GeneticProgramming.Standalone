@@ -93,7 +93,7 @@ GeneticProgramming.Standalone/
 - [x] Implementar sistema de símbolos (Add, Mul, Variable, Constant)
 - [x] Implementar gramáticas básicas
 - [x] Implementar operadores genéticos básicos
-- [ ] Criar abstrações necessárias
+- [ ] Criar abstrações necessárias  ← EM PROGRESSO
 - [ ] Implementar exemplos
 - [ ] Testes básicos
 

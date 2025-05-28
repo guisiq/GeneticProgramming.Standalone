@@ -1,12 +1,14 @@
 using GeneticProgramming.Core;
 using GeneticProgramming.Expressions;
+using GeneticProgramming.Abstractions.Operators; // Required for IOperator
+using System.ComponentModel; // Required for INotifyPropertyChanged
 
 namespace GeneticProgramming.Operators
 {
     /// <summary>
     /// Base class for all symbolic expression tree operators
     /// </summary>
-    public abstract class SymbolicExpressionTreeOperator : Item, ISymbolicExpressionTreeOperator
+    public abstract class SymbolicExpressionTreeOperator : Item, ISymbolicExpressionTreeOperator // Item already implements IOperator, IDeepCloneable, INotifyPropertyChanged via IItem
     {
         private ISymbolicExpressionTreeGrammar? _symbolicExpressionTreeGrammar;
 

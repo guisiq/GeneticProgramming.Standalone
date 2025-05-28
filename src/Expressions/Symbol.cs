@@ -1,5 +1,6 @@
 using System;
 using GeneticProgramming.Core;
+using GeneticProgramming.Abstractions.Parameters; // For IParameterCollection
 
 namespace GeneticProgramming.Expressions
 {
@@ -74,6 +75,7 @@ namespace GeneticProgramming.Expressions
         {
             Name = name;
             Description = description;
+            // Parameters = new ParameterCollection(); // Already initialized in base Item constructor
         }
 
         /// <summary>

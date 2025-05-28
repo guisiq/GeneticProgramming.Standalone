@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using GeneticProgramming.Abstractions.Operators; // For IOperator
 
 namespace GeneticProgramming.Core
 {
@@ -24,7 +25,7 @@ namespace GeneticProgramming.Core
     /// <summary>
     /// Base interface for all framework items
     /// </summary>
-    public interface IItem : IDeepCloneable, INamedItem
+    public interface IItem : IDeepCloneable, INamedItem, IOperator // Added IOperator
     {
         string ItemName { get; }
         string ItemDescription { get; }

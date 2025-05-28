@@ -1,12 +1,14 @@
-using GeneticProgramming.Core;
+using GeneticProgramming.Core; // For IDeepCloneable, INotifyPropertyChanged
 using GeneticProgramming.Expressions;
+using GeneticProgramming.Abstractions.Operators; // For IOperator
+using System.ComponentModel; // For INotifyPropertyChanged
 
 namespace GeneticProgramming.Operators
 {
     /// <summary>
     /// Base interface for all operators that work with symbolic expression trees
     /// </summary>
-    public interface ISymbolicExpressionTreeOperator : IItem
+    public interface ISymbolicExpressionTreeOperator : IOperator, IDeepCloneable, INotifyPropertyChanged
     {
         /// <summary>
         /// Gets or sets the symbolic expression tree grammar used by this operator

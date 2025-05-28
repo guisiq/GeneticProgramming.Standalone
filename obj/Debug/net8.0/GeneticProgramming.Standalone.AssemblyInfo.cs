@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Based on HeuristicLab - GNU GPL v3")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Standalone Genetic Programming library extracted from HeuristicLab")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+db23ef5fc36ad94519e4284e2cf58e510b8fac8e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4d5ae49e5bab9d62a153d6f909ff16fb7f9bc7a9")]
 [assembly: System.Reflection.AssemblyProductAttribute("GeneticProgramming.Standalone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GeneticProgramming.Standalone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

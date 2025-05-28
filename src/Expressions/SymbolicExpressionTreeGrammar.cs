@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using GeneticProgramming.Abstractions.Parameters; // For IParameterCollection
 
 namespace GeneticProgramming.Expressions
 {
@@ -107,56 +108,63 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Initializes a new instance of the SymbolicExpressionTreeGrammar class.
         /// </summary>
-        public SymbolicExpressionTreeGrammar()
+        public SymbolicExpressionTreeGrammar(string name, string description)
+            : base()
         {
-            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
-            _symbolsByName = new Dictionary<string, ISymbol>();
+            Name = name;
+            Description = description;
             _symbols = new List<ISymbol>();
             _startSymbols = new List<ISymbol>();
-        }        /// <summary>
+            _symbolsByName = new Dictionary<string, ISymbol>();
+            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
+            // Parameters = new ParameterCollection(); // Already initialized in base Item constructor
+        }
+
+        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
         /// <param name="cloner">The cloner to use for deep cloning.</param>
-        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar original, Core.Cloner cloner) : base(original, cloner)
+        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar original, Core.Cloner cloner)
+            : base(original, cloner)
         {
-            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
-            _symbolsByName = new Dictionary<string, ISymbol>();
-            _symbols = new List<ISymbol>();
-            _startSymbols = new List<ISymbol>();
-
             _maximumExpressionLength = original._maximumExpressionLength;
             _maximumExpressionDepth = original._maximumExpressionDepth;
-            _minimumExpressionLength = original._minimumExpressionLength;            _minimumExpressionDepth = original._minimumExpressionDepth;
+            _minimumExpressionLength = original._minimumExpressionLength;
+            _minimumExpressionDepth = original._minimumExpressionDepth;
 
-            // Deep copy symbols
+            _symbols = new List<ISymbol>();
+            _startSymbols = new List<ISymbol>();
+            _symbolsByName = new Dictionary<string, ISymbol>();
+            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
+
+            // Clone symbols and their relationships
+            var clonedSymbolsMap = new Dictionary<ISymbol, ISymbol>();
+
             foreach (var symbol in original._symbols)
             {
-                var clonedSymbol = (ISymbol)symbol.Clone(cloner);
-                AddSymbol(clonedSymbol);
+                var clonedSymbol = cloner.Clone(symbol);
+                _symbols.Add(clonedSymbol);
+                _symbolsByName.Add(clonedSymbol.Name, clonedSymbol);
+                clonedSymbolsMap[symbol] = clonedSymbol;
             }
 
-            // Rebuild start symbols list
             foreach (var startSymbol in original._startSymbols)
             {
-                var clonedStartSymbol = GetSymbol(startSymbol.Name);
-                if (clonedStartSymbol != null)
+                if (clonedSymbolsMap.TryGetValue(startSymbol, out var clonedStartSymbol))
+                {
                     _startSymbols.Add(clonedStartSymbol);
+                }
             }
 
-            // Rebuild allowed child symbols relationships
             foreach (var kvp in original._allowedChildSymbols)
             {
-                var parentSymbol = GetSymbol(kvp.Key.Name);
-                if (parentSymbol != null)
+                if (clonedSymbolsMap.TryGetValue(kvp.Key, out var clonedParentSymbol))
                 {
-                    var allowedChildren = new List<ISymbol>();
-                    foreach (var childSymbol in kvp.Value)
-                    {
-                        var clonedChild = GetSymbol(childSymbol.Name);
-                        if (clonedChild != null)
-                            allowedChildren.Add(clonedChild);
-                    }                _allowedChildSymbols[parentSymbol] = new ReadOnlyCollection<ISymbol>(allowedChildren);
+                    var allowedChildren = kvp.Value.Select(child => clonedSymbolsMap.TryGetValue(child, out var clonedChild) ? clonedChild : null)
+                                                 .Where(cs => cs != null)
+                                                 .ToList()!; // Explicitly non-null
+                    _allowedChildSymbols.Add(clonedParentSymbol, new ReadOnlyCollection<ISymbol>(allowedChildren));
                 }
             }
         }        /// <summary>

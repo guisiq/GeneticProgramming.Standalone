@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Reflection;
 using GeneticProgramming.Core;
+using GeneticProgramming.Abstractions.Parameters; // For IParameterCollection
 
 namespace GeneticProgramming.Core
 {
@@ -15,6 +16,7 @@ namespace GeneticProgramming.Core
 
         private string name = string.Empty;
         private string description = string.Empty;
+        private IParameterCollection? _parameters; // Added for IOperator
 
         public virtual string Name
         {
@@ -47,6 +49,20 @@ namespace GeneticProgramming.Core
         public virtual Version ItemVersion => new Version(1, 0);
         public virtual string ItemImage => string.Empty;
 
+        // Implementation for IOperator
+        public IParameterCollection? Parameters 
+        {
+            get => _parameters;
+            set
+            {
+                if (_parameters != value)
+                {
+                    _parameters = value;
+                    OnPropertyChanged(nameof(Parameters));
+                }
+            }
+        }
+
         protected Item()
         {
             var attr = GetType().GetCustomAttribute<ItemAttribute>();
@@ -55,12 +71,18 @@ namespace GeneticProgramming.Core
                 name = attr.Name;
                 description = attr.Description;
             }
+            _parameters = new ParameterCollection(); // Initialize with a default collection
         }
 
         protected Item(Item original, Cloner cloner)
         {
             name = original.name;
             description = original.description;
+            // Parameters are not cloned by default in this base class, 
+            // derived classes should handle cloning if necessary or if Parameters are part of their state.
+            // Consider if a deep clone of parameters is needed here or if it's specific to certain items.
+            // For now, let's assign a new collection or clone if original.Parameters is not null.
+            _parameters = original.Parameters != null ? cloner.Clone(original.Parameters) : new ParameterCollection();
         }
 
         public abstract IDeepCloneable Clone(Cloner cloner);

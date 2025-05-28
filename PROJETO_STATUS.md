@@ -69,23 +69,26 @@ GeneticProgramming.Standalone/
 ## ✅ Progresso Atual - Validação
 
 ### ✅ CONCLUÍDO
-- [x] **Estrutura base do projeto** (Pastas, .csproj)
-- [x] **Interfaces fundamentais** (IItem, IDeepCloneable)
-- [x] **Classe base Item** (Com PropertyChanged, clonagem)
-- [x] **Sistema de clonagem** (Cloner com mapeamento)
-- [x] **Tipos de dados básicos** (IntValue, DoubleValue, BoolValue, StringValue)
-- [x] **Interface para árvores de expressão** (ISymbolicExpressionTree)
-- [x] **Implementação SymbolicExpressionTree** (Com iteradores)
-- [x] **Interface para nós da árvore** (ISymbolicExpressionTreeNode)
-- [x] **Interface gerador de números aleatórios** (IRandom)
-- [x] **Implementação MersenneTwister** (Gerador de números aleatórios)
-- [x] **SymbolicExpressionTreeNode completo** ✨ **NOVO!**
-- [x] **Compilação sem erros** (dotnet build ✅)
+- [x] Estrutura base do projeto (Pastas, .csproj)
+- [x] Interfaces fundamentais (IItem, IDeepCloneable)
+- [x] Classe base Item (Com PropertyChanged, clonagem)
+- [x] Sistema de clonagem (Cloner com mapeamento)
+- [x] Tipos de dados básicos (IntValue, DoubleValue, BoolValue, StringValue)
+- [x] Interface para árvores de expressão (ISymbolicExpressionTree)
+- [x] Implementação SymbolicExpressionTree (Com iteradores)
+- [x] Interface para nós da árvore (ISymbolicExpressionTreeNode)
+- [x] Interface gerador de números aleatórios (IRandom)
+- [x] Implementação MersenneTwister (Gerador de números aleatórios)
+- [x] SymbolicExpressionTreeNode completo
+- [x] Implementação de símbolos e gramáticas
+- [x] Operadores genéticos básicos
 
 ### 🔄 EM PROGRESSO
-- [ ] **Sistema de símbolos básicos** (Add, Mul, Variable, Constant) ← **PRÓXIMO**
-- [ ] **Gramáticas de expressão**
-- [ ] **Operadores genéticos básicos**
+- [ ] Criar abstrações necessárias
+
+### 📋 PRÓXIMO PASSO
+- [ ] Implementar exemplos
+- [ ] Testes básicos
 
 ---
 
