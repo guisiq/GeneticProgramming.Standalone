@@ -88,7 +88,7 @@ namespace GeneticProgramming.Expressions
             return root.IterateNodesPostfix();
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new SymbolicExpressionTree(this, cloner);
         }

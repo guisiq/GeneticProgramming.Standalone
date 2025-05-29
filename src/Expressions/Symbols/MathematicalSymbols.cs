@@ -1,5 +1,6 @@
 using System;
 using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
 
 namespace GeneticProgramming.Expressions.Symbols
 {
@@ -22,7 +23,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Addition(this, cloner);
         }
@@ -30,6 +31,12 @@ namespace GeneticProgramming.Expressions.Symbols
         public override string GetFormatString()
         {
             return "+";
+        }
+
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        {
+            var node = new SymbolicExpressionTreeNode(this);
+            return node;
         }
     }
 
@@ -52,7 +59,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Subtraction(this, cloner);
         }
@@ -60,6 +67,12 @@ namespace GeneticProgramming.Expressions.Symbols
         public override string GetFormatString()
         {
             return "-";
+        }
+
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        {
+            var node = new SymbolicExpressionTreeNode(this);
+            return node;
         }
     }
 
@@ -82,7 +95,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Multiplication(this, cloner);
         }
@@ -90,6 +103,12 @@ namespace GeneticProgramming.Expressions.Symbols
         public override string GetFormatString()
         {
             return "*";
+        }
+
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        {
+            var node = new SymbolicExpressionTreeNode(this);
+            return node;
         }
     }
 
@@ -112,7 +131,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Division(this, cloner);
         }
@@ -120,6 +139,12 @@ namespace GeneticProgramming.Expressions.Symbols
         public override string GetFormatString()
         {
             return "/";
+        }
+
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        {
+            var node = new SymbolicExpressionTreeNode(this);
+            return node;
         }
     }
 }

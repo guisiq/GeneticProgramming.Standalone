@@ -46,12 +46,15 @@ namespace GeneticProgramming.Operators
             _internalNodeProbability = original._internalNodeProbability;
         }
 
+        // Removido o override de Clone(Cloner cloner) pois a lógica base em Item.cs será usada.
+        // O método Clone de Item chamará CreateCloneInstance.
+
         /// <summary>
-        /// Creates a deep clone of this crossover operator
+        /// Creates a new instance of the SubtreeCrossover for cloning.
         /// </summary>
-        /// <param name="cloner">The cloner to use</param>
-        /// <returns>A deep clone of this crossover operator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
+        /// <param name="cloner">The cloner to use for the cloning process.</param>
+        /// <returns>A new instance of SubtreeCrossover.</returns>
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new SubtreeCrossover(this, cloner);
         }
@@ -168,12 +171,15 @@ namespace GeneticProgramming.Operators
         {
         }
 
+        // Removido o override de Clone(Cloner cloner) pois a lógica base em Item.cs será usada.
+        // O método Clone de Item chamará CreateCloneInstance.
+
         /// <summary>
-        /// Creates a deep clone of this crossover operator
+        /// Creates a new instance of the OnePointCrossover for cloning.
         /// </summary>
-        /// <param name="cloner">The cloner to use</param>
-        /// <returns>A deep clone of this crossover operator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
+        /// <param name="cloner">The cloner to use for the cloning process.</param>
+        /// <returns>A new instance of OnePointCrossover.</returns>
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new OnePointCrossover(this, cloner);
         }

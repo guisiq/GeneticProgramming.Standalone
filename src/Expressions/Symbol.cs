@@ -37,7 +37,10 @@ namespace GeneticProgramming.Expressions
             set
             {
                 if (value < 0.0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "InitialFrequency must be >= 0.0");                initialFrequency = value;
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "InitialFrequency must be >= 0.0");
+                }
+                initialFrequency = value;
                 OnPropertyChanged(nameof(InitialFrequency));
             }
         }
@@ -51,7 +54,10 @@ namespace GeneticProgramming.Expressions
             set
             {
                 if (value < 0.0)
-                    throw new ArgumentOutOfRangeException(nameof(value), "Weight must be >= 0.0");                weight = value;
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Weight must be >= 0.0");
+                }
+                weight = value;
                 OnPropertyChanged(nameof(Weight));
             }
         }
@@ -63,7 +69,8 @@ namespace GeneticProgramming.Expressions
         {
             get { return enabled; }
             set
-            {                enabled = value;
+            {
+                enabled = value;
                 OnPropertyChanged(nameof(Enabled));
             }
         }        /// <summary>
@@ -87,29 +94,25 @@ namespace GeneticProgramming.Expressions
         {
             initialFrequency = original.initialFrequency;
             enabled = original.enabled;
+            weight = original.weight; // Adicionado para garantir que o peso seja clonado
         }
+
+        protected abstract override IDeepCloneable CreateCloneInstance(Cloner cloner);
+
+        /// <summary>
+        /// Gets the format string for this symbol, used for display purposes.
+        /// For example, an addition symbol might return "+".
+        /// </summary>
+        /// <returns>The format string.</returns>
+        public abstract string GetFormatString(); // Moved from individual symbols to base Symbol class
 
         /// <summary>
         /// Creates a tree node for this symbol
         /// </summary>
         /// <returns>A new tree node instance</returns>
-        public virtual ISymbolicExpressionTreeNode CreateTreeNode()
-        {
-            return new SymbolicExpressionTreeNode(this);
-        }
+        public abstract ISymbolicExpressionTreeNode CreateTreeNode();
 
-        /// <summary>
-        /// Gets the format string for displaying this symbol
-        /// </summary>
-        /// <returns>Format string</returns>
-        public virtual string GetFormatString()
-        {
-            return Name;
-        }
-
-        public override string ToString()
-        {
-            return Name;
-        }
+        // Evaluate method remains abstract as its implementation is specific to each symbol type
+        // public abstract object Evaluate(params object[] arguments); // Example, adjust as per your design
     }
 }

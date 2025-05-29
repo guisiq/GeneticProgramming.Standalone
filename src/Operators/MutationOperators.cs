@@ -70,7 +70,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this mutator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new SubtreeMutator(this, cloner);
         }
@@ -162,7 +162,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this mutator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new ChangeNodeTypeMutator(this, cloner);
         }
@@ -291,7 +291,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this mutator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new ChangeTerminalMutator(this, cloner);
         }

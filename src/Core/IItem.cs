@@ -10,7 +10,7 @@ namespace GeneticProgramming.Core
     /// </summary>
     public interface IDeepCloneable
     {
-        IDeepCloneable Clone(Cloner cloner);
+        IDeepCloneable Clone(Cloner cloner); // Cloner ainda é um tipo usado aqui
     }
 
     /// <summary>
@@ -25,70 +25,12 @@ namespace GeneticProgramming.Core
     /// <summary>
     /// Base interface for all framework items
     /// </summary>
-    public interface IItem : IDeepCloneable, INamedItem, IOperator // Added IOperator
+    public interface IItem : IDeepCloneable, INamedItem, IOperator
     {
         string ItemName { get; }
         string ItemDescription { get; }
         Version ItemVersion { get; }
         string ItemImage { get; }
-    }
-
-    /// <summary>
-    /// Cloner class responsible for deep cloning operations
-    /// </summary>
-    public class Cloner
-    {
-        private readonly Dictionary<object, object> clonedObjectsMap;
-
-        public Cloner()
-        {
-            clonedObjectsMap = new Dictionary<object, object>();
-        }
-
-        /// <summary>
-        /// Registers a clone for an object to handle circular references
-        /// </summary>
-        public void RegisterClonedObject(object original, object clone)
-        {
-            clonedObjectsMap[original] = clone;
-        }
-
-        /// <summary>
-        /// Checks if a clone is already registered for a given object
-        /// </summary>
-        public bool ClonedObjectRegistered(object original)
-        {
-            return clonedObjectsMap.ContainsKey(original);
-        }
-
-        /// <summary>
-        /// Returns the clone of an object, if it was already cloned
-        /// </summary>
-        public T? GetClone<T>(T original) where T : class
-        {
-            if (original == null) return null;
-            if (clonedObjectsMap.TryGetValue(original, out var clone))
-                return (T)clone;
-            return null;
-        }
-
-        public T Clone<T>(T original) where T : class
-        {
-            if (original == null) return null!;
-
-            // Check if already cloned
-            if (clonedObjectsMap.TryGetValue(original, out var existing))
-                return (T)existing;
-
-            if (original is IDeepCloneable cloneable)
-            {
-                // The cloneable object is responsible for registering itself
-                var clone = cloneable.Clone(this);
-                return (T)clone;
-            }
-
-            throw new NotSupportedException($"Type {typeof(T)} does not implement IDeepCloneable");
-        }
     }
 
     /// <summary>

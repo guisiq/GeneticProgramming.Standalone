@@ -178,6 +178,16 @@ namespace GeneticProgramming.Expressions
         }
 
         /// <summary>
+        /// Creates a clone instance.
+        /// </summary>
+        /// <param name="cloner">The cloner to use for creating the clone instance.</param>
+        /// <returns>A new clone instance of the grammar.</returns>
+        public Core.Item CreateCloneInstance(Core.Cloner cloner)
+        {
+            return new SymbolicExpressionTreeGrammar(this, cloner);
+        }
+
+        /// <summary>
         /// Gets symbols that are allowed as children of the specified parent symbol.
         /// </summary>
         /// <param name="parent">The parent symbol.</param>

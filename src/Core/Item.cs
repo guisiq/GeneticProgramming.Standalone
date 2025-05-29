@@ -81,14 +81,33 @@ namespace GeneticProgramming.Core
             
             name = original.name;
             description = original.description;
-            // Parameters are not cloned by default in this base class, 
-            // derived classes should handle cloning if necessary or if Parameters are part of their state.
-            // Consider if a deep clone of parameters is needed here or if it's specific to certain items.
-            // For now, let's assign a new collection or clone if original.Parameters is not null.
             _parameters = original.Parameters != null ? cloner.Clone(original.Parameters) : new ParameterCollection();
         }
 
-        public abstract IDeepCloneable Clone(Cloner cloner);
+        // Tornando Clone virtual e adicionando a lógica padrão.
+        // As classes derivadas não precisarão mais verificar ClonedObjectRegistered diretamente em Clone.
+        public virtual IDeepCloneable Clone(Cloner cloner)
+        {
+            if (cloner.ClonedObjectRegistered(this))
+            {
+                return cloner.GetClone(this)!;
+            }
+            // A instância criada por CreateCloneInstance será registrada
+            // automaticamente quando seu construtor chamar o construtor base Item(original, cloner).
+            return CreateCloneInstance(cloner);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the derived type for cloning.
+        /// This method is called by the base Clone method after ensuring the object
+        /// hasn't already been cloned by the provided Cloner instance.
+        /// The constructor of the derived class, typically a copy constructor,
+        /// is responsible for calling the base Item(original, cloner) constructor,
+        /// which will handle the registration of the new clone.
+        /// </summary>
+        /// <param name="cloner">The cloner to use for the cloning process.</param>
+        /// <returns>A new instance of the derived type.</returns>
+        protected abstract IDeepCloneable CreateCloneInstance(Cloner cloner);
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

@@ -93,7 +93,8 @@ namespace GeneticProgramming.Expressions
                     clonedSubtree.Parent = this;
                 }
             }
-        }        public override IDeepCloneable Clone(Cloner cloner)
+        }
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new SymbolicExpressionTreeNode(this, cloner);
         }

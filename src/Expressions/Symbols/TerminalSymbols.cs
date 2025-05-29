@@ -48,6 +48,11 @@ namespace GeneticProgramming.Expressions.Symbols
         {
             return "X";
         }
+
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        {
+            return new Variable(this, cloner);
+        }
     }
 
     /// <summary>
@@ -72,6 +77,10 @@ namespace GeneticProgramming.Expressions.Symbols
         }        public override string GetFormatString()
         {
             return "C";
+        }
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        {
+            return new Constant(this, cloner);
         }
     }
 }

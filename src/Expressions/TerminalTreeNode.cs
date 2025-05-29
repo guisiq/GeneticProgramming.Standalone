@@ -188,7 +188,7 @@ namespace GeneticProgramming.Expressions
             value = original.value;
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new ConstantTreeNode(this, cloner);
         }
@@ -254,7 +254,7 @@ namespace GeneticProgramming.Expressions
             variableName = original.variableName;
         }
 
-        public override IDeepCloneable Clone(Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new VariableTreeNode(this, cloner);
         }

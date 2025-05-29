@@ -55,6 +55,11 @@ namespace GeneticProgramming.Data
         {
             return new IntValue(this, cloner);
         }
+
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        {
+            return new IntValue(this, cloner);
+        }
     }
 
     /// <summary>
@@ -71,6 +76,11 @@ namespace GeneticProgramming.Data
         {
             return new DoubleValue(this, cloner);
         }
+
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        {
+            return new DoubleValue(this, cloner);
+        }
     }
 
     /// <summary>
@@ -84,6 +94,11 @@ namespace GeneticProgramming.Data
         protected BoolValue(BoolValue original, Cloner cloner) : base(original, cloner) { }
 
         public override IDeepCloneable Clone(Cloner cloner)
+        {
+            return new BoolValue(this, cloner);
+        }
+
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
         {
             return new BoolValue(this, cloner);
         }
@@ -118,6 +133,11 @@ namespace GeneticProgramming.Data
         }
 
         public override IDeepCloneable Clone(Cloner cloner)
+        {
+            return new StringValue(this, cloner);
+        }
+
+        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
         {
             return new StringValue(this, cloner);
         }

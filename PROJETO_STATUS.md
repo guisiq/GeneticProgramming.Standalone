@@ -17,6 +17,7 @@ Este projeto é uma extração independente dos componentes de Programação Gen
 - [x] **Gerenciamento de cache** - Otimização de profundidade e comprimento
 - [x] **Relacionamentos pai-filho** - Manutenção automática de referências
 - [x] **Compilação bem-sucedida** - Projeto compila sem erros
+- [x] **Padronização da clonagem profunda com `CreateCloneInstance`** - Implementado o método `CreateCloneInstance` em classes chave (`SymbolicExpressionTreeGrammar`, `GeneticProgrammingAlgorithm`, `MersenneTwister`, `IntValue`, `DoubleValue`, `BoolValue`, `StringValue`, `ConcreteSymbolicExpressionTreeOperator`, `Variable`, `Constant`) para um mecanismo de clonagem mais robusto e consistente. O método `CreateCloneInstance` foi tornado abstrato em `SymbolicExpressionTreeOperator`.
 
 ### 🔄 PRÓXIMO OBJETIVO: Sistema de Símbolos
 Com a base das árvores funcionando, agora podemos implementar símbolos específicos (Add, Mul, Variable, Constant) que darão significado matemático às árvores.

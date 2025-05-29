@@ -2,6 +2,7 @@
 
 ## 🎯 Objetivo da Etapa
 Garantir a corretude e robustez da biblioteca de Programação Genética através da criação e execução de testes de integração e unitários abrangentes. Validar a interação entre os diferentes componentes e o comportamento individual de unidades de código críticas.
+caso de erro em um teste analizar log e se precisar de mais infrmacao execute  Teste Unitário Diagnóstico para obter mais informacoes 
 
 ## 📝 Plano de Testes e Fluxos de Integração
 
