@@ -12,6 +12,8 @@ namespace GeneticProgramming.Core
     [Item("Item", "Base class for all items")]
     public abstract class Item : IItem
     {
+        public Guid Id { get; } // Add this line
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private string name = string.Empty;
@@ -65,6 +67,7 @@ namespace GeneticProgramming.Core
 
         protected Item()
         {
+            Id = Guid.NewGuid(); // Add this line to initialize Id
             var attr = GetType().GetCustomAttribute<ItemAttribute>();
             if (attr != null)
             {
@@ -79,6 +82,7 @@ namespace GeneticProgramming.Core
             // Register this clone early to handle circular references
             cloner.RegisterClonedObject(original, this);
             
+            Id = original.Id; // Add this line to copy Id during cloning
             name = original.name;
             description = original.description;
             _parameters = original.Parameters != null ? cloner.Clone(original.Parameters) : new ParameterCollection();
