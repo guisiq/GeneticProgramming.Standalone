@@ -54,7 +54,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use for the cloning process.</param>
         /// <returns>A new instance of SubtreeCrossover.</returns>
-        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        protected override Item CreateCloneInstance(Cloner cloner)
         {
             return new SubtreeCrossover(this, cloner);
         }
@@ -179,7 +179,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use for the cloning process.</param>
         /// <returns>A new instance of OnePointCrossover.</returns>
-        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        protected override Item CreateCloneInstance(Cloner cloner)
         {
             return new OnePointCrossover(this, cloner);
         }

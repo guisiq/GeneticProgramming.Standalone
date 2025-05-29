@@ -436,7 +436,7 @@ namespace GeneticProgramming.Algorithms
             return (ISymbolicExpressionTree)best!.Clone(new Cloner());
         }
 
-        public Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new GeneticProgrammingAlgorithm(this, cloner);
         }

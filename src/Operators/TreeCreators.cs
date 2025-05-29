@@ -32,7 +32,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this creator</returns>
-        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        protected override Item CreateCloneInstance(Cloner cloner)
         {
             return new GrowTreeCreator(this, cloner);
         }
@@ -173,7 +173,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this creator</returns>
-        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        protected override Item CreateCloneInstance(Cloner cloner)
         {
             return new FullTreeCreator(this, cloner);
         }

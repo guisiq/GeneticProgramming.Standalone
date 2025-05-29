@@ -68,7 +68,7 @@ namespace GeneticProgramming.Core
             return new MersenneTwister(this, cloner);
         }
 
-        public Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new MersenneTwister(this, cloner);
         }

@@ -11,6 +11,7 @@ namespace GeneticProgramming.Core
     public interface IDeepCloneable
     {
         IDeepCloneable Clone(Cloner cloner); // Cloner ainda é um tipo usado aqui
+        //IDeepCloneable CreateCloneInstance(Cloner cloner); // Cloner ainda é um tipo usado aqui
     }
 
     /// <summary>

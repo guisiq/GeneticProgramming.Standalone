@@ -17,7 +17,8 @@ namespace GeneticProgramming.Expressions.Symbols
 
         protected TerminalSymbol(TerminalSymbol original, Cloner cloner) : base(original, cloner)
         {
-        }        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        }
+        public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
             return new SymbolicExpressionTreeNode(this);
         }
@@ -49,7 +50,7 @@ namespace GeneticProgramming.Expressions.Symbols
             return "X";
         }
 
-        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override Core.Item CreateCloneInstance(Core.Cloner cloner)
         {
             return new Variable(this, cloner);
         }
@@ -78,7 +79,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
             return "C";
         }
-        public override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override Core.Item CreateCloneInstance(Core.Cloner cloner)
         {
             return new Constant(this, cloner);
         }

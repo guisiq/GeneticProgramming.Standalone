@@ -15,7 +15,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Core
             
             public TestItem(TestItem original, Cloner cloner) : base(original, cloner) { }
 
-            public override IDeepCloneable Clone(Cloner cloner)
+ 
+
+            protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
             {
                 return new TestItem(this, cloner);
             }
