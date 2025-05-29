@@ -48,7 +48,7 @@ namespace GeneticProgramming.Core
         /// <typeparam name="T">The type of the original object.</typeparam>
         /// <param name="original">The original object.</param>
         /// <returns>The cloned instance of type T if found, otherwise null.</returns>
-        public T? GetClone<T>(T original) where T : class
+        public T? GetClone<T>(T? original) where T : class
         {
             if (original == null) return null;
             if (clonedObjectsMap.TryGetValue(original, out var clone))
@@ -75,9 +75,9 @@ namespace GeneticProgramming.Core
                 /// to create a new instance, and the new instance (usually in its copy constructor)
         /// should call `cloner.RegisterClonedObject(originalInstance, thisNewCloneInstance)`.
         /// </remarks>
-        public T Clone<T>(T original) where T : class
+        public T? Clone<T>(T? original) where T : class
         {
-            if (original == null) return null!;
+            if (original == null) return null;
 
             // Check if already cloned by this cloner instance
             if (clonedObjectsMap.TryGetValue(original, out var existingClone))
