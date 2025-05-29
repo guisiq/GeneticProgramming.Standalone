@@ -68,6 +68,43 @@ Garantir a corretude e robustez da biblioteca de Programação Genética atravé
 
 **🎯 Progresso Geral dos Testes: 2/16 fluxos principais concluídos (12.5%)**
 
+## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
+
+### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
+
+**Testes de Integração Implementados:**
+- ✅ `OperatorCreationIntegrationTests.cs` - **TODOS OS TESTES PASSANDO**
+  - `OperatorCreation_CanCreateAllTreeCreators`: Valida criação de GrowTreeCreator e FullTreeCreator
+  - `OperatorCreation_CanCreateAllCrossoverOperators`: Valida criação de SubtreeCrossover e OnePointCrossover  
+  - `OperatorCreation_CanCreateAllMutationOperators`: Valida criação de SubtreeMutator e ChangeNodeTypeMutator
+  - `OperatorCreation_AllOperatorsHaveValidDefaultState`: Verifica estado padrão válido usando cast para IItem
+  - `OperatorCreation_OperatorsCanBeInstantiatedMultipleTimes`: Testa instanciação múltipla e independência
+  - `OperatorCreation_OperatorsInheritFromCorrectBaseClasses`: Valida hierarquia de herança
+
+- ✅ `OperatorParametersIntegrationTests.cs` - **TODOS OS TESTES PASSANDO**
+  - `OperatorParameters_CanGetAndSetSubtreeCrossoverParameters`: Testa acesso/modificação de InternalNodeProbability
+  - `OperatorParameters_CanGetAndSetSubtreeMutatorParameters`: Testa acesso/modificação de MaxTreeLength/MaxTreeDepth
+  - `OperatorParameters_PropertyChangedEventsFireCorrectly`: Valida eventos PropertyChanged
+  - `OperatorParameters_PropertyChangedEventsNotFiredForSameValue`: Testa que eventos não disparam para mesmo valor
+  - `OperatorParameters_AllOperatorsHaveAccessibleParameters`: Verifica acesso a parâmetros usando cast para IItem
+  - `OperatorParameters_CanAccessParametersAfterModification`: Testa acesso pós-modificação
+  - `OperatorParameters_ParametersCollectionIsConsistent`: Valida consistência da coleção de parâmetros
+
+- 🔶 `OperatorCloningIntegrationTests.cs` - **2 TESTES FALHANDO - EM CORREÇÃO**
+  - ✅ `OperatorCloning_AllOperatorTypesClonesSuccessfully`: Clonagem básica funcionando
+  - ✅ `OperatorCloning_SubtreeCrossoverClonesParametersCorrectly`: Clonagem de parâmetros específicos
+  - ✅ `OperatorCloning_SubtreeMutatorClonesParametersCorrectly`: Clonagem de parâmetros de mutação
+  - ✅ `OperatorCloning_PropertyChangedEventsWorkOnClonedOperators`: Eventos independentes entre clones
+  - ✅ `OperatorCloning_ClonePreservesEventHandling`: Preservação de manipulação de eventos
+  - ❌ `OperatorCloning_ClonedOperatorsAreIndependent` (corrigido: agora usa cloners diferentes)
+  - ❌ `OperatorCloning_ClonerHandlesCircularReferencesCorrectly`: O Cloner não retorna o mesmo clone na segunda clonagem do mesmo objeto, indicando falha no registro de referências circulares.
+
+**Estatísticas de Testes (Fluxo 1):**
+- **Total de Testes**: 18 testes de integração de operadores
+- **Passando**: 16 testes ✅
+- **Falhando**: 2 testes ❌ (relacionados à lógica do Cloner)
+- **Taxa de Sucesso**: 89% 
+
 ### ✅ Fluxos Concluídos:
 - **Testes Unitários:**
     - [x] `ParameterCollectionTests` ✅ **CONCLUÍDO** - Corrigidos erros de compilação e 8 testes passando
