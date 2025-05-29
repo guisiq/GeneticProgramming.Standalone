@@ -27,6 +27,7 @@ Esta etapa foca em validar a funcionalidade e a robustez do framework de Program
 * **29/05/2025** - Início da Fase de Validação. Compilação e execução de exemplos básicos (`BasicGPTest.cs`) foram bem-sucedidas.
 * **29/05/2025** - Foco inicial na criação de testes unitários para a classe `SymbolicRegressionGrammar`.
 * **29/05/2025** - Análise do arquivo `.csproj` confirmou o uso do xUnit como framework de testes.
+* **29/05/2025** - **Refatoração de TreeCreators**: Separou o arquivo `TreeCreators.cs` em dois arquivos distintos (`GrowTreeCreator.cs` e `FullTreeCreator.cs`) para melhor organização do código e manutenibilidade. Todos os 123 testes continuam passando.
 
 ## Mudanças de Planejamento:
 
