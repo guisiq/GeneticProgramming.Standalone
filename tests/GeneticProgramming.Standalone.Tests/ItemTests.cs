@@ -236,6 +236,19 @@ namespace GeneticProgramming.Standalone.UnitTests.Core
         }
 
         [Fact]
+        public void ItemImage_ReturnsEmptyString()
+        {
+            // Arrange
+            var item = new TestItem();
+
+            // Act
+            var result = item.ItemImage;
+
+            // Assert
+            Assert.Equal(string.Empty, result);
+        }
+
+        [Fact]
         public void Parameters_InitializedOnConstruction()
         {
             // Arrange & Act
