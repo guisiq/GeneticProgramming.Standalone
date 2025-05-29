@@ -8,13 +8,16 @@
     <Description>Standalone Genetic Programming library extracted from HeuristicLab</Description>
     <Copyright>Based on HeuristicLab - GNU GPL v3</Copyright>
     <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <!-- Exclude only ComprehensiveGPTest.cs from build -->
+    <Compile Include="src/**/*.cs" />
+    <Compile Include="examples/**/*.cs" />
     <Compile Remove="examples/ComprehensiveGPTest.cs" />
   </ItemGroup>
 </Project>

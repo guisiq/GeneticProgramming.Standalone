@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using GeneticProgramming.Abstractions.Parameters;
@@ -16,6 +17,9 @@ namespace GeneticProgramming.Abstractions.Parameters
 
         public void Add(IParameter parameter)
         {
+            if (parameter == null)
+                throw new ArgumentNullException(nameof(parameter));
+            
             parameters.Add(parameter);
         }
 

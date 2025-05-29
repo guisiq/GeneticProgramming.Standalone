@@ -1,8 +1,3 @@
-C:/Users/Guilherme/source/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.GeneratedMSBuildEditorConfig.editorconfig
-C:/Users/Guilherme/source/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.AssemblyInfoInputs.cache
-C:/Users/Guilherme/source/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.AssemblyInfo.cs
-C:/Users/Guilherme/source/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.csproj.CoreCompileInputs.cache
-C:/Users/Guilherme/source/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.sourcelink.json
 /workspaces/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.GeneratedMSBuildEditorConfig.editorconfig
 /workspaces/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.AssemblyInfoInputs.cache
 /workspaces/GeneticProgramming.Standalone/obj/Debug/net8.0/GeneticProgramming.Standalone.AssemblyInfo.cs

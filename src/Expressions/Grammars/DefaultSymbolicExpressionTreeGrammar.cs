@@ -14,6 +14,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// Initializes a new instance of the DefaultSymbolicExpressionTreeGrammar class.
         /// </summary>
         public DefaultSymbolicExpressionTreeGrammar()
+            : base("DefaultGrammar", "A default grammar for symbolic expressions with basic mathematical operations")
         {
             Initialize();
         }        /// <summary>

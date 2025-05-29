@@ -63,7 +63,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// <param name="allowConstants">Whether to allow constants in expressions.</param>
         /// <param name="allowDivision">Whether to allow division operations.</param>
         public SymbolicRegressionGrammar(IEnumerable<string> variableNames, bool allowConstants = true, bool allowDivision = true)
-            : base()
+            : base("SymbolicRegressionGrammar", "A grammar for symbolic regression with mathematical operations and variables")
         {
             _variableNames = new List<string>(variableNames ?? throw new ArgumentNullException(nameof(variableNames)));
             _allowConstants = allowConstants;
