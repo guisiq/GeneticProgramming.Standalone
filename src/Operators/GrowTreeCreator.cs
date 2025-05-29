@@ -47,6 +47,11 @@ namespace GeneticProgramming.Operators
         /// <returns>A new symbolic expression tree</returns>
         public ISymbolicExpressionTree CreateTree(IRandom random, ISymbolicExpressionTreeGrammar grammar, int maxTreeLength, int maxTreeDepth)
         {
+            // Validate parameters
+            if (random == null) throw new ArgumentNullException(nameof(random));
+            if (grammar == null) throw new ArgumentNullException(nameof(grammar));
+            if (maxTreeLength < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than 0");
+            if (maxTreeDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than 0");
             var tree = new SymbolicExpressionTree();
             var rootNode = CreateNode(random, grammar, maxTreeDepth, maxTreeLength);
             tree.Root = rootNode;
