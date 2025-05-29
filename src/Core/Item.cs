@@ -76,6 +76,9 @@ namespace GeneticProgramming.Core
 
         protected Item(Item original, Cloner cloner)
         {
+            // Register this clone early to handle circular references
+            cloner.RegisterClonedObject(original, this);
+            
             name = original.name;
             description = original.description;
             // Parameters are not cloned by default in this base class, 

@@ -212,7 +212,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Core
 
             public IDeepCloneable Clone(Cloner cloner)
             {
-                return new TestDeepCloneable { Value = this.Value };
+                var clone = new TestDeepCloneable { Value = this.Value };
+                cloner.RegisterClonedObject(this, clone);
+                return clone;
             }
         }
 
@@ -224,7 +226,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Core
             public IDeepCloneable Clone(Cloner cloner)
             {
                 var clone = new CircularReferenceTest { Value = this.Value };
-                cloner.RegisterClone(this, clone);
+                cloner.RegisterClonedObject(this, clone);
                 
                 if (Reference != null)
                 {
