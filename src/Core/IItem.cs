@@ -43,7 +43,17 @@ namespace GeneticProgramming.Core
         public Cloner()
         {
             clonedObjectsMap = new Dictionary<object, object>();
-        }        public T Clone<T>(T original) where T : class
+        }
+
+        /// <summary>
+        /// Registers a clone for an object to handle circular references
+        /// </summary>
+        public void RegisterClone(object original, object clone)
+        {
+            clonedObjectsMap[original] = clone;
+        }
+
+        public T Clone<T>(T original) where T : class
         {
             if (original == null) return null!;
 
@@ -52,6 +62,7 @@ namespace GeneticProgramming.Core
 
             if (original is IDeepCloneable cloneable)
             {
+                // Create a placeholder first to handle circular references
                 var clone = cloneable.Clone(this);
                 clonedObjectsMap[original] = clone;
                 return (T)clone;

@@ -1,4 +1,5 @@
 using GeneticProgramming.Abstractions.Parameters;
+using GeneticProgramming.Core;
 
 namespace GeneticProgramming.Abstractions.Parameters
 {
@@ -14,6 +15,17 @@ namespace GeneticProgramming.Abstractions.Parameters
         {
             Name = name;
             Description = description;
+        }
+
+        protected Parameter(Parameter original, Cloner cloner)
+        {
+            Name = original.Name;
+            Description = original.Description;
+        }
+
+        public virtual IDeepCloneable Clone(Cloner cloner)
+        {
+            return new Parameter(this, cloner);
         }
     }
 }
