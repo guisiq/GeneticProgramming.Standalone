@@ -50,17 +50,14 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="cloner">The cloner to use</param>
         /// <returns>A deep clone of this operator</returns>
-        public override IDeepCloneable Clone(Cloner cloner)
-        {
-            return new ConcreteSymbolicExpressionTreeOperator(this, cloner);
-        }
+        
 
         /// <summary>
         /// Creates a clone instance, to be implemented by derived classes.
         /// </summary>
         /// <param name="cloner">The cloner to use for cloning.</param>
         /// <returns>A new instance of the derived type.</returns>
-        protected abstract override Core.Item CreateCloneInstance(Core.Cloner cloner);
+        protected override Core.Item CreateCloneInstance(Core.Cloner cloner) =>  new ConcreteSymbolicExpressionTreeOperator(this, cloner);
 
         /// <summary>
         /// Concrete implementation for cloning purposes

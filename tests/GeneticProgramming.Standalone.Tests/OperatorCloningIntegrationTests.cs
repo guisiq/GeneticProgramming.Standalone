@@ -7,11 +7,15 @@ using System.Linq;
 namespace GeneticProgramming.Standalone.IntegrationTests.Operators
 {
     /// <summary>
-    /// Integration tests for operator cloning functionality
-    /// Tests the ability to clone operators and maintain parameter independence
+    /// Integração testes para funcionalidade de clonagem de operador
+    /// Testa a capacidade de clonar operadores e manter a independência de parâmetros
     /// </summary>
     public class OperatorCloningIntegrationTests
     {
+        /// <summary>
+        /// Testa se o operador SubtreeCrossover clona corretamente seus parâmetros, nome e descrição,
+        /// e se o clone é independente do original.
+        /// </summary>
         [Fact]
         public void OperatorCloning_SubtreeCrossoverClonesParametersCorrectly()
         {
@@ -55,6 +59,10 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.Equal("Modified Description", original.Description);
         }
 
+        /// <summary>
+        /// Testa se o operador SubtreeMutator clona corretamente seus parâmetros, nome e descrição,
+        /// e se o clone é independente do original.
+        /// </summary>
         [Fact]
         public void OperatorCloning_SubtreeMutatorClonesParametersCorrectly()
         {
@@ -100,6 +108,11 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.Equal("Modified Original", original.Name);
         }
 
+        /// <summary>
+        /// Testa se todos os tipos de operadores podem ser clonados com sucesso,
+        /// verificando se o clone não é a mesma instância, possui o tipo correto,
+        /// e se sua coleção de parâmetros também é clonada e independente.
+        /// </summary>
         [Fact]
         public void OperatorCloning_AllOperatorTypesClonesSuccessfully()
         {
@@ -146,6 +159,10 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             }
         }
 
+        /// <summary>
+        /// Testa se os eventos PropertyChanged são disparados corretamente em um operador clonado
+        /// quando suas propriedades são modificadas, e se o operador original permanece inalterado.
+        /// </summary>
         [Fact]
         public void OperatorCloning_PropertyChangedEventsWorkOnClonedOperators()
         {
@@ -177,6 +194,10 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.Equal(0.6, original.InternalNodeProbability); // Original unchanged
         }
 
+        /// <summary>
+        /// Testa se múltiplos clones criados a partir do mesmo operador original são independentes entre si
+        /// e do operador original, especialmente em relação às suas propriedades e coleções de parâmetros.
+        /// </summary>
         [Fact]
         public void OperatorCloning_ClonedOperatorsAreIndependent()
         {
@@ -211,6 +232,10 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.NotSame(clone1.Parameters, clone2.Parameters);
         }
 
+        /// <summary>
+        /// Testa se o tratamento de eventos (especificamente PropertyChanged) é preservado em operadores clonados
+        /// e se as inscrições de eventos no original e no clone são independentes.
+        /// </summary>
         [Fact]
         public void OperatorCloning_ClonePreservesEventHandling()
         {
@@ -241,6 +266,11 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.Equal(1, cloneEventCount); // Clone count unchanged
         }
 
+        /// <summary>
+        /// Testa se o Cloner lida corretamente com referências circulares ou solicitações de clonagem repetidas,
+        /// retornando a mesma instância clonada para o mesmo objeto original ao usar a mesma instância do cloner.
+        /// Também verifica se uma nova instância do cloner produz um clone novo e distinto.
+        /// </summary>
         [Fact]
         public void OperatorCloning_ClonerHandlesCircularReferencesCorrectly()
         {
