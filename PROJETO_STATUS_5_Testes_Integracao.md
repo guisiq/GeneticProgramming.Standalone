@@ -67,9 +67,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 2/16 fluxos principais concluídos (12.5%)**
+**🎯 Progresso Geral dos Testes: 3/16 fluxos principais concluídos (18.75%)**
 
-## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
+Última execução de testes: **153** testes passando.
+
+## 🔄 Status Atual de Implementação (Atualizado: 30/05/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -102,9 +104,9 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 **Estatísticas de Testes (Fluxo 1):**
 - **Total de Testes**: 18 testes de integração de operadores
-- **Passando**: 16 testes ✅
-- **Falhando**: 2 testes ❌ (relacionados à lógica do Cloner)
-- **Taxa de Sucesso**: 89% 
+- **Passando**: 18 testes ✅
+- **Falhando**: 0 testes
+- **Taxa de Sucesso**: 100%
 
 ### ✅ Fluxos Concluídos:
 - **Testes Unitários:**
