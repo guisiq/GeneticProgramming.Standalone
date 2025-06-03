@@ -69,7 +69,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 **🎯 Progresso Geral dos Testes: 3/16 fluxos principais concluídos (18.75%)**
 
-Última execução de testes: **153** testes passando.
+Última execução de testes: **156** testes passando.
 
 ## 🔄 Status Atual de Implementação (Atualizado: 30/05/2025)
 
