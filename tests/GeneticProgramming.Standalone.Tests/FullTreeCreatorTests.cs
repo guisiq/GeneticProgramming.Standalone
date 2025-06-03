@@ -216,6 +216,57 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
             Assert.Throws<ArgumentOutOfRangeException>(() => creator.CreateTree(_random, _grammar, maxTreeLength, maxTreeDepth));
         }
 
+        /// <summary>
+        /// Verifies that CreateTree throws ArgumentOutOfRangeException for a negative maxTreeLength.
+        /// </summary>
+        [Fact]
+        public void CreateTree_NegativeMaxTreeLength_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            var creator = new FullTreeCreator();
+            int maxTreeLength = -1;
+            int maxTreeDepth = 5;
+
+            // Act & Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => creator.CreateTree(_random, _grammar, maxTreeLength, maxTreeDepth));
+        }
+
+        /// <summary>
+        /// Verifies that CreateTree throws InvalidOperationException if the grammar has no enabled symbols.
+        /// The Full method requires non-terminal symbols to build down to the max depth.
+        /// </summary>
+        [Fact]
+        public void CreateTree_GrammarWithNoEnabledSymbols_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var creator = new FullTreeCreator();
+            var emptyGrammar = new SymbolicExpressionTreeGrammar("EmptyGrammarForFullTest", "Grammar with no enabled symbols");
+            
+            int maxTreeLength = 5;
+            int maxTreeDepth = 3;
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => creator.CreateTree(_random, emptyGrammar, maxTreeLength, maxTreeDepth));
+        }
+
+        /// <summary>
+        /// Verifies that CreateTree throws InvalidOperationException if no terminal symbols are available when one is required by the Full method.
+        /// The Full method places terminals at the maximum depth.
+        /// </summary>
+        [Fact]
+        public void CreateTree_GrammarWithNoTerminalSymbolsWhenTerminalRequired_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var creator = new FullTreeCreator();
+            var nonTerminalOnlyGrammar = new SymbolicExpressionTreeGrammar("NonTerminalOnlyGrammarFullTest", "Grammar intended to lack terminals");
+            
+            int maxTreeLength = 10; 
+            int maxTreeDepth = 1;   // Force attempt to select a terminal at root.
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => creator.CreateTree(_random, nonTerminalOnlyGrammar, maxTreeLength, maxTreeDepth));
+        }
+
         // Helper method to check if all nodes at a certain depth are terminals
         private bool AreAllNodesAtDepthTerminals(ISymbolicExpressionTreeNode node, int targetDepth, int currentDepth)
         {
