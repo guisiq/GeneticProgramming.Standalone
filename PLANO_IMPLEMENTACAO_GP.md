@@ -102,7 +102,7 @@ GeneticProgramming.Standalone/
 ## Fase 5: Validação
 - [x] Compilação sem erros
 - [x] Execução dos exemplos
-- [ ] Testes funcionais ← EM PROGRESSO
+ - [x] Testes funcionais - 153 testes automatizados executados com sucesso
 
 ---
 
@@ -116,4 +116,4 @@ GeneticProgramming.Standalone/
 
 ---
 
-**Última atualização:** 29/05/2025 - Conclusão da Fase 4 e início da Fase 5: Validação (foco em testes funcionais).
+**Última atualização:** 30/05/2025 - Testes funcionais concluídos e 153 testes passaram com sucesso.

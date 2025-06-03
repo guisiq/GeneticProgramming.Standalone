@@ -4,8 +4,8 @@
 Este projeto é uma extração independente dos componentes de Programação Genética do HeuristicLab, criado para ser uma biblioteca standalone funcional.
 
 
-## 🎯 STATUS ATUAL: ✅ SymbolicExpressionTreeNode Implementado
-**MARCO ALCANÇADO!** O projeto agora possui um sistema funcional de árvores de expressão simbólica com nós completos capazes de realizar operações de árvore reais.
+## 🎯 STATUS ATUAL: ✅ Validação inicial concluída
+**MARCO ALCANÇADO!** O projeto compila sem erros e os testes automatizados estão passando, demonstrando que os principais componentes funcionam conforme esperado.
 
 ### ✅ CONCLUÍDO RECENTEMENTE
 - [x] **SymbolicExpressionTreeNode implementado** - Componente crítico finalizado
@@ -16,8 +16,8 @@ Este projeto é uma extração independente dos componentes de Programação Gen
 - [x] **Compilação bem-sucedida** - Projeto compila sem erros
 - [x] **Padronização da clonagem profunda com `CreateCloneInstance`** - Implementado o método `CreateCloneInstance` em classes chave (`SymbolicExpressionTreeGrammar`, `GeneticProgrammingAlgorithm`, `MersenneTwister`, `IntValue`, `DoubleValue`, `BoolValue`, `StringValue`, `ConcreteSymbolicExpressionTreeOperator`, `Variable`, `Constant`) para um mecanismo de clonagem mais robusto e consistente. O método `CreateCloneInstance` foi tornado abstrato em `SymbolicExpressionTreeOperator`.
 
-### 🔄 PRÓXIMO OBJETIVO: Sistema de Símbolos
-Com a base das árvores funcionando, agora podemos implementar símbolos específicos (Add, Mul, Variable, Constant) que darão significado matemático às árvores.
+### 🔄 PRÓXIMO OBJETIVO: Expandir cobertura de testes e exemplos
+Com os símbolos e operadores básicos implementados, o foco passa a ser aumentar a cobertura de testes e disponibilizar exemplos de uso mais completos.
 
 ---
 
@@ -56,11 +56,11 @@ GeneticProgramming.Standalone/
 - **ISymbol**: ✅ **IMPLEMENTADO**
 - **ISymbolicExpressionTreeGrammar**: ✅ **IMPLEMENTADO**
 
-### 📋 Operators (Não Iniciado)
-- **Creators**: Criadores de árvores (Grow, Full, Ramped Half-and-Half)
-- **Crossovers**: Operadores de crossover (Subtree, etc.)
-- **Manipulators**: Operadores de mutação
-- **Architecture Manipulators**: Alteração da estrutura
+### 🔄 Operators (Parcialmente Implementado)
+- **Creators**: ✅ `GrowTreeCreator`, `FullTreeCreator`
+- **Crossovers**: ✅ `SubtreeCrossover`, `OnePointCrossover`
+- **Manipulators**: ✅ `SubtreeMutator`, `ChangeNodeTypeMutator`
+- **Architecture Manipulators**: [ ] Implementação futura
 
 ---
 
@@ -117,24 +117,24 @@ GeneticProgramming.Standalone/
 ### Fase 2: Expressões Simbólicas 🔄
 - [x] Interfaces de árvores
 - [x] SymbolicExpressionTree
-- [ ] **SymbolicExpressionTreeNode** ← **PRÓXIMO**
-- [ ] Sistema de símbolos
-- [ ] Gramáticas
+- [x] SymbolicExpressionTreeNode
+- [x] Sistema de símbolos
+- [x] Gramáticas
 
 ### Fase 3: Operadores Genéticos 📋
-- [ ] Criadores de população
-- [ ] Operadores de crossover
-- [ ] Operadores de mutação
+- [x] Criadores de população
+- [x] Operadores de crossover
+- [x] Operadores de mutação
 - [ ] Seletores
 
 ### Fase 4: Algoritmos e Problemas 📋
-- [ ] Algoritmo GP básico
+- [x] Algoritmo GP básico
 - [ ] Problemas exemplo
 - [ ] Avaliadores de fitness
 
 ### Fase 5: Testes e Exemplos 📋
-- [ ] Testes unitários
-- [ ] Exemplos funcionais
+- [x] Testes unitários e de integração
+- [ ] Exemplos funcionais adicionais
 - [ ] Documentação
 
 ---
@@ -154,34 +154,17 @@ GeneticProgramming.Standalone/
 
 ## 🎯 AÇÃO IMEDIATA
 
-**PRÓXIMO PASSO:** Implementar `SymbolicExpressionTreeNode.cs`
+**PRÓXIMO PASSO:** Aprimorar cobertura de testes e exemplos
 
-Este é o componente crítico que permitirá:
-1. Criar nós de árvore funcionales
-2. Implementar operações de árvore (adicionar/remover subárvores)
-3. Suportar iteração e manipulação de árvores
-4. Base para todos os operadores genéticos
+Agora que a infraestrutura principal está estável, o foco é criar mais testes automatizados e exemplos demonstrando o uso do framework.
 
 **Comando para continuar:**
 ```bash
-# Implementar SymbolicExpressionTreeNode
-# Extrair do HeuristicLab.Encodings.SymbolicExpressionTreeEncoding
+# Executar `dotnet test` para garantir que todos os testes continuem passando
 ```
 
-## 🔍 Detalhes do Sistema de Símbolos (Próximo Objetivo)
+## 🔍 Detalhes do Sistema de Símbolos
 
-O sistema de símbolos será responsável por:
-- Definir operações matemáticas (Add, Sub, Mul, Div)
-- Implementar variáveis e constantes
-- Suportar avaliação de expressões
-- Permitir simplificação de árvores
+Os principais símbolos (Add, Sub, Mul, Div, Variable, Constant) já foram implementados e validados nos testes.
 
-### Componentes a serem implementados:
-- [ ] `ISymbol` - Interface base para todos os símbolos
-- [ ] `Symbol` - Classe base abstrata para símbolos
-- [ ] `BinarySymbol` - Base para operações binárias (Add, Mul, etc.)
-- [ ] `UnarySymbol` - Base para operações unárias (Sin, Cos, etc.)
-- [ ] `VariableSymbol` - Para representar variáveis
-- [ ] `ConstantSymbol` - Para representar constantes
-
-**Última atualização:** [Data Atual]
+**Última atualização:** 30/05/2025 - Build e 153 testes executados com sucesso.
