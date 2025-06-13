@@ -6,7 +6,9 @@ using GeneticProgramming.Operators;
 using System;
 using Xunit;
 
-namespace GeneticProgramming.Standalone.Tests
+//namespace GeneticProgramming.Standalone.Tests
+namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
+
 {
     public class GeneticProgrammingAlgorithmTests
     {
@@ -71,5 +73,72 @@ namespace GeneticProgramming.Standalone.Tests
 
             Assert.Equal(7, eventCount);
         }
+
+
+        [Fact]
+        public void Initialization_ConfiguresOperatorsCorrectly()
+        {
+            var grammar = new SymbolicRegressionGrammar();
+            var algorithm = new GeneticProgrammingAlgorithm
+            {
+                Grammar = grammar,
+                TreeCreator = new GrowTreeCreator(),
+                Crossover = new SubtreeCrossover(),
+                Mutator = new SubtreeMutator(),
+                Random = new MersenneTwister(1),
+                PopulationSize = 5,
+                MaxGenerations = 1
+            };
+
+            algorithm.Run();
+
+            Assert.All(algorithm.Population, t => Assert.NotNull(t.Root));
+            Assert.Equal(5, algorithm.Population.Count);
+        }
+
+        [Fact]
+        public void Population_MaintainsSizeAcrossGenerations()
+        {
+            var algorithm = new GeneticProgrammingAlgorithm
+            {
+                Grammar = new SymbolicRegressionGrammar(),
+                TreeCreator = new GrowTreeCreator(),
+                Crossover = new SubtreeCrossover(),
+                Mutator = new SubtreeMutator(),
+                Random = new MersenneTwister(2),
+                PopulationSize = 6,
+                MaxGenerations = 3,
+                MaxTreeDepth = 3,
+                MaxTreeLength = 15
+            };
+
+            algorithm.Run();
+
+            Assert.Equal(3, algorithm.Generation);
+            Assert.Equal(6, algorithm.Population.Count);
+        }
+
+        [Fact]
+        public void GenerationCompletedEvent_IsRaisedDuringRun()
+        {
+            var algorithm = new GeneticProgrammingAlgorithm
+            {
+                Grammar = new SymbolicRegressionGrammar(),
+                TreeCreator = new GrowTreeCreator(),
+                Crossover = new SubtreeCrossover(),
+                Mutator = new SubtreeMutator(),
+                Random = new MersenneTwister(3),
+                PopulationSize = 5,
+                MaxGenerations = 2
+            };
+
+            int eventCount = 0;
+            algorithm.GenerationCompleted += (s, e) => eventCount++;
+
+            algorithm.Run();
+
+            Assert.Equal(2, eventCount);
+        }
+
     }
 }

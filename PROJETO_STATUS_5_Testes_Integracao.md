@@ -67,11 +67,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 3/16 fluxos principais concluídos (18.75%)**
+**🎯 Progresso Geral dos Testes: 6/16 fluxos principais concluídos (37.5%)**
 
-Última execução de testes: **156** testes passando.
+Última execução de testes: **166** testes passando.
 
-## 🔄 Status Atual de Implementação (Atualizado: 30/05/2025)
+## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -117,7 +117,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 - **Testes de Integração:**
     - [ ] `OperatorCreationTests`
     - [ ] `OperatorParametersTests`
-    - [ ] `OperatorCloningTests`
+    - [x] `OperatorCloningTests`
 
 ### 🔄 Fluxos em Desenvolvimento:
 
@@ -127,20 +127,20 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
         - [ ] `GrammarSymbolSelectionTests`
         - [ ] `TreeCreatorNodeBuildingTests`
     - **Testes de Integração:**
-        - [ ] `TreeCreatorTests`
+        - [x] `TreeCreatorTests`
 - **Subfluxo 2.2: Operadores de Cruzamento**
     - **Testes Unitários:**
         - [ ] `CrossoverPointSelectionTests`
         - [ ] `SubtreeExchangeTests`
     - **Testes de Integração:**
-        - [ ] `CrossoverOperatorTests`
+        - [x] `CrossoverOperatorTests`
 - **Subfluxo 2.3: Operadores de Mutação**
     - **Testes Unitários:**
         - [ ] `MutationNodeSelectionTests`
         - [ ] `SubtreeGenerationTests` (para `SubtreeMutator`)
         - [ ] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
     - **Testes de Integração:**
-        - [ ] `MutationOperatorTests`
+        - [x] `MutationOperatorTests`
 
 #### Fluxo 3: Gramática e Símbolos
 - **Testes Unitários:**
@@ -155,7 +155,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - [ ] `EvaluationLogicTests` (com mock fitness)
     - [ ] `GenerationEventArgsTests`
 - **Testes de Integração:**
-    - [ ] `GeneticProgrammingAlgorithmTests`
+    - [x] `GeneticProgrammingAlgorithmTests`
 
 ## 🧪 Testes de Diagnóstico
 - (A serem adicionados conforme necessário durante a implementação dos testes de integração e unitários)
