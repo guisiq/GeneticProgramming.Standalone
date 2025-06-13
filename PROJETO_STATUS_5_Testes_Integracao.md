@@ -69,9 +69,9 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 **🎯 Progresso Geral dos Testes: 16/16 fluxos principais concluídos (100%)**
 
-Última execução de testes: **197** testes passando.
+Última execução de testes: **201** testes passando.
 
-## 🔄 Status Atual de Implementação (Atualizado: 14/06/2025)
+## 🔄 Status Atual de Implementação (Atualizado: 15/06/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -134,6 +134,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
         - [x] `SubtreeExchangeTests`
     - **Testes de Integração:**
         - [x] `CrossoverOperatorTests`
+        - [x] `OnePointCrossoverIntegrationTests`
 - **Subfluxo 2.3: Operadores de Mutação**
     - **Testes Unitários:**
         - [x] `MutationNodeSelectionTests`
@@ -156,6 +157,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - [x] `GenerationEventArgsTests`
 - **Testes de Integração:**
     - [x] `GeneticProgrammingAlgorithmTests`
+    - [x] `GeneticProgrammingAlgorithmValidationTests`
 
 ## 🧪 Testes de Diagnóstico
 - (A serem adicionados conforme necessário durante a implementação dos testes de integração e unitários)

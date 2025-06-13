@@ -54,8 +54,6 @@ namespace GeneticProgramming.Standalone.UnitTests.Grammars
             Assert.DoesNotContain(terminal, grammar.Symbols);
             Assert.DoesNotContain(terminal, grammar.StartSymbols);
         }
-
-
         /// <summary>
         /// GetSymbol should return the registered symbol when found or null otherwise.
         /// </summary>
