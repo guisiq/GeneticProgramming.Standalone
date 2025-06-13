@@ -67,9 +67,9 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 10/16 fluxos principais concluídos (62%)**
+**🎯 Progresso Geral dos Testes: 13/16 fluxos principais concluídos (81%)**
 
-Última execução de testes: **180** testes passando.
+Última execução de testes: **190** testes passando.
 
 ## 🔄 Status Atual de Implementação (Atualizado: 13/06/2025)
 
@@ -124,8 +124,8 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 #### Fluxo 2: Funcionalidade Básica dos Operadores Genéticos
 - **Subfluxo 2.1: Criadores de Árvores**
     - **Testes Unitários:**
-        - [ ] `GrammarSymbolSelectionTests`
-        - [ ] `TreeCreatorNodeBuildingTests`
+        - [x] `GrammarSymbolSelectionTests`
+        - [x] `TreeCreatorNodeBuildingTests`
     - **Testes de Integração:**
         - [x] `TreeCreatorTests`
 - **Subfluxo 2.2: Operadores de Cruzamento**
@@ -138,7 +138,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - **Testes Unitários:**
         - [ ] `MutationNodeSelectionTests`
         - [ ] `SubtreeGenerationTests` (para `SubtreeMutator`)
-        - [ ] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
+        - [x] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
     - **Testes de Integração:**
         - [x] `MutationOperatorTests`
 

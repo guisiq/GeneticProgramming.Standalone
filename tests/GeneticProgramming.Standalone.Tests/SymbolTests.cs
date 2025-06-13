@@ -10,6 +10,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Expressions
     /// </summary>
     public class SymbolTests
     {
+        /// <summary>
+        /// Checks that a newly constructed symbol exposes the expected default values.
+        /// </summary>
         [Fact]
         public void DefaultProperties_AreInitializedCorrectly()
         {
@@ -22,6 +25,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Expressions
             Assert.True(symbol.Enabled);
         }
 
+        /// <summary>
+        /// InitialFrequency should throw an exception when set to a negative value.
+        /// </summary>
         [Fact]
         public void InitialFrequency_NegativeValue_Throws()
         {
@@ -30,6 +36,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Expressions
             Assert.Throws<ArgumentOutOfRangeException>(() => symbol.InitialFrequency = -0.1);
         }
 
+        /// <summary>
+        /// Weight property must reject negative values.
+        /// </summary>
         [Fact]
         public void Weight_NegativeValue_Throws()
         {
@@ -38,6 +47,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Expressions
             Assert.Throws<ArgumentOutOfRangeException>(() => symbol.Weight = -0.5);
         }
 
+        /// <summary>
+        /// Changing the Enabled property should fire a PropertyChanged event.
+        /// </summary>
         [Fact]
         public void Enabled_PropertyChanged_FiresEvent()
         {

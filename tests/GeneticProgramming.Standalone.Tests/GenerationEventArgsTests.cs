@@ -17,6 +17,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
             return creator.CreateTree(random, grammar, 5, 3);
         }
 
+        /// <summary>
+        /// Verifies that the constructor correctly assigns all property values.
+        /// </summary>
         [Fact]
         public void Constructor_SetsPropertiesCorrectly()
         {
@@ -29,6 +32,9 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
             Assert.Same(tree, args.BestIndividual);
         }
 
+        /// <summary>
+        /// Ensures the exposed properties are read-only and return the expected values.
+        /// </summary>
         [Fact]
         public void Properties_AreReadOnly()
         {

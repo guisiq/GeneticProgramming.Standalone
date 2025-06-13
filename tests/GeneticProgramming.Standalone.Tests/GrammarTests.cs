@@ -7,6 +7,9 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Grammars
 {
     public class GrammarTests
     {
+        /// <summary>
+        /// Ensures symbols can be added to and removed from a grammar.
+        /// </summary>
         [Fact]
         public void Grammar_AddAndRemoveSymbols()
         {
@@ -24,6 +27,9 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Grammars
             Assert.Equal(initialCount, grammar.Symbols.Count());
         }
 
+        /// <summary>
+        /// Checks that the grammar returns the correct allowed child symbols for a given parent.
+        /// </summary>
         [Fact]
         public void Grammar_GetAllowedSymbols()
         {
@@ -36,6 +42,9 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Grammars
             Assert.Contains(allowed, s => s.Name == "Constant");
         }
 
+        /// <summary>
+        /// Validates that a grammar reports its validity correctly before and after modifications.
+        /// </summary>
         [Fact]
         public void Grammar_ValidateGrammar()
         {
