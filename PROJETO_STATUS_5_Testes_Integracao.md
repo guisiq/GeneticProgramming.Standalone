@@ -67,9 +67,9 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 6/16 fluxos principais concluídos (37.5%)**
+**🎯 Progresso Geral dos Testes: 8/16 fluxos principais concluídos (50%)**
 
-Última execução de testes: **166** testes passando.
+Última execução de testes: **171** testes passando.
 
 ## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
 
@@ -112,11 +112,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 - **Testes Unitários:**
     - ✅  `ParameterCollectionTests` ✅ **CONCLUÍDO** - Corrigidos erros de compilação e 8 testes passando
     - ✅  `ClonerTests` ✅ **CONCLUÍDO** - Testes de clonagem profunda funcionando com 11 testes passando
-    - [ ] `ItemTests` (foco em `OnPropertyChanged` para `Parameters`)
-    - [ ] `ParameterTests` (foco em `OnPropertyChanged`)
+    - [x] `ItemTests` (foco em `OnPropertyChanged` para `Parameters`)
+    - [x] `ParameterTests` (foco em `OnPropertyChanged`)
 - **Testes de Integração:**
-    - [ ] `OperatorCreationTests`
-    - [ ] `OperatorParametersTests`
+    - [x] `OperatorCreationTests`
+    - [x] `OperatorParametersTests`
     - [x] `OperatorCloningTests`
 
 ### 🔄 Fluxos em Desenvolvimento:
@@ -147,13 +147,13 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - [ ] `SymbolTests`
     - [ ] `SymbolicExpressionTreeGrammarInternalLogicTests`
 - **Testes de Integração:**
-    - [ ] `GrammarTests`
+    - [x] `GrammarTests`
 
 #### Fluxo 4: Algoritmo de Programação Genética
 - **Testes Unitários:**
     - [ ] `SelectionLogicTests` (se aplicável)
     - [ ] `EvaluationLogicTests` (com mock fitness)
-    - [ ] `GenerationEventArgsTests`
+    - [x] `GenerationEventArgsTests`
 - **Testes de Integração:**
     - [x] `GeneticProgrammingAlgorithmTests`
 
