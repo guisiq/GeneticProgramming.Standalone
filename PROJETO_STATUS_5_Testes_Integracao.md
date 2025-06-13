@@ -67,11 +67,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 13/16 fluxos principais concluídos (81%)**
+**🎯 Progresso Geral dos Testes: 16/16 fluxos principais concluídos (100%)**
 
-Última execução de testes: **190** testes passando.
+Última execução de testes: **197** testes passando.
 
-## 🔄 Status Atual de Implementação (Atualizado: 13/06/2025)
+## 🔄 Status Atual de Implementação (Atualizado: 14/06/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -130,14 +130,14 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
         - [x] `TreeCreatorTests`
 - **Subfluxo 2.2: Operadores de Cruzamento**
     - **Testes Unitários:**
-        - [ ] `CrossoverPointSelectionTests`
-        - [ ] `SubtreeExchangeTests`
+        - [x] `CrossoverPointSelectionTests`
+        - [x] `SubtreeExchangeTests`
     - **Testes de Integração:**
         - [x] `CrossoverOperatorTests`
 - **Subfluxo 2.3: Operadores de Mutação**
     - **Testes Unitários:**
-        - [ ] `MutationNodeSelectionTests`
-        - [ ] `SubtreeGenerationTests` (para `SubtreeMutator`)
+        - [x] `MutationNodeSelectionTests`
+        - [x] `SubtreeGenerationTests` (para `SubtreeMutator`)
         - [x] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
     - **Testes de Integração:**
         - [x] `MutationOperatorTests`
@@ -151,8 +151,8 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 #### Fluxo 4: Algoritmo de Programação Genética
 - **Testes Unitários:**
-    - [ ] `SelectionLogicTests` (se aplicável)
-    - [ ] `EvaluationLogicTests` (com mock fitness)
+    - [x] `SelectionLogicTests` (se aplicável)
+    - [x] `EvaluationLogicTests` (com mock fitness)
     - [x] `GenerationEventArgsTests`
 - **Testes de Integração:**
     - [x] `GeneticProgrammingAlgorithmTests`
