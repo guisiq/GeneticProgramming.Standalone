@@ -102,7 +102,7 @@ GeneticProgramming.Standalone/
 ## Fase 5: Validação
 - [x] Compilação sem erros
 - [x] Execução dos exemplos
- - [x] Testes funcionais - 153 testes automatizados executados com sucesso
+- [x] Testes funcionais - 203 testes automatizados executados com sucesso
 
 ---
 
