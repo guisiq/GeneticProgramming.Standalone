@@ -67,11 +67,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 6/16 fluxos principais concluídos (37.5%)**
+**🎯 Progresso Geral dos Testes: 13/16 fluxos principais concluídos (81%)**
 
-Última execução de testes: **166** testes passando.
+Última execução de testes: **190** testes passando.
 
-## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
+## 🔄 Status Atual de Implementação (Atualizado: 13/06/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -112,11 +112,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 - **Testes Unitários:**
     - ✅  `ParameterCollectionTests` ✅ **CONCLUÍDO** - Corrigidos erros de compilação e 8 testes passando
     - ✅  `ClonerTests` ✅ **CONCLUÍDO** - Testes de clonagem profunda funcionando com 11 testes passando
-    - [ ] `ItemTests` (foco em `OnPropertyChanged` para `Parameters`)
-    - [ ] `ParameterTests` (foco em `OnPropertyChanged`)
+    - [x] `ItemTests` (foco em `OnPropertyChanged` para `Parameters`)
+    - [x] `ParameterTests` (foco em `OnPropertyChanged`)
 - **Testes de Integração:**
-    - [ ] `OperatorCreationTests`
-    - [ ] `OperatorParametersTests`
+    - [x] `OperatorCreationTests`
+    - [x] `OperatorParametersTests`
     - [x] `OperatorCloningTests`
 
 ### 🔄 Fluxos em Desenvolvimento:
@@ -124,8 +124,8 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 #### Fluxo 2: Funcionalidade Básica dos Operadores Genéticos
 - **Subfluxo 2.1: Criadores de Árvores**
     - **Testes Unitários:**
-        - [ ] `GrammarSymbolSelectionTests`
-        - [ ] `TreeCreatorNodeBuildingTests`
+        - [x] `GrammarSymbolSelectionTests`
+        - [x] `TreeCreatorNodeBuildingTests`
     - **Testes de Integração:**
         - [x] `TreeCreatorTests`
 - **Subfluxo 2.2: Operadores de Cruzamento**
@@ -138,22 +138,22 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - **Testes Unitários:**
         - [ ] `MutationNodeSelectionTests`
         - [ ] `SubtreeGenerationTests` (para `SubtreeMutator`)
-        - [ ] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
+        - [x] `NodeTypeChangeTests` (para `ChangeNodeTypeMutator`)
     - **Testes de Integração:**
         - [x] `MutationOperatorTests`
 
 #### Fluxo 3: Gramática e Símbolos
 - **Testes Unitários:**
-    - [ ] `SymbolTests`
-    - [ ] `SymbolicExpressionTreeGrammarInternalLogicTests`
+    - [x] `SymbolTests`
+    - [x] `SymbolicExpressionTreeGrammarInternalLogicTests`
 - **Testes de Integração:**
-    - [ ] `GrammarTests`
+    - [x] `GrammarTests`
 
 #### Fluxo 4: Algoritmo de Programação Genética
 - **Testes Unitários:**
     - [ ] `SelectionLogicTests` (se aplicável)
     - [ ] `EvaluationLogicTests` (com mock fitness)
-    - [ ] `GenerationEventArgsTests`
+    - [x] `GenerationEventArgsTests`
 - **Testes de Integração:**
     - [x] `GeneticProgrammingAlgorithmTests`
 
