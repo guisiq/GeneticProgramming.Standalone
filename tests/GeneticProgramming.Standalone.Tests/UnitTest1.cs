@@ -1,10 +1,13 @@
-namespace GeneticProgramming.Standalone.Tests;
+using Xunit;
 
-public class UnitTest1
+namespace GeneticProgramming.Standalone.Tests
 {
-    [Fact]
-    public void Test1()
+    public class UnitTest1
     {
-
+        [Fact]
+        public void BasicSanityTest()
+        {
+            Assert.True(1 + 1 == 2);
+        }
     }
 }
