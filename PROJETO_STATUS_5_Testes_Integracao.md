@@ -67,11 +67,11 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 ## 📈 Status da Implementação dos Testes
 
-**🎯 Progresso Geral dos Testes: 8/16 fluxos principais concluídos (50%)**
+**🎯 Progresso Geral dos Testes: 10/16 fluxos principais concluídos (62%)**
 
-Última execução de testes: **171** testes passando.
+Última execução de testes: **180** testes passando.
 
-## 🔄 Status Atual de Implementação (Atualizado: 29/05/2025)
+## 🔄 Status Atual de Implementação (Atualizado: 13/06/2025)
 
 ### ✅ **Fluxo 1: Criação, Parametrização e Clonagem de Operadores - QUASE CONCLUÍDO**
 
@@ -144,8 +144,8 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 
 #### Fluxo 3: Gramática e Símbolos
 - **Testes Unitários:**
-    - [ ] `SymbolTests`
-    - [ ] `SymbolicExpressionTreeGrammarInternalLogicTests`
+    - [x] `SymbolTests`
+    - [x] `SymbolicExpressionTreeGrammarInternalLogicTests`
 - **Testes de Integração:**
     - [x] `GrammarTests`
 
