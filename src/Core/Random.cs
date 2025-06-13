@@ -10,7 +10,7 @@ namespace GeneticProgramming.Core
     [Item("Random", "Random number generator")]
     public class MersenneTwister : Item, IRandom
     {
-        private readonly Random random;
+        private Random random;
         private int seed;
 
         public MersenneTwister() : base()
@@ -53,14 +53,13 @@ namespace GeneticProgramming.Core
 
         public void Reset()
         {
-            Reset(seed);
+            Reset(this.seed);
         }
 
         public void Reset(int newSeed)
         {
             seed = newSeed;
-            // Note: System.Random doesn't support resetting, so we'd need a custom implementation
-            // For now, this is a simplified version
+            random = new Random(seed);
         }
 
         public override IDeepCloneable Clone(Cloner cloner)
