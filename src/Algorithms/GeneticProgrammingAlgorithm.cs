@@ -1,6 +1,7 @@
 using GeneticProgramming.Core;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Operators;
+using GeneticProgramming.Abstractions.Operators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTreeCrossover? _crossover;
         private ISymbolicExpressionTreeMutator? _mutator;
         private IRandom? _random;
+        private ISymbolicExpressionTreeSelector? _selector;
         private int _generation;
         private List<ISymbolicExpressionTree> _population;
         private ISymbolicExpressionTree? _bestIndividual;
@@ -190,6 +192,22 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets or sets the selection operator used to choose parents.
+        /// </summary>
+        public ISymbolicExpressionTreeSelector? Selector
+        {
+            get => _selector;
+            set
+            {
+                if (_selector != value)
+                {
+                    _selector = value;
+                    OnPropertyChanged(nameof(Selector));
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the random number generator
         /// </summary>
         public IRandom? Random
@@ -256,6 +274,7 @@ namespace GeneticProgramming.Algorithms
             _crossover = cloner.Clone(original._crossover);
             _mutator = cloner.Clone(original._mutator);
             _random = cloner.Clone(original._random);
+            _selector = cloner.Clone(original._selector);
             _generation = original._generation;
             _population = new List<ISymbolicExpressionTree>(original._population.Select(ind => cloner.Clone(ind)));
             _bestIndividual = cloner.Clone(original._bestIndividual);
@@ -326,6 +345,7 @@ namespace GeneticProgramming.Algorithms
             if (_crossover == null) throw new InvalidOperationException("Crossover must be set");
             if (_mutator == null) throw new InvalidOperationException("Mutator must be set");
             if (_random == null) throw new InvalidOperationException("Random must be set");
+            if (_selector == null) throw new InvalidOperationException("Selector must be set");
         }
 
         private void Initialize()
@@ -387,8 +407,8 @@ namespace GeneticProgramming.Algorithms
                 if (_random!.NextDouble() < _crossoverProbability && newPopulation.Count < _populationSize - 1)
                 {
                     // Crossover
-                    var parent1 = TournamentSelection();
-                    var parent2 = TournamentSelection();
+                    var parent1 = _selector!.Select(_random!, _population, EvaluateFitness);
+                    var parent2 = _selector!.Select(_random!, _population, EvaluateFitness);
                     var offspring = _crossover!.Crossover(_random, parent1, parent2);
                     
                     if (_random.NextDouble() < _mutationProbability)
@@ -401,7 +421,7 @@ namespace GeneticProgramming.Algorithms
                 else
                 {
                     // Mutation only
-                    var parent = TournamentSelection();
+                    var parent = _selector!.Select(_random!, _population, EvaluateFitness);
                     var offspring = _mutator!.Mutate(_random, parent);
                     newPopulation.Add(offspring);
                 }
@@ -416,25 +436,6 @@ namespace GeneticProgramming.Algorithms
             _population = newPopulation;
         }
 
-        private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
-        {
-            ISymbolicExpressionTree? best = null;
-            double bestFitness = double.NegativeInfinity;
-
-            for (int i = 0; i < tournamentSize; i++)
-            {
-                var candidate = _population[_random!.Next(_population.Count)];
-                var fitness = EvaluateFitness(candidate);
-                
-                if (fitness > bestFitness)
-                {
-                    bestFitness = fitness;
-                    best = candidate;
-                }
-            }
-
-            return (ISymbolicExpressionTree)best!.Clone(new Cloner());
-        }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
