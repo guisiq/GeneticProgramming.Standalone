@@ -31,6 +31,7 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTree? _bestIndividual;
         private double _bestFitness = double.NegativeInfinity;
         private bool _stopRequested;
+        private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? _fitnessEvaluator;
 
         /// <summary>
         /// Gets or sets the population size
@@ -209,6 +210,22 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets or sets the fitness evaluator used for individuals.
+        /// </summary>
+        public GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? FitnessEvaluator
+        {
+            get => _fitnessEvaluator;
+            set
+            {
+                if (_fitnessEvaluator != value)
+                {
+                    _fitnessEvaluator = value;
+                    OnPropertyChanged(nameof(FitnessEvaluator));
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the current generation
         /// </summary>
         public int Generation => _generation;
@@ -321,8 +338,12 @@ namespace GeneticProgramming.Algorithms
         /// <returns>The fitness value (higher is better)</returns>
         public virtual double EvaluateFitness(ISymbolicExpressionTree individual)
         {
+            if (_fitnessEvaluator != null)
+            {
+                return _fitnessEvaluator.Evaluate(individual);
+            }
+
             // Default implementation - just return negative tree size (for parsimony)
-            // Override this method in derived classes for specific problem domains
             return -individual.Length;
         }
 
