@@ -1,6 +1,7 @@
 using GeneticProgramming.Core;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Operators;
+using AbstractionOptimization = GeneticProgramming.Abstractions.Optimization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Basic genetic programming algorithm implementation
     /// </summary>
-    public class GeneticProgrammingAlgorithm : Item, IGeneticProgrammingAlgorithm
+    public class GeneticProgrammingAlgorithm : Item,
+        IGeneticProgrammingAlgorithm,
+        Abstractions.Optimization.IGeneticProgrammingAlgorithm
     {
         private int _populationSize = 100;
         private int _maxGenerations = 50;
@@ -230,6 +233,9 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         public event EventHandler<GenerationEventArgs>? GenerationCompleted;
 
+        // Explicit abstraction event
+        public event EventHandler? IterationCompleted;
+
         /// <summary>
         /// Initializes a new instance of the GeneticProgrammingAlgorithm class
         /// </summary>
@@ -289,6 +295,7 @@ namespace GeneticProgramming.Algorithms
                 // Raise generation completed event
                 var averageFitness = _population.Average(EvaluateFitness);
                 GenerationCompleted?.Invoke(this, new GenerationEventArgs(_generation, _bestFitness, averageFitness, _bestIndividual!));
+                IterationCompleted?.Invoke(this, EventArgs.Empty);
 
                 if (_generation < _maxGenerations - 1)
                 {
@@ -317,6 +324,13 @@ namespace GeneticProgramming.Algorithms
             // Default implementation - just return negative tree size (for parsimony)
             // Override this method in derived classes for specific problem domains
             return -individual.Length;
+        }
+
+        double AbstractionOptimization.IGeneticProgrammingAlgorithm.EvaluateFitness(object individual)
+        {
+            if (individual is ISymbolicExpressionTree tree)
+                return EvaluateFitness(tree);
+            throw new ArgumentException("Individual must be an ISymbolicExpressionTree", nameof(individual));
         }
 
         private void ValidateParameters()
