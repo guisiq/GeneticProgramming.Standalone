@@ -182,7 +182,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="cloner">The cloner to use for creating the clone instance.</param>
         /// <returns>A new clone instance of the grammar.</returns>
-        protected override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override Core.IDeepCloneable CreateCloneInstance(Core.Cloner cloner)
         {
             return new SymbolicExpressionTreeGrammar(this, cloner);
         }

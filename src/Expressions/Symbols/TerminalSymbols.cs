@@ -50,7 +50,7 @@ namespace GeneticProgramming.Expressions.Symbols
             return "X";
         }
 
-        protected override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Variable(this, cloner);
         }
@@ -79,7 +79,7 @@ namespace GeneticProgramming.Expressions.Symbols
         {
             return "C";
         }
-        protected override Core.Item CreateCloneInstance(Core.Cloner cloner)
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Constant(this, cloner);
         }

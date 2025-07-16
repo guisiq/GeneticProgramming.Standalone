@@ -299,7 +299,7 @@ namespace GeneticProgramming.Algorithms
             _random = cloner.Clone(original._random);
             _selector = cloner.Clone(original._selector);
             _generation = original._generation;
-            _population = new List<ISymbolicExpressionTree>(original._population.Select(ind => cloner.Clone(ind)));
+            _population = new List<ISymbolicExpressionTree>(original._population.Select(ind => cloner.Clone(ind)).Where(ind => ind != null)!);
             _bestIndividual = cloner.Clone(original._bestIndividual);
             _bestFitness = original._bestFitness;
             _stopRequested = original._stopRequested;
@@ -471,6 +471,25 @@ namespace GeneticProgramming.Algorithms
             _population = newPopulation;
         }
 
+        private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
+        {
+            ISymbolicExpressionTree? best = null;
+            double bestFitness = double.NegativeInfinity;
+
+            for (int i = 0; i < tournamentSize; i++)
+            {
+                var candidate = _population[_random!.Next(_population.Count)];
+                var fitness = EvaluateFitness(candidate);
+                
+                if (fitness > bestFitness)
+                {
+                    bestFitness = fitness;
+                    best = candidate;
+                }
+            }
+
+            return (ISymbolicExpressionTree)best!.Clone(new Cloner());
+        }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
