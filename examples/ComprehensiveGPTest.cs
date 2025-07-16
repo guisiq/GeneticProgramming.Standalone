@@ -160,7 +160,7 @@ namespace GeneticProgramming.Standalone.Examples
             Console.WriteLine("   Testing Mutation:");
             var subtreeMutator = new SubtreeMutator { SymbolicExpressionTreeGrammar = grammar };
             var nodeTypeMutator = new ChangeNodeTypeMutator { SymbolicExpressionTreeGrammar = grammar };
-            var terminalMutator = new ChangeNodeTypeMutator { SymbolicExpressionTreeGrammar = grammar };
+            var terminalMutator = new ChangeTerminalMutator { SymbolicExpressionTreeGrammar = grammar };
             
             var mutated1 = subtreeMutator.Mutate(random, grownTree);
             var mutated2 = nodeTypeMutator.Mutate(random, fullTree);

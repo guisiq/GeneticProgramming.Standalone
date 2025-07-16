@@ -2,6 +2,7 @@ using GeneticProgramming.Core;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Operators;
 using GeneticProgramming.Abstractions.Operators;
+using AbstractionOptimization = GeneticProgramming.Abstractions.Optimization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,9 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Basic genetic programming algorithm implementation
     /// </summary>
-    public class GeneticProgrammingAlgorithm : Item, IGeneticProgrammingAlgorithm
+    public class GeneticProgrammingAlgorithm : Item,
+        IGeneticProgrammingAlgorithm,
+        Abstractions.Optimization.IGeneticProgrammingAlgorithm
     {
         private int _populationSize = 100;
         private int _maxGenerations = 50;
@@ -30,6 +33,7 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTree? _bestIndividual;
         private double _bestFitness = double.NegativeInfinity;
         private bool _stopRequested;
+        private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? _fitnessEvaluator;
 
         /// <summary>
         /// Gets or sets the population size
@@ -224,6 +228,22 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets or sets the fitness evaluator used for individuals.
+        /// </summary>
+        public GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? FitnessEvaluator
+        {
+            get => _fitnessEvaluator;
+            set
+            {
+                if (_fitnessEvaluator != value)
+                {
+                    _fitnessEvaluator = value;
+                    OnPropertyChanged(nameof(FitnessEvaluator));
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the current generation
         /// </summary>
         public int Generation => _generation;
@@ -247,6 +267,9 @@ namespace GeneticProgramming.Algorithms
         /// Event raised when a generation is completed
         /// </summary>
         public event EventHandler<GenerationEventArgs>? GenerationCompleted;
+
+        // Explicit abstraction event
+        public event EventHandler? IterationCompleted;
 
         /// <summary>
         /// Initializes a new instance of the GeneticProgrammingAlgorithm class
@@ -308,6 +331,7 @@ namespace GeneticProgramming.Algorithms
                 // Raise generation completed event
                 var averageFitness = _population.Average(EvaluateFitness);
                 GenerationCompleted?.Invoke(this, new GenerationEventArgs(_generation, _bestFitness, averageFitness, _bestIndividual!));
+                IterationCompleted?.Invoke(this, EventArgs.Empty);
 
                 if (_generation < _maxGenerations - 1)
                 {
@@ -333,9 +357,20 @@ namespace GeneticProgramming.Algorithms
         /// <returns>The fitness value (higher is better)</returns>
         public virtual double EvaluateFitness(ISymbolicExpressionTree individual)
         {
+            if (_fitnessEvaluator != null)
+            {
+                return _fitnessEvaluator.Evaluate(individual);
+            }
+
             // Default implementation - just return negative tree size (for parsimony)
-            // Override this method in derived classes for specific problem domains
             return -individual.Length;
+        }
+
+        double AbstractionOptimization.IGeneticProgrammingAlgorithm.EvaluateFitness(object individual)
+        {
+            if (individual is ISymbolicExpressionTree tree)
+                return EvaluateFitness(tree);
+            throw new ArgumentException("Individual must be an ISymbolicExpressionTree", nameof(individual));
         }
 
         private void ValidateParameters()
