@@ -12,10 +12,15 @@ namespace GeneticProgramming.Standalone.UnitTests.Core
         private class TestItem : Item
         {
             public TestItem() : base() { }
-            
+
             public TestItem(TestItem original, Cloner cloner) : base(original, cloner) { }
 
             public override IDeepCloneable Clone(Cloner cloner)
+            {
+                return new TestItem(this, cloner);
+            }
+
+            protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
             {
                 return new TestItem(this, cloner);
             }
