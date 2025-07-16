@@ -42,6 +42,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
                 TreeCreator = new GrowTreeCreator(),
                 Crossover = new SubtreeCrossover(),
                 Mutator = new SubtreeMutator(),
+                Selector = new TournamentSelector(),
                 Random = new MersenneTwister(42),
                 PopulationSize = 10,
                 MaxGenerations = 2,
@@ -70,8 +71,9 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
             algorithm.CrossoverProbability = 0.8;
             algorithm.MutationProbability = 0.2;
             algorithm.Random = new MersenneTwister(1);
+            algorithm.Selector = new TournamentSelector();
 
-            Assert.Equal(7, eventCount);
+            Assert.Equal(8, eventCount);
         }
 
 
@@ -85,6 +87,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
                 TreeCreator = new GrowTreeCreator(),
                 Crossover = new SubtreeCrossover(),
                 Mutator = new SubtreeMutator(),
+                Selector = new TournamentSelector(),
                 Random = new MersenneTwister(1),
                 PopulationSize = 5,
                 MaxGenerations = 1
@@ -105,6 +108,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
                 TreeCreator = new GrowTreeCreator(),
                 Crossover = new SubtreeCrossover(),
                 Mutator = new SubtreeMutator(),
+                Selector = new TournamentSelector(),
                 Random = new MersenneTwister(2),
                 PopulationSize = 6,
                 MaxGenerations = 3,
@@ -127,6 +131,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Algorithms
                 TreeCreator = new GrowTreeCreator(),
                 Crossover = new SubtreeCrossover(),
                 Mutator = new SubtreeMutator(),
+                Selector = new TournamentSelector(),
                 Random = new MersenneTwister(3),
                 PopulationSize = 5,
                 MaxGenerations = 2

@@ -1,56 +1,66 @@
-using GeneticProgramming.Algorithms;
 using GeneticProgramming.Core;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Expressions.Grammars;
 using GeneticProgramming.Operators;
-using System.Reflection;
+using System.Collections.Generic;
+using GeneticProgramming.Algorithms;
+using GeneticProgramming.Abstractions.Operators;
 using Xunit;
 
 namespace GeneticProgramming.Standalone.UnitTests.Algorithms
 {
     /// <summary>
-    /// Unit tests covering the tournament selection logic in the algorithm.
+    /// Tests for selection operators.
     /// </summary>
     public class SelectionLogicTests
     {
-        private class TestAlgorithm : GeneticProgrammingAlgorithm
-        {
-            public void Prepare(ISymbolicExpressionTreeGrammar grammar, IRandom random)
-            {
-                Grammar = grammar;
-                TreeCreator = new GrowTreeCreator();
-                Crossover = new SubtreeCrossover();
-                Mutator = new SubtreeMutator();
-                Random = random;
-                PopulationSize = 4;
-                MaxGenerations = 1;
-            }
-
-            public void InvokeInitialize() =>
-                typeof(GeneticProgrammingAlgorithm)
-                    .GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance)!
-                    .Invoke(this, null);
-
-            public ISymbolicExpressionTree InvokeTournamentSelection(int size) =>
-                (ISymbolicExpressionTree)typeof(GeneticProgrammingAlgorithm)
-                    .GetMethod("TournamentSelection", BindingFlags.NonPublic | BindingFlags.Instance)!
-                    .Invoke(this, new object[] { size })!;
-        }
-
-        /// <summary>
-        /// Tournament selection should return a tree taken from the current population.
-        /// </summary>
         [Fact]
-        public void TournamentSelection_ReturnsMemberOfPopulation()
+        public void TournamentSelector_ReturnsMemberOfPopulation()
         {
             var grammar = new SymbolicRegressionGrammar();
-            var alg = new TestAlgorithm();
-            alg.Prepare(grammar, new MersenneTwister(7));
-            alg.InvokeInitialize();
+            var creator = new GrowTreeCreator { SymbolicExpressionTreeGrammar = grammar };
+            var random = new MersenneTwister(7);
 
-            var selected = alg.InvokeTournamentSelection(2);
+            var population = new List<ISymbolicExpressionTree>();
+            for (int i = 0; i < 4; i++)
+                population.Add(creator.CreateTree(random, grammar, 5, 3));
 
-            Assert.Contains(alg.Population, t => t.Root.Symbol.GetType() == selected.Root!.Symbol.GetType());
+            var selector = new TournamentSelector { TournamentSize = 2 };
+            var selected = selector.Select(random, population, t => -t.Length);
+
+            Assert.Contains(population, t => t.Root.Symbol.GetType() == selected.Root.Symbol.GetType());
+        }
+
+        private class CountingSelector : ISymbolicExpressionTreeSelector
+        {
+            public int CallCount { get; private set; }
+            public GeneticProgramming.Abstractions.Parameters.IParameterCollection? Parameters => null;
+            public ISymbolicExpressionTree Select(IRandom random, IList<ISymbolicExpressionTree> population, System.Func<ISymbolicExpressionTree, double> fitness)
+            {
+                CallCount++;
+                return population[0];
+            }
+        }
+
+        [Fact]
+        public void Algorithm_UsesProvidedSelector()
+        {
+            var selector = new CountingSelector();
+            var algorithm = new GeneticProgrammingAlgorithm
+            {
+                Grammar = new SymbolicRegressionGrammar(),
+                TreeCreator = new GrowTreeCreator(),
+                Crossover = new SubtreeCrossover(),
+                Mutator = new SubtreeMutator(),
+                Selector = selector,
+                Random = new MersenneTwister(5),
+                PopulationSize = 5,
+                MaxGenerations = 2
+            };
+
+            algorithm.Run();
+
+            Assert.True(selector.CallCount > 0);
         }
     }
 }
