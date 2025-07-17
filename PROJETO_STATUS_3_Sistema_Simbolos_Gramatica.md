@@ -21,7 +21,7 @@ Implementar operadores de criação, crossover e mutação de árvores.
 2. Operadores de Crossover:
    - [x] `SubtreeCrossover`
    - [x] `OnePointCrossover`
-   - [ ] Outros crossovers básicos
+   - [x] Outros crossovers básicos (ex.: `UniformCrossover`)
 3. Operadores de Mutação:
    - [x] `SubtreeMutator`
    - [x] `ChangeNodeTypeMutator`

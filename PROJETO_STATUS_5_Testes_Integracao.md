@@ -26,7 +26,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - **Testes Unitários Relevantes:**
         - Testes para a lógica de seleção de símbolos na gramática.
         - Testes para a lógica de construção de nós (terminais e não terminais) nos criadores.
-- **Subfluxo 2.2: Operadores de Cruzamento (`SubtreeCrossover`, `OnePointCrossover`)**
+- **Subfluxo 2.2: Operadores de Cruzamento (`SubtreeCrossover`, `OnePointCrossover`, `UniformCrossover`)**
     - **Testes de Integração:**
         - `Crossover_ProducesValidOffspring`: Verifica se os filhos gerados são árvores válidas.
         - `Crossover_OffspringAreDifferentFromParents`: Verifica se o cruzamento geralmente produz descendentes diferentes dos pais.
@@ -78,7 +78,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
 **Testes de Integração Implementados:**
 - ✅ `OperatorCreationIntegrationTests.cs` - **TODOS OS TESTES PASSANDO**
   - `OperatorCreation_CanCreateAllTreeCreators`: Valida criação de GrowTreeCreator e FullTreeCreator
-  - `OperatorCreation_CanCreateAllCrossoverOperators`: Valida criação de SubtreeCrossover e OnePointCrossover  
+  - `OperatorCreation_CanCreateAllCrossoverOperators`: Valida criação de SubtreeCrossover, OnePointCrossover e UniformCrossover
   - `OperatorCreation_CanCreateAllMutationOperators`: Valida criação de SubtreeMutator e ChangeNodeTypeMutator
   - `OperatorCreation_AllOperatorsHaveValidDefaultState`: Verifica estado padrão válido usando cast para IItem
   - `OperatorCreation_OperatorsCanBeInstantiatedMultipleTimes`: Testa instanciação múltipla e independência
@@ -135,6 +135,7 @@ caso de erro em um teste analizar log e se precisar de mais infrmacao execute  T
     - **Testes de Integração:**
         - [x] `CrossoverOperatorTests`
         - [x] `OnePointCrossoverIntegrationTests`
+        - [x] `UniformCrossoverIntegrationTests`
 - **Subfluxo 2.3: Operadores de Mutação**
     - **Testes Unitários:**
         - [x] `MutationNodeSelectionTests`
