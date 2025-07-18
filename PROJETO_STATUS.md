@@ -58,7 +58,7 @@ GeneticProgramming.Standalone/
 
 ### 🔄 Operators (Parcialmente Implementado)
 - **Creators**: ✅ `GrowTreeCreator`, `FullTreeCreator`
-- **Crossovers**: ✅ `SubtreeCrossover`, `OnePointCrossover`
+- **Crossovers**: ✅ `SubtreeCrossover`, `OnePointCrossover`, `UniformCrossover`
 - **Manipulators**: ✅ `SubtreeMutator`, `ChangeNodeTypeMutator`
 - **Architecture Manipulators**: ✅ `NodeInsertionManipulator`, `NodeRemovalManipulator`
 

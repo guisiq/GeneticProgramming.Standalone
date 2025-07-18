@@ -46,6 +46,13 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             Assert.NotNull(onePointCrossover.Parameters);
             Assert.IsAssignableFrom<ISymbolicExpressionTreeCrossover>(onePointCrossover);
             Assert.IsAssignableFrom<IDeepCloneable>(onePointCrossover);
+
+            // Test UniformCrossover
+            var uniformCrossover = new UniformCrossover();
+            Assert.NotNull(uniformCrossover);
+            Assert.NotNull(uniformCrossover.Parameters);
+            Assert.IsAssignableFrom<ISymbolicExpressionTreeCrossover>(uniformCrossover);
+            Assert.IsAssignableFrom<IDeepCloneable>(uniformCrossover);
         }
 
         [Fact]
@@ -75,6 +82,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
                 new FullTreeCreator(),
                 new SubtreeCrossover(),
                 new OnePointCrossover(),
+                new UniformCrossover(),
                 new SubtreeMutator(),
                 new ChangeNodeTypeMutator()
             };
