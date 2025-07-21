@@ -50,12 +50,21 @@ namespace GeneticProgramming.Operators
             // Validate parameters
             if (random == null) throw new ArgumentNullException(nameof(random));
             if (grammar == null) throw new ArgumentNullException(nameof(grammar));
-            if (maxTreeLength < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than 0");
-            if (maxTreeDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than 0");
-            var tree = new SymbolicExpressionTree();
+            if (maxTreeLength < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than or equal to 0");
+            if (maxTreeDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than or equal to 0");
+            
+            // If max length or depth is 0, or max length is 1, must create terminal
+            if (maxTreeLength <= 1 || maxTreeDepth <= 1)
+            {
+                var tree = new SymbolicExpressionTree();
+                tree.Root = CreateTerminalNode(random, grammar);
+                return tree;
+            }
+            
+            var resultTree = new SymbolicExpressionTree();
             var rootNode = CreateNode(random, grammar, maxTreeDepth, maxTreeLength);
-            tree.Root = rootNode;
-            return tree;
+            resultTree.Root = rootNode;
+            return resultTree;
         }
 
         private ISymbolicExpressionTreeNode CreateNode(IRandom random, ISymbolicExpressionTreeGrammar grammar, int maxDepth, int maxLength)
@@ -67,6 +76,12 @@ namespace GeneticProgramming.Operators
             }
 
             // Get all allowed symbols
+            // If we're at max depth, must use a terminal
+            if (maxDepth <= 1)
+            {
+                return CreateTerminalNode(random, grammar);
+            }
+
             var allowedSymbols = grammar.Symbols.Where(s => s.Enabled).ToList();
             if (!allowedSymbols.Any())
             {
@@ -77,8 +92,8 @@ namespace GeneticProgramming.Operators
             var selectedSymbol = SelectSymbolByFrequency(random, allowedSymbols);
             var node = selectedSymbol.CreateTreeNode();
 
-            // If it's a terminal or we're at max depth, return as is
-            if (selectedSymbol.MaximumArity == 0 || maxDepth <= 1)
+            // If it's a terminal, return as is
+            if (selectedSymbol.MaximumArity == 0)
             {
                 return node;
             }
@@ -86,17 +101,23 @@ namespace GeneticProgramming.Operators
             // Add children for non-terminals
             var arity = random.Next(selectedSymbol.MinimumArity, selectedSymbol.MaximumArity + 1);
             var remainingLength = maxLength - 1; // Subtract 1 for current node
+            
+            // Check if we have enough remaining length to satisfy minimum arity
+            if (remainingLength < selectedSymbol.MinimumArity)
+            {
+                // If we can't satisfy minimum arity, fall back to terminal
+                return CreateTerminalNode(random, grammar);
+            }
+            
             var childrenPerSubtree = remainingLength / Math.Max(1, arity);
 
             for (int i = 0; i < arity; i++)
             {
                 var childDepth = maxDepth - 1;
-                var childLength = Math.Min(childrenPerSubtree, remainingLength);
+                var childLength = Math.Max(1, Math.Min(childrenPerSubtree, remainingLength));
                 var child = CreateNode(random, grammar, childDepth, childLength);
                 node.AddSubtree(child);
                 remainingLength -= child.GetLength();
-                
-                if (remainingLength <= 0) break;
             }
 
             return node;

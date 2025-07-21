@@ -50,19 +50,28 @@ namespace GeneticProgramming.Operators
             // Validate parameters
             if (random == null) throw new ArgumentNullException(nameof(random));
             if (grammar == null) throw new ArgumentNullException(nameof(grammar));
-            if (maxTreeLength <= 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than 0");
-            if (maxTreeDepth <= 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than 0");
-            var tree = new SymbolicExpressionTree();
-            var rootNode = CreateFullNode(random, grammar, maxTreeDepth);
-            tree.Root = rootNode;
-            return tree;
+            if (maxTreeLength < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than or equal to 0");
+            if (maxTreeDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than or equal to 0");
+            
+            // If max length or depth is 0, or max length is 1, must create terminal
+            if (maxTreeLength <= 1 || maxTreeDepth <= 1)
+            {
+                var tree = new SymbolicExpressionTree();
+                tree.Root = CreateTerminalNode(random, grammar);
+                return tree;
+            }
+            
+            var resultTree = new SymbolicExpressionTree();
+            var rootNode = CreateFullNode(random, grammar, maxTreeDepth, maxTreeLength);
+            resultTree.Root = rootNode;
+            return resultTree;
         }
 
-        private ISymbolicExpressionTreeNode CreateFullNode(IRandom random, ISymbolicExpressionTreeGrammar grammar, int depth)
+        private ISymbolicExpressionTreeNode CreateFullNode(IRandom random, ISymbolicExpressionTreeGrammar grammar, int depth, int maxLength)
         {
-            if (depth <= 1)
+            if (depth <= 1 || maxLength <= 1)
             {
-                // Force terminal selection at leaf level
+                // Force terminal selection at leaf level or when maxLength constraint is hit
                 return CreateTerminalNode(random, grammar);
             }
 
@@ -77,12 +86,27 @@ namespace GeneticProgramming.Operators
             var selectedSymbol = SelectSymbolByFrequency(random, nonTerminals);
             var node = selectedSymbol.CreateTreeNode();
 
-            // Add maximum arity children
-            var arity = selectedSymbol.MaximumArity;
+            // Check if we have enough remaining length for minimum arity
+            var remainingLength = maxLength - 1; // Subtract 1 for current node
+            if (remainingLength < selectedSymbol.MinimumArity)
+            {
+                // If we can't satisfy minimum arity, fall back to terminal
+                return CreateTerminalNode(random, grammar);
+            }
+
+            // Add maximum arity children but respect length constraints
+            var arity = Math.Min(selectedSymbol.MaximumArity, remainingLength);
+            var childLength = remainingLength / arity;
+            
             for (int i = 0; i < arity; i++)
             {
-                var child = CreateFullNode(random, grammar, depth - 1);
+                var actualChildLength = Math.Max(1, childLength);
+                var child = CreateFullNode(random, grammar, depth - 1, actualChildLength);
                 node.AddSubtree(child);
+                remainingLength -= child.GetLength();
+                
+                // Stop if we're running out of length budget
+                if (remainingLength <= 0) break;
             }
 
             return node;
