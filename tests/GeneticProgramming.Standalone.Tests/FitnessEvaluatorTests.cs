@@ -48,6 +48,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Problems
                 TreeCreator = new GrowTreeCreator(),
                 Crossover = new SubtreeCrossover(),
                 Mutator = new SubtreeMutator(),
+                Selector = new TournamentSelector(),
                 Random = new MersenneTwister(1),
                 PopulationSize = 5,
                 MaxGenerations = 1,

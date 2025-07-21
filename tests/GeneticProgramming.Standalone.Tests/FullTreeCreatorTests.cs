@@ -193,15 +193,20 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
         }
 
         [Fact]
-        public void CreateTree_ZeroMaxDepth_ThrowsArgumentOutOfRangeException()
+        public void CreateTree_ZeroMaxDepth_ReturnsTerminal()
         {
             // Arrange
             var creator = new FullTreeCreator();
             int maxTreeLength = 5;
             int maxTreeDepth = 0;
 
-            // Act & Assert
-            Assert.Throws<ArgumentOutOfRangeException>(() => creator.CreateTree(_random, _grammar, maxTreeLength, maxTreeDepth));
+            // Act
+            var tree = creator.CreateTree(_random, _grammar, maxTreeLength, maxTreeDepth);
+
+            // Assert
+            Assert.NotNull(tree);
+            Assert.NotNull(tree.Root);
+            Assert.Equal(0, tree.Root.SubtreeCount); // Should be terminal
         }
 
         [Fact]
