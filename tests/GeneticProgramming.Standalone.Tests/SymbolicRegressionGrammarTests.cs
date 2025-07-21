@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace GeneticProgramming.Standalone.Tests
+namespace GeneticProgramming.Standalone.UnitTests.Grammars
 {
     public class SymbolicRegressionGrammarTests
     {

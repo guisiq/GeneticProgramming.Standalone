@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace GeneticProgramming.Standalone.Tests
+namespace GeneticProgramming.Standalone.UnitTests.Basic
 {
     public class UnitTest1
     {

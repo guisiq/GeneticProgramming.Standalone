@@ -5,7 +5,7 @@ using GeneticProgramming.Core;
 using System;
 using System.Linq;
 
-namespace GeneticProgramming.Standalone.Tests
+namespace GeneticProgramming.Standalone.UnitTests.Expressions
 {
     public class SymbolicExpressionTreeNodeTests
     {
