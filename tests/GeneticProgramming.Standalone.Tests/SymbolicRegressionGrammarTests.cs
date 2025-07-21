@@ -1,6 +1,7 @@
 using GeneticProgramming.Expressions.Grammars;
 using GeneticProgramming.Expressions.Symbols; // Added for concrete Symbol access
 using GeneticProgramming.Expressions; // Added for ISymbol and Symbol
+using GeneticProgramming.Core; // Added for Cloner
 using System;
 using System.Linq;
 using Xunit;
@@ -220,7 +221,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Grammars
             originalGrammar.MaximumExpressionDepth = 10;
 
             // Act
-            var cloner = new Core.Cloner();
+            var cloner = new Cloner();
             var clonedGrammar = originalGrammar.Clone(cloner) as SymbolicRegressionGrammar;
 
             // Assert
