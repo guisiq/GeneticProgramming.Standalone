@@ -1,52 +1,52 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
 
 namespace GeneticProgramming.Expressions.Symbols
 {
     /// <summary>
-    /// Agente para operações estatísticas em coleções numéricas.
+    /// Collection of statistical functional symbols.
     /// </summary>
-    public static class StatisticsAgent
+    public static class StatisticsSymbols
     {
-        /// <summary>
-        /// Calcula a média de uma sequência de números.
-        /// </summary>
-        public static double Mean(IEnumerable<double> data)
-        {
-            if (data == null || !data.Any())
-                throw new ArgumentException("Os dados não podem ser nulos ou vazios.");
-            return data.Average();
-        }
+        public static readonly FunctionalSymbol<double> Mean =
+            SymbolFactory<double>.CreateVariadic(
+                "Mean", "Média de sequência",
+                args =>
+                {
+                    if (args == null || args.Length == 0)
+                        throw new ArgumentException("Dados não podem ser nulos ou vazios.");
+                    return args.Average();
+                },
+                1, int.MaxValue);
 
-        /// <summary>
-        /// Calcula a variância de uma sequência de números.
-        /// </summary>
-        public static double Variance(IEnumerable<double> data)
-        {
-            if (data == null || !data.Any())
-                throw new ArgumentException("Os dados não podem ser nulos ou vazios.");
-            double mean = data.Average();
-            return data.Sum(d => (d - mean) * (d - mean)) / data.Count();
-        }
+        public static readonly FunctionalSymbol<double> Variance =
+            SymbolFactory<double>.CreateVariadic(
+                "Variance", "Variância de sequência",
+                args =>
+                {
+                    if (args == null || args.Length == 0)
+                        throw new ArgumentException("Dados não podem ser nulos ou vazios.");
+                    var mean = args.Average();
+                    return args.Sum(d => (d - mean) * (d - mean)) / args.Length;
+                },
+                1, int.MaxValue);
 
-        /// <summary>
-        /// Calcula a mediana de uma sequência de números.
-        /// </summary>
-        public static double Median(IEnumerable<double> data)
-        {
-            if (data == null || !data.Any())
-                throw new ArgumentException("Os dados não podem ser nulos ou vazios.");
-            var sorted = data.OrderBy(x => x).ToArray();
-            int count = sorted.Length;
-            if (count % 2 == 0)
-            {
-                return (sorted[count / 2 - 1] + sorted[count / 2]) / 2.0;
-            }
-            else
-            {
-                return sorted[count / 2];
-            }
-        }
+        public static readonly FunctionalSymbol<double> Median =
+            SymbolFactory<double>.CreateVariadic(
+                "Median", "Mediana de sequência",
+                args =>
+                {
+                    if (args == null || args.Length == 0)
+                        throw new ArgumentException("Dados não podem ser nulos ou vazios.");
+                    var sorted = args.OrderBy(x => x).ToArray();
+                    int n = sorted.Length;
+                    return n % 2 == 0
+                        ? (sorted[n/2 - 1] + sorted[n/2]) / 2.0
+                        : sorted[n/2];
+                },
+                1, int.MaxValue);
     }
 }

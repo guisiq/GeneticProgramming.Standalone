@@ -6,13 +6,16 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Symbol that executes a provided delegate when evaluated.
     /// </summary>
-    public class FunctionalSymbol : Symbol
+/// <summary>
+/// Symbol that executes a provided delegate when evaluated, operating on generic type T.
+/// </summary>
+public class FunctionalSymbol<T> : Symbol
     {
-        /// <summary>
-        /// Delegate representing the operation of this symbol.
-        /// The array of doubles are the evaluated child node values.
-        /// </summary>
-        public Func<double[], double> Operation { get; }
+    /// <summary>
+    /// Delegate representing the operation of this symbol.
+    /// The array of T are the evaluated child node values.
+    /// </summary>
+    public Func<T[], T> Operation { get; }
 
         /// <summary>
         /// Minimum number of child nodes required.
@@ -28,7 +31,7 @@ namespace GeneticProgramming.Expressions
         public override int MaximumArity => MaxArity;
 
         /// <summary>
-        /// Creates a new functional symbol.
+        /// Creates a new functional symbol with generic operation.
         /// </summary>
         /// <param name="name">Symbol name.</param>
         /// <param name="description">Symbol description.</param>
@@ -36,7 +39,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="minArity">Minimum number of arguments.</param>
         /// <param name="maxArity">Maximum number of arguments.</param>
         public FunctionalSymbol(string name, string description,
-            Func<double[], double> operation, int minArity, int maxArity)
+            Func<T[], T> operation, int minArity, int maxArity)
             : base(name, description)
         {
             Operation = operation ?? throw new ArgumentNullException(nameof(operation));
@@ -47,7 +50,7 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
-        private FunctionalSymbol(FunctionalSymbol original, Cloner cloner)
+        protected FunctionalSymbol(FunctionalSymbol<T> original, Cloner cloner)
             : base(original, cloner)
         {
             Operation = original.Operation;
@@ -57,7 +60,7 @@ namespace GeneticProgramming.Expressions
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
-            return new FunctionalSymbol(this, cloner);
+            return new FunctionalSymbol<T>(this, cloner);
         }
 
         public override string GetFormatString()
