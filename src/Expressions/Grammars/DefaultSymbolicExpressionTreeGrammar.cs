@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Expressions.Grammars
 {
@@ -44,10 +45,10 @@ namespace GeneticProgramming.Expressions.Grammars
         private void Initialize()
         {
             // Add mathematical operation symbols
-            var addition = new Symbols.Addition();
-            var subtraction = new Symbols.Subtraction();
-            var multiplication = new Symbols.Multiplication();
-            var division = new Symbols.Division();
+            var addition = MathematicalSymbols.Addition;
+            var subtraction = MathematicalSymbols.Subtraction;
+            var multiplication = MathematicalSymbols.Multiplication;
+            var division = MathematicalSymbols.Division;
 
             AddSymbol(addition);
             AddSymbol(subtraction);
@@ -55,8 +56,8 @@ namespace GeneticProgramming.Expressions.Grammars
             AddSymbol(division);
 
             // Add terminal symbols
-            var variable = new Symbols.Variable();
-            var constant = new Symbols.Constant();
+            var variable = new Variable();
+            var constant = new Constant();
 
             AddSymbol(variable);
             AddSymbol(constant);

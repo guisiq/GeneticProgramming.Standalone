@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions
 /// <summary>
 /// Symbol that executes a provided delegate when evaluated, operating on generic type T.
 /// </summary>
-public class FunctionalSymbol<T> : Symbol
+public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
     {
     /// <summary>
     /// Delegate representing the operation of this symbol.
@@ -71,6 +71,17 @@ public class FunctionalSymbol<T> : Symbol
         public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
             return new SymbolicExpressionTreeNode(this);
+        }
+
+        /// <summary>
+        /// Evaluates this functional symbol by applying its operation to the child values.
+        /// </summary>
+        /// <param name="childValues">The evaluated values from child nodes.</param>
+        /// <param name="variables">Variable context (not used by functional symbols).</param>
+        /// <returns>The result of applying the operation to the child values.</returns>
+        public T Evaluate(T[] childValues, System.Collections.Generic.IDictionary<string, T> variables)
+        {
+            return Operation(childValues);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Expressions.Symbols;
+using static GeneticProgramming.Expressions.Symbols.MathematicalSymbols;
 
 namespace GeneticProgramming.Problems.Evaluators
 {
@@ -32,19 +33,33 @@ namespace GeneticProgramming.Problems.Evaluators
                         return valByName;
                     throw new ArgumentException($"Variable '{v.Symbol.Name}' not provided.");
                 case SymbolicExpressionTreeNode internalNode:
+                    // Se o símbolo é um FunctionalSymbol<double>, use sua operação
+                    if (internalNode.Symbol is FunctionalSymbol<double> functionalSymbol)
+                    {
+                        // Avalie todos os filhos e colete os valores
+                        var childValues = internalNode.Subtrees
+                            .Select(child => EvaluateNode(child, vars))
+                            .ToArray();
+                        
+                        // Execute a operação do símbolo funcional
+                        return functionalSymbol.Operation(childValues);
+                    }
+                    
+                    // Fallback para símbolos não-funcionais (compatibilidade)
                     var children = internalNode.Subtrees.ToList();
                     double c0 = children.Count > 0 ? EvaluateNode(children[0], vars) : 0.0;
                     double c1 = children.Count > 1 ? EvaluateNode(children[1], vars) : 0.0;
-                    if (internalNode.Symbol is Addition)
-                        return c0 + c1;
-                    if (internalNode.Symbol is Subtraction)
-                        return c0 - c1;
-                    if (internalNode.Symbol is Multiplication)
-                        return c0 * c1;
-                    if (internalNode.Symbol is Division)
+                    switch (internalNode.Symbol.Name)
                     {
-                        if (Math.Abs(c1) < 1e-12) return 0.0;
-                        return c0 / c1;
+                        case "Addition":
+                            return c0 + c1;
+                        case "Subtraction":
+                            return c0 - c1;
+                        case "Multiplication":
+                            return c0 * c1;
+                        case "Division":
+                            if (Math.Abs(c1) < 1e-12) return 0.0;
+                            return c0 / c1;
                     }
                     break;
             }

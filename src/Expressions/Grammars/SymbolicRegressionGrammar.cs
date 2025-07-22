@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Expressions.Grammars
 {
@@ -102,23 +103,23 @@ namespace GeneticProgramming.Expressions.Grammars
         private void Initialize()
         {
             // Add basic mathematical operations
-            AddSymbol(new Symbols.Addition { Name = "Add" });
-            AddSymbol(new Symbols.Subtraction { Name = "Subtract" });
-            AddSymbol(new Symbols.Multiplication { Name = "Multiply" });
+            AddSymbol(MathematicalSymbols.Addition);
+            AddSymbol(MathematicalSymbols.Subtraction);
+            AddSymbol(MathematicalSymbols.Multiplication);
 
             if (_allowDivision)
-                AddSymbol(new Symbols.Division { Name = "Divide" });
+                AddSymbol(MathematicalSymbols.Division);
 
             // Add variables
             foreach (var variableName in _variableNames)
             {
-                var variable = new Symbols.Variable { Name = variableName };
+                var variable = new Variable { Name = variableName };
                 AddSymbol(variable);
             }
 
             // Add constant if allowed
             if (_allowConstants)
-                AddSymbol(new Symbols.Constant { Name = "Constant" });
+                AddSymbol(new Constant { Name = "Constant" });
 
             // Configure grammar rules
             ConfigureRegressionRules();
@@ -168,7 +169,7 @@ namespace GeneticProgramming.Expressions.Grammars
             if (_variableNames.Contains(variableName))
                 return; // Variable already exists
             _variableNames.Add(variableName); // This line is crucial for adding the name to VariableNames
-            var variable = new Symbols.Variable { Name = variableName };
+            var variable = new Variable { Name = variableName };
             AddSymbol(variable);
             AddStartSymbol(variable);
 
@@ -200,7 +201,7 @@ namespace GeneticProgramming.Expressions.Grammars
             var constant = GetSymbol("Constant");
               if (_allowConstants && constant == null)
             {
-                AddSymbol(new Symbols.Constant { Name = "Constant" });
+                AddSymbol(new Constant { Name = "Constant" });
                 ConfigureRegressionRules();
             }
             else if (!_allowConstants && constant != null)
@@ -217,7 +218,7 @@ namespace GeneticProgramming.Expressions.Grammars
             var division = GetSymbol("Divide");
               if (_allowDivision && division == null)
             {
-                AddSymbol(new Symbols.Division { Name = "Divide" });
+                AddSymbol(MathematicalSymbols.Division);
                 ConfigureRegressionRules();
             }
             else if (!_allowDivision && division != null)

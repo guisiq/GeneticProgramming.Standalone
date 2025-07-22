@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GeneticProgramming.Core;
 
 namespace GeneticProgramming.Expressions.Symbols
@@ -27,7 +28,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a variable in the expression
     /// </summary>
-    public sealed class Variable : TerminalSymbol
+    public sealed class Variable : TerminalSymbol, IEvaluable<double>
     {
         public Variable() : base("Variable", "A variable symbol")
         {
@@ -35,9 +36,24 @@ namespace GeneticProgramming.Expressions.Symbols
 
         private Variable(Variable original, Cloner cloner) : base(original, cloner)
         {
-        }        public override IDeepCloneable Clone(Cloner cloner)
+        }
+
+        public override IDeepCloneable Clone(Cloner cloner)
         {
             return new Variable(this, cloner);
+        }
+
+        /// <summary>
+        /// Evaluates this variable by looking up its value in the variables dictionary.
+        /// </summary>
+        /// <param name="childValues">Not used for terminal symbols.</param>
+        /// <param name="variables">Dictionary containing variable values.</param>
+        /// <returns>The value of this variable.</returns>
+        public double Evaluate(double[] childValues, IDictionary<string, double> variables)
+        {
+            if (variables.TryGetValue(Name, out double value))
+                return value;
+            throw new ArgumentException($"Variable '{Name}' not found in variables dictionary.");
         }
 
         public override ISymbolicExpressionTreeNode CreateTreeNode()
