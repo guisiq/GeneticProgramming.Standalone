@@ -33,34 +33,18 @@ namespace GeneticProgramming.Problems.Evaluators
                         return valByName;
                     throw new ArgumentException($"Variable '{v.Symbol.Name}' not provided.");
                 case SymbolicExpressionTreeNode internalNode:
-                    // Se o símbolo é um FunctionalSymbol<double>, use sua operação
-                    if (internalNode.Symbol is FunctionalSymbol<double> functionalSymbol)
+                    // Use the new IEvaluable interface if the symbol implements it
+                    if (internalNode.Symbol is IEvaluable<double> evaluableSymbol)
                     {
-                        // Avalie todos os filhos e colete os valores
+                        // Evaluate all children and collect their values
                         var childValues = internalNode.Subtrees
                             .Select(child => EvaluateNode(child, vars))
                             .ToArray();
                         
-                        // Execute a operação do símbolo funcional
-                        return functionalSymbol.Operation(childValues);
+                        // Use the symbol's own evaluation method
+                        return evaluableSymbol.Evaluate(childValues, vars);
                     }
-                    
-                    // Fallback para símbolos não-funcionais (compatibilidade)
-                    var children = internalNode.Subtrees.ToList();
-                    double c0 = children.Count > 0 ? EvaluateNode(children[0], vars) : 0.0;
-                    double c1 = children.Count > 1 ? EvaluateNode(children[1], vars) : 0.0;
-                    switch (internalNode.Symbol.Name)
-                    {
-                        case "Addition":
-                            return c0 + c1;
-                        case "Subtraction":
-                            return c0 - c1;
-                        case "Multiplication":
-                            return c0 * c1;
-                        case "Division":
-                            if (Math.Abs(c1) < 1e-12) return 0.0;
-                            return c0 / c1;
-                    }
+ 
                     break;
             }
             throw new NotSupportedException($"Symbol '{node.Symbol.SymbolName}' not supported in interpreter.");

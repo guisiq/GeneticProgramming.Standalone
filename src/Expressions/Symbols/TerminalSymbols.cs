@@ -75,7 +75,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a numeric constant in the expression
     /// </summary>
-    public sealed class Constant : TerminalSymbol
+    public sealed class Constant : TerminalSymbol, IEvaluable<double>
     {
         public Constant() : base("Constant", "A numeric constant symbol")
         {
@@ -83,18 +83,36 @@ namespace GeneticProgramming.Expressions.Symbols
 
         private Constant(Constant original, Cloner cloner) : base(original, cloner)
         {
-        }        public override IDeepCloneable Clone(Cloner cloner)
+        }
+
+        public override IDeepCloneable Clone(Cloner cloner)
         {
             return new Constant(this, cloner);
+        }
+
+        /// <summary>
+        /// Evaluates this constant. For constants, the actual value comes from ConstantTreeNode.
+        /// This method is not directly used as constants are handled by their tree nodes.
+        /// </summary>
+        /// <param name="childValues">Not used for terminal symbols.</param>
+        /// <param name="variables">Not used for constants.</param>
+        /// <returns>Default value (should not be called directly).</returns>
+        public double Evaluate(double[] childValues, IDictionary<string, double> variables)
+        {
+
+            throw new InvalidOperationException("Constant evaluation should be handled by ConstantTreeNode.");
         }
 
         public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
             return new ConstantTreeNode(this);
-        }        public override string GetFormatString()
+        }
+
+        public override string GetFormatString()
         {
             return "C";
         }
+        
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new Constant(this, cloner);
