@@ -11,14 +11,6 @@ namespace GeneticProgramming.Expressions.Symbols
     /// </summary>
     public static class MathematicalSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Addition,
-            Subtraction,
-            Multiplication,
-            Division
-        };
-
         public static readonly FunctionalSymbol<double> Addition =
             SymbolFactory<double>.CreateBinary(
                 "Addition", "Addition operation (+)",
@@ -43,15 +35,19 @@ namespace GeneticProgramming.Expressions.Symbols
                         throw new DivideByZeroException("Divisão por zero.");
                     return a / b;
                 });
+
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Addition,
+            Subtraction,
+            Multiplication,
+            Division
+        };
     }
 
     public static class MathematicalLogarithmicSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Logarithm,
-            Exponential
-        };
+
 
         public static readonly FunctionalSymbol<double> Logarithm =
             SymbolFactory<double>.CreateBinary(
@@ -72,15 +68,14 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "Exponential", "Exponential operation (exp)",
                 Math.Exp);
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Logarithm,
+            Exponential
+        };
     }
     public static class MathematicalTrigonometricSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Sine,
-            Cosine,
-            Tangent
-        };
 
         public static readonly FunctionalSymbol<double> Sine =
             SymbolFactory<double>.CreateUnary(
@@ -96,15 +91,15 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "Tangent", "Tangent operation (tan)",
                 Math.Tan);
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Sine,
+            Cosine,
+            Tangent
+        };
     }
     public static class MathematicalHyperbolicSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            HyperbolicSine,
-            HyperbolicCosine,
-            HyperbolicTangent
-        };
 
         public static readonly FunctionalSymbol<double> HyperbolicSine =
             SymbolFactory<double>.CreateUnary(
@@ -120,6 +115,12 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "HyperbolicTangent", "Hyperbolic tangent operation (tanh)",
                 Math.Tanh);
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            HyperbolicSine,
+            HyperbolicCosine,
+            HyperbolicTangent
+        };
     }
     //mathematica discreta 
     public static class MathematicalDiscreteSymbols
@@ -133,17 +134,44 @@ namespace GeneticProgramming.Expressions.Symbols
                     return n == 0 ? 1 : Enumerable.Range(1, n).Aggregate(1, (acc, x) => acc * x);
                 });
 
-        public static readonly FunctionalSymbol<int> Permutation =
-            SymbolFactory<int>.CreateBinary(
-                "Permutation", "Permutation operation (nPr)",
-                (n, r) =>
+        public static readonly CompositeSymbol<int> Permutation =
+            SymbolFactory<int>.CreateComposite(
+                "Permutation", "Permutation operation (nPr)", 2,
+                placeholders =>
                 {
+                    // Create P(n,r) node
+                    var permutationNode = new SymbolicExpressionTreeNode(Factorial);
+                    permutationNode.AddSubtree(placeholders[0]); // n
+                    permutationNode.AddSubtree(placeholders[1]); // r
+
+                    // Create r! node
+                    var factorialNode = new SymbolicExpressionTreeNode(Factorial);
+                    factorialNode.AddSubtree(placeholders[1]); // r
+
+                    // Create division node: P(n,r) / r!
+                    var divisionNode = new SymbolicExpressionTreeNode(
+                        SymbolFactory<int>.CreateBinary("IntDivision", "Integer division", (a, b) => 
+                        {
+                            if (b == 0) throw new DivideByZeroException("Division by zero.");
+                            return a / b;
+                        }));
+                    divisionNode.AddSubtree(permutationNode);
+                    divisionNode.AddSubtree(factorialNode);
+
+                    return divisionNode;
+                },
+                // Operation for evaluation (matches the subtree logic)
+                args =>
+                {
+                    var n = args[0];
+                    var r = args[1];
                     if (n < 0 || r < 0 || r > n)
                         throw new ArgumentException("Invalid values for permutation.");
-                    // P(n, r) = n! / (n - r)! = n * (n-1) * ... * (n-r+1)
-                    return Enumerable.Range(n - r + 1, r).Aggregate(1, (acc, x) => acc * x);
+                    
+                    // P(n, r) = n! / (n - r)!
+                    var numerator = Enumerable.Range(n - r + 1, r).Aggregate(1, (acc, x) => acc * x);
+                    return numerator;
                 });
-
         /// <summary>
         /// Combination symbol that generates a subtree representing P(n,r) / r!
         /// This creates a composite structure that can be mutated and crossed over at the component level.
