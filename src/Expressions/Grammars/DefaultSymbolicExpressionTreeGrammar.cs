@@ -18,12 +18,14 @@ namespace GeneticProgramming.Expressions.Grammars
             : base("DefaultGrammar", "A default grammar for symbolic expressions with basic mathematical operations")
         {
             Initialize();
-        }        /// <summary>
+        }
+
+        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
         /// <param name="cloner">The cloner to use for deep cloning.</param>
-        private DefaultSymbolicExpressionTreeGrammar(DefaultSymbolicExpressionTreeGrammar original, Core.Cloner cloner) 
+        private DefaultSymbolicExpressionTreeGrammar(DefaultSymbolicExpressionTreeGrammar original, Core.Cloner cloner)
             : base(original, cloner)
         {
             // Base class handles all the cloning
@@ -44,16 +46,10 @@ namespace GeneticProgramming.Expressions.Grammars
         /// </summary>
         private void Initialize()
         {
-            // Add mathematical operation symbols
-            var addition = MathematicalSymbols.Addition;
-            var subtraction = MathematicalSymbols.Subtraction;
-            var multiplication = MathematicalSymbols.Multiplication;
-            var division = MathematicalSymbols.Division;
-
-            AddSymbol(addition);
-            AddSymbol(subtraction);
-            AddSymbol(multiplication);
-            AddSymbol(division);
+            foreach (var item in MathematicalSymbols.AllSymbols)
+            {
+                AddSymbol(item);
+            }
 
             // Add terminal symbols
             var variable = new Variable();
@@ -112,7 +108,8 @@ namespace GeneticProgramming.Expressions.Grammars
             // Remove the default variable symbol
             var defaultVariable = grammar.GetSymbol("Variable");
             if (defaultVariable != null)
-                grammar.RemoveSymbol(defaultVariable);            // Add specific variables
+                grammar.RemoveSymbol(defaultVariable);
+            // Add specific variables
             foreach (var variableName in variableNames)
             {
                 var variable = new Symbols.Variable { Name = variableName };
@@ -160,7 +157,8 @@ namespace GeneticProgramming.Expressions.Grammars
             // Examples: Sin, Cos, Log, Exp, Power, etc.
             
             return grammar;
-        }        /// <summary>
+        }
+        /// <summary>
         /// Validates that the grammar is properly configured.
         /// </summary>
         /// <returns>True if the grammar is valid, false otherwise.</returns>

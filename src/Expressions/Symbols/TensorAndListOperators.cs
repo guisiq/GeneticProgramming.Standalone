@@ -4,6 +4,7 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using GeneticProgramming.Expressions;
 using GeneticProgramming.Core;
+using System.Collections.Generic;
 
 namespace GeneticProgramming.Expressions.Symbols
 {
@@ -13,6 +14,11 @@ namespace GeneticProgramming.Expressions.Symbols
     // Símbolos para operações em arrays de double
     public static class ArraySymbols
     {
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Sum,
+            Multiply
+        };
         public static readonly FunctionalSymbol<double> Sum =
             SymbolFactory<double>.CreateVariadic(
                 "ArraySum", "Soma de elementos de um array",
@@ -33,6 +39,11 @@ namespace GeneticProgramming.Expressions.Symbols
     // Símbolos para operações em listas de double
     public static class ListSymbols
     {
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Sum,
+            Average
+        };
         public static readonly FunctionalSymbol<double> Sum =
             SymbolFactory<double>.CreateVariadic(
                 "ListSum", "Soma de elementos de uma lista",
@@ -53,6 +64,14 @@ namespace GeneticProgramming.Expressions.Symbols
     // Símbolos para operações em matrizes
     public static class MatrixSymbols
     {
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Add,
+            Dot,
+            Subtract,
+            Transpose,
+            Inverse
+        };
         public static readonly FunctionalSymbol<Matrix<double>> Add =
             SymbolFactory<Matrix<double>>.CreateBinary(
                 "MatrixAdd", "Soma de duas matrizes",

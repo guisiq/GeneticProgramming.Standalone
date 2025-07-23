@@ -12,13 +12,18 @@ namespace GeneticProgramming.Expressions.Grammars
     public class SymbolicRegressionGrammar : SymbolicExpressionTreeGrammar
     {
         private readonly List<string> _variableNames;
+        private readonly List<ISymbol> _funSymbols;
         private bool _allowConstants;
-        private bool _allowDivision;
 
         /// <summary>
         /// Gets the variable names used in this grammar.
         /// </summary>
         public IEnumerable<string> VariableNames => _variableNames.AsReadOnly();
+
+        /// <summary>
+        /// Gets the functional symbols used in this grammar.
+        /// </summary>
+        public IEnumerable<ISymbol> FunSymbols => _funSymbols.AsReadOnly();
 
         /// <summary>
         /// Gets or sets whether constants are allowed in expressions.
@@ -37,44 +42,38 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
-        /// Gets or sets whether division operations are allowed.
-        /// </summary>
-        public bool AllowDivision
-        {
-            get => _allowDivision;
-            set
-            {
-                if (_allowDivision != value)
-                {                    _allowDivision = value;
-                    UpdateDivision();
-                    OnPropertyChanged(nameof(AllowDivision));
-                }
-            }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the SymbolicRegressionGrammar class with default variable "X".
         /// </summary>
-        public SymbolicRegressionGrammar() : this(new[] { "X" }, allowConstants: true, allowDivision: true) { }
+        public SymbolicRegressionGrammar() : this(new[] { "X" }, MathematicalSymbols.AllSymbols, allowConstants: true) { }
+
+        /// <summary>
+        /// Creates the default set of functional symbols for symbolic regression.
+        /// </summary>
+        /// <returns>A collection of default functional symbols.</returns>
 
         /// <summary>
         /// Initializes a new instance of the SymbolicRegressionGrammar class.
         /// </summary>
         /// <param name="variableNames">The names of input variables.</param>
+        /// <param name="funSymbols">The functional symbols to include in the grammar.</param>
         /// <param name="allowConstants">Whether to allow constants in expressions.</param>
-        /// <param name="allowDivision">Whether to allow division operations.</param>
-        public SymbolicRegressionGrammar(IEnumerable<string> variableNames, bool allowConstants = true, bool allowDivision = true)
+        public SymbolicRegressionGrammar(IEnumerable<string> variableNames, IEnumerable<ISymbol> funSymbols = null, bool allowConstants = true)
             : base("SymbolicRegressionGrammar", "A grammar for symbolic regression with mathematical operations and variables")
         {
             _variableNames = new List<string>(variableNames ?? throw new ArgumentNullException(nameof(variableNames)));
+            _funSymbols = new List<ISymbol>(funSymbols ?? MathematicalSymbols.AllSymbols);
             _allowConstants = allowConstants;
-            _allowDivision = allowDivision;
 
             if (!_variableNames.Any())
                 throw new ArgumentException("At least one variable name must be provided.", nameof(variableNames));
 
+            if (!_funSymbols.Any())
+                throw new ArgumentException("At least one functional symbol must be provided.", nameof(funSymbols));
+
             Initialize();
-        }        /// <summary>
+        }
+
+        /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
@@ -83,8 +82,8 @@ namespace GeneticProgramming.Expressions.Grammars
             : base(original, cloner)
         {
             _variableNames = new List<string>(original._variableNames);
+            _funSymbols = new List<ISymbol>(original._funSymbols);
             _allowConstants = original._allowConstants;
-            _allowDivision = original._allowDivision;
         }
 
         /// <summary>
@@ -102,13 +101,11 @@ namespace GeneticProgramming.Expressions.Grammars
         /// </summary>
         private void Initialize()
         {
-            // Add basic mathematical operations
-            AddSymbol(MathematicalSymbols.Addition);
-            AddSymbol(MathematicalSymbols.Subtraction);
-            AddSymbol(MathematicalSymbols.Multiplication);
-
-            if (_allowDivision)
-                AddSymbol(MathematicalSymbols.Division);
+            // Add the functional symbols passed as parameters
+            foreach (var funSymbol in _funSymbols)
+            {
+                AddSymbol(funSymbol);
+            }
 
             // Add variables
             foreach (var variableName in _variableNames)
@@ -211,30 +208,18 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
-        /// Updates the division symbol based on the AllowDivision setting.
-        /// </summary>
-        private void UpdateDivision()
-        {
-            var division = GetSymbol("Division");
-              if (_allowDivision && division == null)
-            {
-                AddSymbol(MathematicalSymbols.Division);
-                ConfigureRegressionRules();
-            }
-            else if (!_allowDivision && division != null)
-            {
-                RemoveSymbol(division);
-            }
-        }
-
-        /// <summary>
         /// Creates a simple grammar with only addition, subtraction, and specified variables.
         /// </summary>
         /// <param name="variableNames">The names of variables to include.</param>
         /// <returns>A simple regression grammar.</returns>
         public static SymbolicRegressionGrammar CreateSimpleGrammar(IEnumerable<string> variableNames)
         {
-            return new SymbolicRegressionGrammar(variableNames, allowConstants: false, allowDivision: false);
+            var simpleSymbols = new ISymbol[]
+            {
+                MathematicalSymbols.Addition,
+                MathematicalSymbols.Subtraction
+            };
+            return new SymbolicRegressionGrammar(variableNames, simpleSymbols, allowConstants: false);
         }
 
         /// <summary>
@@ -244,7 +229,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// <returns>A standard regression grammar.</returns>
         public static SymbolicRegressionGrammar CreateStandardGrammar(IEnumerable<string> variableNames)
         {
-            return new SymbolicRegressionGrammar(variableNames, allowConstants: true, allowDivision: true);
+            return new SymbolicRegressionGrammar(variableNames, MathematicalSymbols.AllSymbols, allowConstants: true);
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace GeneticProgramming.Examples
             // Test 1: Create a symbolic regression grammar
             Console.WriteLine("\n1. Testing Symbolic Regression Grammar...");
             var variableNames = new[] { "X", "Y", "Z" };
-            var grammar = new SymbolicRegressionGrammar(variableNames, allowConstants: true, allowDivision: true);
+            var grammar = new SymbolicRegressionGrammar(variableNames, allowConstants: true);
             
             Console.WriteLine($"   Grammar created with {grammar.Symbols.Count()} symbols");
             Console.WriteLine($"   Start symbols: {grammar.StartSymbols.Count()}");

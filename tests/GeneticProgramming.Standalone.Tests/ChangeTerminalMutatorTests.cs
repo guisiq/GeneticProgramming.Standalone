@@ -37,7 +37,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
         [Fact]
         public void Mutate_ChangesVariableName()
         {
-            var grammar = new SymbolicRegressionGrammar(new[] { "X0", "X1" }, allowConstants: false, allowDivision: false);
+            var grammar = new SymbolicRegressionGrammar(new[] { "X0", "X1" }, allowConstants: false);
             var variableSymbol = (Variable)grammar.GetSymbol("X0")!;
             var variableNode = new VariableTreeNode(variableSymbol, "X0");
             var tree = new SymbolicExpressionTree(variableNode);

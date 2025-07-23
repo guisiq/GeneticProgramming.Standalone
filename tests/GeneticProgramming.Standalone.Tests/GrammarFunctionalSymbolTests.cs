@@ -88,7 +88,7 @@ namespace GeneticProgramming.Standalone.Tests
         {
             // Arrange
             var variableNames = new[] { "X" };
-            var grammar = new SymbolicRegressionGrammar(variableNames, allowDivision: false);
+            var grammar = new SymbolicRegressionGrammar(variableNames);
 
             // Act
             var symbols = grammar.Symbols.ToList();
@@ -97,24 +97,6 @@ namespace GeneticProgramming.Standalone.Tests
             Assert.DoesNotContain(symbols, s => s.Name == "Division");
         }
 
-        [Fact]
-        public void SymbolicRegressionGrammar_AllowDivisionProperty_ShouldToggleDivisionSymbol()
-        {
-            // Arrange
-            var variableNames = new[] { "X" };
-            var grammar = new SymbolicRegressionGrammar(variableNames, allowDivision: true);
-
-            // Act & Assert - Initially should contain division
-            Assert.Contains(grammar.Symbols, s => s.Name == "Division");
-
-            // Disable division
-            grammar.AllowDivision = false;
-            Assert.DoesNotContain(grammar.Symbols, s => s.Name == "Division");
-
-            // Re-enable division
-            grammar.AllowDivision = true;
-            Assert.Contains(grammar.Symbols, s => s.Name == "Division");
-        }
 
         [Fact]
         public void SymbolicRegressionGrammar_AllowConstantsProperty_ShouldToggleConstantSymbol()
