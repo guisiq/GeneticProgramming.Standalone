@@ -11,13 +11,20 @@ namespace GeneticProgramming.Expressions
     /// the ability for genetic operators to mutate and crossover within the generated subtree.
     /// </summary>
     /// <typeparam name="T">The data type this symbol operates on.</typeparam>
-    public class CompositeSymbol<T> : FunctionalSymbol<T>
+    public class CompositeSymbol<T> : Symbol
+    
     {
         /// <summary>
         /// Delegate that builds the subtree structure when CreateTreeNode is called.
         /// The parameter array represents placeholder nodes that will be replaced with actual child nodes.
         /// </summary>
         public Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> SubtreeBuilder { get; }
+
+        public int _MinimumArity;
+        public int _MaximumArity;
+        public override int MinimumArity => _MinimumArity;
+
+        public override int MaximumArity => _MaximumArity;
 
         /// <summary>
         /// Creates a new composite symbol that generates predefined subtree structures.
@@ -27,11 +34,22 @@ namespace GeneticProgramming.Expressions
         /// <param name="arity">Number of input parameters this composite symbol requires.</param>
         /// <param name="subtreeBuilder">Delegate that builds the subtree structure using placeholder nodes.</param>
         /// <param name="operation">Operation to execute when evaluating (for compatibility with FunctionalSymbol).</param>
-        public CompositeSymbol(string name, string description, int arity,
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,
-            Func<T[], T> operation)
-            : base(name, description, operation, arity, arity)
+        public CompositeSymbol(string name, string description, 
+            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,int arity)
+            : base(name, description)
         {
+            _MinimumArity = arity;
+            _MaximumArity = arity;
+
+            SubtreeBuilder = subtreeBuilder ?? throw new ArgumentNullException(nameof(subtreeBuilder));
+        }
+        public CompositeSymbol(string name, string description, 
+            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,int minarity, int? maxarity = null)
+            : base(name, description)
+        {
+            _MinimumArity = minarity;
+            _MaximumArity = maxarity??minarity;
+
             SubtreeBuilder = subtreeBuilder ?? throw new ArgumentNullException(nameof(subtreeBuilder));
         }
 
@@ -58,8 +76,8 @@ namespace GeneticProgramming.Expressions
         public override ISymbolicExpressionTreeNode CreateTreeNode()
         {
             // Create placeholder nodes for each input parameter
-            var placeholders = new ISymbolicExpressionTreeNode[MinArity];
-            for (int i = 0; i < MinArity; i++)
+            var placeholders = new ISymbolicExpressionTreeNode[_MinimumArity];
+            for (int i = 0; i < _MinimumArity; i++)
             {
                 placeholders[i] = new ParameterPlaceholderNode<T>(i);
             }
@@ -67,6 +85,12 @@ namespace GeneticProgramming.Expressions
             // Build the subtree using the placeholders
             return SubtreeBuilder(placeholders);
         }
+
+        public override string GetFormatString()
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     /// <summary>

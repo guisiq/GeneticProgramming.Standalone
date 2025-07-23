@@ -162,18 +162,6 @@ namespace GeneticProgramming.Expressions.Symbols
                     divisionNode.AddSubtree(factorialNode);
 
                     return divisionNode;
-                },
-                // Operation for evaluation (matches the subtree logic)
-                args =>
-                {
-                    var n = args[0];
-                    var r = args[1];
-                    if (n < 0 || r < 0 || r > n)
-                        throw new ArgumentException("Invalid values for permutation.");
-                    
-                    // P(n, r) = n! / (n - r)!
-                    var numerator = Enumerable.Range(n - r + 1, r).Aggregate(1, (acc, x) => acc * x);
-                    return numerator;
                 });
         /// <summary>
         /// Combination symbol that generates a subtree representing P(n,r) / r!
@@ -204,19 +192,6 @@ namespace GeneticProgramming.Expressions.Symbols
                     divisionNode.AddSubtree(factorialNode);
 
                     return divisionNode;
-                },
-                // Operation for evaluation (matches the subtree logic)
-                args =>
-                {
-                    var n = args[0];
-                    var r = args[1];
-                    if (n < 0 || r < 0 || r > n)
-                        throw new ArgumentException("Invalid values for combination.");
-                    
-                    // C(n, r) = P(n, r) / r!
-                    var permutationValue = Enumerable.Range(n - r + 1, r).Aggregate(1, (acc, x) => acc * x);
-                    var factorialValue = r == 0 ? 1 : Enumerable.Range(1, r).Aggregate(1, (acc, x) => acc * x);
-                    return permutationValue / factorialValue;
                 });
 
         public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
