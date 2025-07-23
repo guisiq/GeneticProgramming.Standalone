@@ -16,8 +16,8 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
         public void NodeInsertion_IncreasesTreeLength()
         {
             var grammar = new SymbolicRegressionGrammar();
-            var add = (Addition)grammar.GetSymbol("Add")!;
-            var constSym = (Constant)grammar.GetSymbol("Constant")!;
+            var add = grammar.GetSymbol("Addition")!;
+            var constSym = grammar.GetSymbol("Constant")!;
             var root = new SymbolicExpressionTreeNode(add);
             root.AddSubtree(new ConstantTreeNode(constSym, 1));
             root.AddSubtree(new ConstantTreeNode(constSym, 2));
@@ -40,8 +40,8 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
         public void NodeRemoval_DecreasesTreeLength()
         {
             var grammar = new SymbolicRegressionGrammar();
-            var add = (Addition)grammar.GetSymbol("Add")!;
-            var constSym = (Constant)grammar.GetSymbol("Constant")!;
+            var add = grammar.GetSymbol("Addition")!;
+            var constSym = grammar.GetSymbol("Constant")!;
             var root = new SymbolicExpressionTreeNode(add);
             root.AddSubtree(new ConstantTreeNode(constSym, 1));
             root.AddSubtree(new ConstantTreeNode(constSym, 2));

@@ -20,7 +20,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Operators
         public void InternalNodeProbabilityOne_ReplacesRoot()
         {
             var grammar = new SymbolicRegressionGrammar();
-            var add = (Addition)grammar.GetSymbol("Add")!;
+            var add = grammar.GetSymbol("Add")!;
             var constSym = (Constant)grammar.GetSymbol("Constant")!;
 
             var parent1Root = new SymbolicExpressionTreeNode(add);

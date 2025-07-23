@@ -21,7 +21,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Problems
             var grammar = new SymbolicRegressionGrammar(SimpleRegressionProblem.VariableNames);
             var evaluator = new RegressionFitnessEvaluator(SimpleRegressionProblem.Inputs, SimpleRegressionProblem.Targets, SimpleRegressionProblem.VariableNames);
 
-            var multiply = (Multiplication)grammar.GetSymbol("Multiply")!;
+            var multiply = grammar.GetSymbol("Multiply")!;
             var variable = (Variable)grammar.GetSymbol("X")!;
             var constant = (Constant)grammar.GetSymbol("Constant")!;
 

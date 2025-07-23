@@ -215,7 +215,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// </summary>
         private void UpdateDivision()
         {
-            var division = GetSymbol("Divide");
+            var division = GetSymbol("Division");
               if (_allowDivision && division == null)
             {
                 AddSymbol(MathematicalSymbols.Division);
