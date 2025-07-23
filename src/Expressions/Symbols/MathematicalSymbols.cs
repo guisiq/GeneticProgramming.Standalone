@@ -26,22 +26,25 @@ namespace GeneticProgramming.Expressions.Symbols
                 "Multiplication", "Multiplication operation (*)",
                 (a, b) => a * b);
 
-        public static readonly FunctionalSymbol<double> Division =
-            SymbolFactory<double>.CreateBinary(
-                "Division", "Division operation (/)",
-                (a, b) =>
-                {
-                    if (b == 0)
-                        throw new DivideByZeroException("Divisão por zero.");
-                    return a / b;
-                });
+        /// <summary>
+        /// Alternative protected division that returns the numerator when dividing by zero
+        /// </summary>
+        public static readonly FunctionalSymbol<double> ProtectedDivision = SymbolFactory<double>.CreateBinary(
+            "ProtectedDivision", "pdiv", 
+            (a, b) => Math.Abs(b) < double.Epsilon ? a : a / b);
 
+        /// <summary>
+        /// Safe division that returns zero when dividing by zero
+        /// </summary>
+        public static readonly FunctionalSymbol<double> SafeDivision = SymbolFactory<double>.CreateBinary(
+            "SafeDivision", "sdiv", 
+            (a, b) => Math.Abs(b) < double.Epsilon ? double.MaxValue : a / b);
         public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
         {
             Addition,
             Subtraction,
             Multiplication,
-            Division
+            ProtectedDivision
         };
     }
 

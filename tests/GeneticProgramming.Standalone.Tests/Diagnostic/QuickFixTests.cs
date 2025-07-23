@@ -22,7 +22,7 @@ namespace GeneticProgramming.Standalone.Tests
             Assert.Equal(7.0, MathematicalSymbols.Addition.Evaluate(new[] { 3.0, 4.0 }, variables), 2);
             Assert.Equal(-1.0, MathematicalSymbols.Subtraction.Evaluate(new[] { 3.0, 4.0 }, variables), 2);
             Assert.Equal(12.0, MathematicalSymbols.Multiplication.Evaluate(new[] { 3.0, 4.0 }, variables), 2);
-            Assert.Equal(0.75, MathematicalSymbols.Division.Evaluate(new[] { 3.0, 4.0 }, variables), 2);
+            Assert.Equal(0.75, MathematicalSymbols.ProtectedDivision.Evaluate(new[] { 3.0, 4.0 }, variables), 2);
         }
 
         [Fact]

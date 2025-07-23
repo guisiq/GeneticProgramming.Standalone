@@ -69,7 +69,7 @@ namespace GeneticProgramming.Standalone.Tests
         public void MathematicalSymbols_Division_ShouldEvaluateCorrectly()
         {
             // Arrange
-            var tree = CreateBinaryTree(MathematicalSymbols.Division, 15.0, 3.0);
+            var tree = CreateBinaryTree(MathematicalSymbols.ProtectedDivision, 15.0, 3.0);
 
             // Act
             var result = _interpreter.Evaluate(tree, _variables);
@@ -82,7 +82,7 @@ namespace GeneticProgramming.Standalone.Tests
         public void MathematicalSymbols_Division_ByZero_ShouldThrowException()
         {
             // Arrange
-            var tree = CreateBinaryTree(MathematicalSymbols.Division, 5.0, 0.0);
+            var tree = CreateBinaryTree(MathematicalSymbols.ProtectedDivision, 5.0, 0.0);
 
             // Act & Assert
             Assert.Throws<DivideByZeroException>(() => _interpreter.Evaluate(tree, _variables));

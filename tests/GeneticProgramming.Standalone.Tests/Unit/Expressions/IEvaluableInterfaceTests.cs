@@ -206,7 +206,7 @@ namespace GeneticProgramming.Standalone.Tests
                 MathematicalSymbols.Addition,
                 MathematicalSymbols.Subtraction,
                 MathematicalSymbols.Multiplication,
-                MathematicalSymbols.Division
+                MathematicalSymbols.ProtectedDivision
             };
 
             // Act & Assert
@@ -275,7 +275,7 @@ namespace GeneticProgramming.Standalone.Tests
         public void Division_Evaluate_ShouldReturnCorrectQuotient(double[] inputs, double expected)
         {
             // Arrange
-            var symbol = MathematicalSymbols.Division;
+            var symbol = MathematicalSymbols.ProtectedDivision;
 
             // Act
             var result = symbol.Evaluate(inputs, _variables);

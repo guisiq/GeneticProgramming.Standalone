@@ -180,7 +180,7 @@ namespace GeneticProgramming.Standalone.Tests
         private ISymbolicExpressionTree BuildComplexExpressionTree()
         {
             // ((X + Y) * Z) / (X - 1)
-            var root = new SymbolicExpressionTreeNode(MathematicalSymbols.Division);
+            var root = new SymbolicExpressionTreeNode(MathematicalSymbols.ProtectedDivision);
 
             // Left side: (X + Y) * Z
             var multiplication = new SymbolicExpressionTreeNode(MathematicalSymbols.Multiplication);
@@ -261,7 +261,7 @@ namespace GeneticProgramming.Standalone.Tests
         private ISymbolicExpressionTree BuildDivisionByZeroTree()
         {
             // X / (Y - 4) where Y = 4
-            var root = new SymbolicExpressionTreeNode(MathematicalSymbols.Division);
+            var root = new SymbolicExpressionTreeNode(MathematicalSymbols.ProtectedDivision);
             root.AddSubtree(CreateVariableNode("X"));
 
             var subtraction = new SymbolicExpressionTreeNode(MathematicalSymbols.Subtraction);
