@@ -63,5 +63,22 @@ namespace GeneticProgramming.Expressions
             _cache[name] = sym;
             return sym;
         }
+
+        /// <summary>
+        /// Creates a composite symbol that generates predefined subtree structures.
+        /// Note: Composite symbols are not cached due to their complex subtree builders.
+        /// </summary>
+        /// <param name="name">Symbol name.</param>
+        /// <param name="description">Symbol description.</param>
+        /// <param name="arity">Number of input parameters.</param>
+        /// <param name="subtreeBuilder">Delegate that builds the subtree structure.</param>
+        /// <param name="operation">Operation to execute when evaluating.</param>
+        /// <returns>A composite symbol that generates subtrees.</returns>
+        public static CompositeSymbol<T> CreateComposite(string name, string description, int arity,
+            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,
+            Func<T[], T> operation)
+        {
+            return new CompositeSymbol<T>(name, description, arity, subtreeBuilder, operation);
+        }
     }
 }

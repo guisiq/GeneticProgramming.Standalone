@@ -9,6 +9,7 @@ namespace GeneticProgramming.Standalone
         {
             try
             {
+                CompositeSymbolDemo.TestCompositeSymbol();
                 BasicGPTest.RunBasicTests();
             }
             catch (Exception ex)
