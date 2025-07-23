@@ -124,13 +124,6 @@ namespace GeneticProgramming.Expressions.Symbols
     //mathematica discreta 
     public static class MathematicalDiscreteSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Factorial,
-            Permutation,
-            Combination
-        };
-
         public static readonly FunctionalSymbol<int> Factorial =
             SymbolFactory<int>.CreateUnary(
                 "Factorial", "Factorial operation (n!)",
@@ -194,5 +187,12 @@ namespace GeneticProgramming.Expressions.Symbols
                     var factorialValue = r == 0 ? 1 : Enumerable.Range(1, r).Aggregate(1, (acc, x) => acc * x);
                     return permutationValue / factorialValue;
                 });
+
+        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        {
+            Factorial,
+            Permutation,
+            Combination
+        };
     }
 }
