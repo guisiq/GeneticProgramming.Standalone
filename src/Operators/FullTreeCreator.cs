@@ -95,7 +95,9 @@ namespace GeneticProgramming.Operators
             }
 
             // Add maximum arity children but respect length constraints
-            var arity = Math.Min(selectedSymbol.MaximumArity, remainingLength);
+            var maxArity = selectedSymbol.MaximumArity == int.MaxValue ? 
+                Math.Min(5, remainingLength) : selectedSymbol.MaximumArity; // Limit variadic symbols
+            var arity = Math.Min(maxArity, remainingLength);
             var childLength = remainingLength / arity;
             
             for (int i = 0; i < arity; i++)
