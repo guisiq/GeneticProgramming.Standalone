@@ -1,0 +1,19 @@
+<HeadContent>
+    <script src="_content/Plotly.Blazor/plotly-latest.min.js"></script>
+    <script src="_content/Plotly.Blazor/plotly-interop.js"></script>
+    <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" />
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+</HeadContent>
+<RadzenComponents />
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
