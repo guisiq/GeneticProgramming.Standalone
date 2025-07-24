@@ -1,0 +1,173 @@
+@page "/datasets"
+@using Radzen.Blazor
+@using GeneticProgramming.Playground.Services
+@inject DatasetService DatasetService
+
+<PageTitle>Datasets - GP Playground</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-pt-8">
+    📊 Datasets
+</RadzenText>
+
+<RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pb-4">
+    Available datasets for genetic programming experiments
+</RadzenText>
+
+<RadzenRow Gap="2rem" class="rz-pt-4">
+    @foreach (var dataset in datasets)
+    {
+        <RadzenColumn Size="12" SizeMD="6" SizeLG="4">
+            <RadzenCard class="rz-shadow-4" Style="height: 100%;">
+                <RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenIcon Icon="@GetDatasetIcon(dataset.ProblemType)" Style="font-size: 1.5rem; color: var(--rz-primary);" />
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                            @dataset.Name
+                        </RadzenText>
+                    </RadzenStack>
+
+                    <RadzenText TextStyle="TextStyle.Body1">
+                        @dataset.Description
+                    </RadzenText>
+
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="view_column" Style="font-size: 1rem;" />
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Features:</strong> @dataset.Features
+                            </RadzenText>
+                        </RadzenStack>
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="dataset" Style="font-size: 1rem;" />
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Samples:</strong> @dataset.Samples
+                            </RadzenText>
+                        </RadzenStack>
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="category" Style="font-size: 1rem;" />
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Classes:</strong> @dataset.Classes
+                            </RadzenText>
+                        </RadzenStack>
+                        
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="psychology" Style="font-size: 1rem;" />
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Type:</strong> @dataset.ProblemType
+                            </RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenBadge BadgeStyle="@GetComplexityBadgeStyle(dataset)" 
+                               Text="@GetComplexityText(dataset)" 
+                               class="rz-mt-2" />
+
+                    <RadzenButton Text="Use in Experiment" 
+                                Icon="play_arrow" 
+                                ButtonStyle="ButtonStyle.Primary" 
+                                Size="ButtonSize.Small"
+                                Click="@(() => UseDataset(dataset.Name))"
+                                class="rz-mt-auto" />
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    }
+</RadzenRow>
+
+<RadzenRow Gap="2rem" class="rz-pt-6">
+    <RadzenColumn Size="12">
+        <RadzenCard class="rz-shadow-4">
+            <RadzenStack>
+                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                    ℹ️ Dataset Information
+                </RadzenText>
+                
+                <RadzenRow>
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <RadzenStack>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">
+                                Real-world Datasets
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Iris:</strong> Classic flower classification dataset from UCI repository. Well-balanced, 
+                                perfect for testing basic classification algorithms.
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Handwritten Digits:</strong> High-dimensional optical character recognition dataset. 
+                                Excellent for testing algorithm performance on complex problems.
+                            </RadzenText>
+                        </RadzenStack>
+                    </RadzenColumn>
+                    
+                    <RadzenColumn Size="12" SizeMD="6">
+                        <RadzenStack>
+                            <RadzenText TextStyle="TextStyle.Subtitle1">
+                                Synthetic Datasets
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Simple Linear:</strong> Linearly separable 2D data. Great for validating 
+                                algorithm correctness and basic functionality.
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Circle Classification:</strong> Non-linear circular decision boundary. 
+                                Tests algorithm's ability to evolve complex mathematical expressions.
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <strong>Multi-feature Statistical:</strong> Requires statistical operators like mean. 
+                                Perfect for testing advanced operator sets.
+                            </RadzenText>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+    
+    private List<DatasetInfo> datasets = new();
+
+    protected override void OnInitialized()
+    {
+        datasets = DatasetService.GetAvailableDatasets();
+    }
+
+    private string GetDatasetIcon(ProblemType problemType)
+    {
+        return problemType switch
+        {
+            ProblemType.Classification => "category",
+            ProblemType.Regression => "trending_up",
+            _ => "dataset"
+        };
+    }
+
+    private BadgeStyle GetComplexityBadgeStyle(DatasetInfo dataset)
+    {
+        return dataset.Features switch
+        {
+            <= 3 => BadgeStyle.Success,
+            <= 10 => BadgeStyle.Warning,
+            _ => BadgeStyle.Danger
+        };
+    }
+
+    private string GetComplexityText(DatasetInfo dataset)
+    {
+        return dataset.Features switch
+        {
+            <= 3 => "Simple",
+            <= 10 => "Medium",
+            _ => "Complex"
+        };
+    }
+
+    private void UseDataset(string datasetName)
+    {
+        Navigation.NavigateTo($"/experiments?dataset={Uri.EscapeDataString(datasetName)}");
+    }
+}

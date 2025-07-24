@@ -1,0 +1,540 @@
+@page "/experiments"
+@using Radzen.Blazor
+@using GeneticProgramming.Playground.Services
+@using Plotly.Blazor
+@using Plotly.Blazor.LayoutLib
+@using Plotly.Blazor.Traces
+@using Plotly.Blazor.Traces.ScatterLib
+@inject ExperimentRunner ExperimentRunner
+@inject DatasetService DatasetService
+@inject NotificationService NotificationService
+
+<PageTitle>Experiments - GP Playground</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-pt-8">
+    🧪 Experiments
+</RadzenText>
+
+<RadzenTabs @bind-SelectedIndex="selectedTab" class="rz-pt-4">
+    <Tabs>
+        <RadzenTabsItem Text="Configure">
+            <RadzenRow Gap="2rem" class="rz-pt-4">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenCard class="rz-shadow-4">
+                        <RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                                ⚙️ Algorithm Configuration
+                            </RadzenText>
+                            
+                            <RadzenFormField Text="Experiment Name">
+                                <RadzenTextBox @bind-Value="config.Name" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Description">
+                                <RadzenTextArea @bind-Value="config.Description" class="w-100" Rows="3" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Population Size">
+                                <RadzenNumeric @bind-Value="config.PopulationSize" Min="10" Max="1000" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Max Generations">
+                                <RadzenNumeric @bind-Value="config.MaxGenerations" Min="5" Max="500" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Random Seed">
+                                <RadzenNumeric @bind-Value="config.RandomSeed" Min="0" Max="999999" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Problem Type">
+                                <RadzenDropDown @bind-Value="config.ProblemType" 
+                                              Data="Enum.GetValues<ProblemType>()" 
+                                              class="w-100" />
+                            </RadzenFormField>
+
+                            @if (config.ProblemType == ProblemType.Classification)
+                            {
+                                <RadzenFormField Text="Classification Fitness">
+                                    <RadzenDropDown @bind-Value="config.ClassificationFitnessType" 
+                                                  Data="Enum.GetValues<ClassificationFitnessType>()" 
+                                                  class="w-100" />
+                                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-info-light">
+                                        @GetClassificationFitnessDescription(config.ClassificationFitnessType)
+                                    </RadzenText>
+                                </RadzenFormField>
+                                
+                                @if (config.ClassificationFitnessType == ClassificationFitnessType.ImprovedGradient)
+                                {
+                                    <RadzenFormField Text="Parsimony Pressure">
+                                        <RadzenNumeric @bind-Value="config.ParsimonyPressure" Min="(decimal)0.0" Max="(decimal)0.01" Step="(decimal)0.0001" Format="0.0000" class="w-100" />
+                                        <RadzenText TextStyle="TextStyle.Caption" class="rz-color-info-light">
+                                            Penaliza árvores grandes (0.001 = padrão, 0 = sem penalidade)
+                                        </RadzenText>
+                                    </RadzenFormField>
+                                }
+                            }
+                            else if (config.ProblemType == ProblemType.Regression)
+                            {
+                                <RadzenFormField Text="Regression Fitness">
+                                    <RadzenDropDown @bind-Value="config.RegressionFitnessType" 
+                                                  Data="Enum.GetValues<RegressionFitnessType>()" 
+                                                  class="w-100" />
+                                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-info-light">
+                                        @GetRegressionFitnessDescription(config.RegressionFitnessType)
+                                    </RadzenText>
+                                </RadzenFormField>
+                            }
+
+                            <RadzenFormField Text="Tree Creation">
+                                <RadzenDropDown @bind-Value="config.TreeCreationMethod" 
+                                              Data="Enum.GetValues<TreeCreationMethod>()" 
+                                              class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Max Tree Depth">
+                                <RadzenNumeric @bind-Value="config.MaxTreeDepth" Min="1" Max="20" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Max Tree Length">
+                                <RadzenNumeric @bind-Value="config.MaxTreeLength" Min="1" Max="100" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Crossover Probability">
+                                <RadzenNumeric @bind-Value="config.CrossoverProbability" Min="(decimal)0.0" Max="(decimal)1.0" Step="(decimal)0.1" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Mutation Probability">
+                                <RadzenNumeric @bind-Value="config.MutationProbability" Min="(decimal)0.0" Max="(decimal)1.0" Step="(decimal)0.1" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Mutation Type">
+                                <RadzenDropDown @bind-Value="config.MutationType" 
+                                              Data="Enum.GetValues<MutationType>()" 
+                                              class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Crossover Type">
+                                <RadzenDropDown @bind-Value="config.CrossoverType" 
+                                              Data="Enum.GetValues<CrossoverType>()" 
+                                              class="w-100" />
+                            </RadzenFormField>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenCard class="rz-shadow-4">
+                        <RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                                🔧 Operators & Features
+                            </RadzenText>
+
+                            <RadzenCheckBox @bind-Value="config.UseBasicMath" Name="basicMath" />
+                            <RadzenLabel Text="Basic Math (+, -, *, /)" Component="basicMath" />
+
+                            <RadzenCheckBox @bind-Value="config.UseAdvancedMath" Name="advancedMath" />
+                            <RadzenLabel Text="Advanced Math (sin, cos, exp, log)" Component="advancedMath" />
+
+                            <RadzenCheckBox @bind-Value="config.UseStatistics" Name="statistics" />
+                            <RadzenLabel Text="Statistics (mean, variance)" Component="statistics" />
+
+                            <RadzenCheckBox @bind-Value="config.AllowConstants" Name="constants" />
+                            <RadzenLabel Text="Allow Constants" Component="constants" />
+
+                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3" class="rz-pt-4">
+                                📊 Dataset
+                            </RadzenText>
+
+                            <RadzenFormField Text="Select Dataset">
+                                <RadzenDropDown @bind-Value="selectedDataset" 
+                                              Data="datasets" 
+                                              TextProperty="Name"
+                                              ValueProperty="Name"
+                                              class="w-100" />
+                            </RadzenFormField>
+
+                            @if (!string.IsNullOrEmpty(selectedDataset))
+                            {
+                                var dataset = datasets.FirstOrDefault(d => d.Name == selectedDataset);
+                                if (dataset != null)
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Info" class="rz-mt-2">
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            <strong>@dataset.Name:</strong> @dataset.Description<br/>
+                                            Features: @dataset.Features | Samples: @dataset.Samples | Classes: @dataset.Classes
+                                        </RadzenText>
+                                    </RadzenAlert>
+                                }
+                            }
+
+                            <RadzenButton Text="Start Experiment" 
+                                        Icon="play_arrow" 
+                                        ButtonStyle="ButtonStyle.Success" 
+                                        Size="ButtonSize.Large"
+                                        Click="StartExperiment" 
+                                        Disabled="isRunning"
+                                        class="w-100 rz-mt-4" />
+
+                            <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3" class="rz-pt-4">
+                                🔬 Diagnostic Tools
+                            </RadzenText>
+
+                            <RadzenFormField Text="Diagnostic Tree Depth">
+                                <RadzenNumeric @bind-Value="diagDepth" Min="1" Max="10" class="w-100" />
+                            </RadzenFormField>
+
+                            <RadzenButton Text="Generate Diagnostic Tree" 
+                                        Icon="biotech" 
+                                        ButtonStyle="ButtonStyle.Info" 
+                                        Click="GenerateDiagnosticTree" 
+                                        class="w-100 rz-mt-2" />
+
+                            @if (!string.IsNullOrEmpty(diagnosticTree))
+                            {
+                                <RadzenCard Variant="Variant.Outlined" class="rz-mt-2">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2">Diagnostic Tree:</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2" class="rz-font-family-monospace">
+                                        @diagnosticTree
+                                    </RadzenText>
+                                </RadzenCard>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenTabsItem>
+
+        <RadzenTabsItem Text="Results" Disabled="currentResult == null">
+            @if (currentResult != null)
+            {
+                <RadzenRow Gap="2rem" class="rz-pt-4">
+                    <RadzenColumn Size="12">
+                        <RadzenCard class="rz-shadow-4">
+                            <RadzenStack>
+                                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                                    📈 Experiment Results: @currentResult.ExperimentName
+                                </RadzenText>
+                                
+                                <RadzenRow>
+                                    <RadzenColumn Size="6" SizeMD="3">
+                                        <RadzenCard Variant="Variant.Outlined">
+                                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+                                                <RadzenText TextStyle="TextStyle.H4" class="rz-color-success">
+                                                    @currentResult.BestFitness.ToString("F3")
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    Best Fitness
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenCard>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="6" SizeMD="3">
+                                        <RadzenCard Variant="Variant.Outlined">
+                                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+                                                <RadzenText TextStyle="TextStyle.H4" class="rz-color-info">
+                                                    @currentResult.TestAccuracy.ToString("F3")
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    Test Accuracy
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenCard>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="6" SizeMD="3">
+                                        <RadzenCard Variant="Variant.Outlined">
+                                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+                                                <RadzenText TextStyle="TextStyle.H4" class="rz-color-warning">
+                                                    @currentResult.Duration.TotalSeconds.ToString("F1")s
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    Duration
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenCard>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="6" SizeMD="3">
+                                        <RadzenCard Variant="Variant.Outlined">
+                                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center">
+                                                <RadzenText TextStyle="TextStyle.H4" class="rz-color-secondary">
+                                                    @currentResult.TreeComplexity
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    Tree Size
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenCard>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pt-4">
+                                    Fitness Evolution
+                                </RadzenText>
+                                <div style="height: 400px;">
+                                    <PlotlyChart Config="plotConfig" Layout="plotLayout" Data="plotData" />
+                                </div>
+
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pt-4">
+                                    Best Solution
+                                </RadzenText>
+                                <RadzenCard Variant="Variant.Outlined">
+                                    <RadzenText TextStyle="TextStyle.Body1" class="rz-font-family-monospace">
+                                        @currentResult.BestIndividualString
+                                    </RadzenText>
+                                </RadzenCard>
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenTabsItem>
+
+        <RadzenTabsItem Text="Progress" Disabled="!isRunning && currentMetrics.Count == 0">
+            @if (isRunning || currentMetrics.Count > 0)
+            {
+                <RadzenRow Gap="2rem" class="rz-pt-4">
+                    <RadzenColumn Size="12">
+                        <RadzenCard class="rz-shadow-4">
+                            <RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                                    <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                                        ⏱️ Experiment Progress
+                                    </RadzenText>
+                                    @if (isRunning)
+                                    {
+                                        <RadzenProgressBarCircular ShowValue="false" Size="ProgressBarCircularSize.Small" />
+                                        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-success">
+                                            Running...
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-info">
+                                            Completed
+                                        </RadzenText>
+                                    }
+                                </RadzenStack>
+
+                                @if (currentMetrics.Count > 0)
+                                {
+                                    var latest = currentMetrics.LastOrDefault();
+                                    if (latest != null)
+                                    {
+                                        <RadzenRow>
+                                            <RadzenColumn Size="6" SizeMD="3">
+                                                <RadzenText TextStyle="TextStyle.H6">Generation</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.H4">@latest.Generation</RadzenText>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="6" SizeMD="3">
+                                                <RadzenText TextStyle="TextStyle.H6">Best Fitness</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.H4">@latest.BestFitness.ToString("F3")</RadzenText>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="6" SizeMD="3">
+                                                <RadzenText TextStyle="TextStyle.H6">Avg Fitness</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.H4">@latest.AverageFitness.ToString("F3")</RadzenText>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="6" SizeMD="3">
+                                                <RadzenText TextStyle="TextStyle.H6">Diversity</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.H4">@latest.Diversity.ToString("F3")</RadzenText>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                    }
+                                }
+                            </RadzenStack>
+                        </RadzenCard>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+
+@code {
+    private ExperimentConfiguration config = new();
+    private List<DatasetInfo> datasets = new();
+    private string selectedDataset = "";
+    private bool isRunning = false;
+    private int selectedTab = 0;
+    
+    private ExperimentResult? currentResult;
+    private List<GenerationMetrics> currentMetrics = new();
+    
+    // Diagnostic tree variables
+    private int diagDepth = 5;
+    private string diagnosticTree = "";
+    
+    // Plotly configuration
+    private Plotly.Blazor.Config plotConfig = new();
+    private Layout plotLayout = new();
+    private List<ITrace> plotData = new();
+
+    protected override void OnInitialized()
+    {
+        datasets = DatasetService.GetAvailableDatasets();
+        selectedDataset = datasets.FirstOrDefault()?.Name ?? "";
+        
+        SetupPlotly();
+    }
+
+    private void SetupPlotly()
+    {
+        plotLayout = new Layout
+        {
+            Title = new Plotly.Blazor.LayoutLib.Title { Text = "Fitness Evolution" },
+            XAxis = new List<XAxis> { new XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Generation" } } },
+            YAxis = new List<YAxis> { new YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Fitness" } } }
+        };
+    }
+
+    private void GenerateDiagnosticTree()
+    {
+        try
+        {
+            // Força configurações que garantem árvores complexas
+            var testConfig = new ExperimentConfiguration
+            {
+                UseBasicMath = true,
+                UseAdvancedMath = true,
+                AllowConstants = true,
+                TreeCreationMethod = TreeCreationMethod.Full,
+                MaxTreeDepth = diagDepth,
+                MaxTreeLength = 100,
+                RandomSeed = new Random().Next(0, 999999)
+            };
+
+            // Cria dataset dummy com variáveis
+            var dummyInputs = new double[][] { 
+                new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 }
+            };
+            var dummyTargets = new int[] { 0 };
+            var variableNames = new[] { "x1", "x2", "x3", "x4", "x5" };
+
+            // Injeta service e cria algoritmo
+            var gpService = new GeneticProgrammingService();
+            var algorithm = gpService.CreateAlgorithm(testConfig, dummyInputs, dummyTargets, variableNames);
+            
+            // Gera árvore diagnóstica
+            var tree = algorithm.TreeCreator!.CreateTree(algorithm.Random!, algorithm.Grammar!, testConfig.MaxTreeLength, diagDepth);
+            
+            diagnosticTree = $"Tree: {tree}\nDepth: {tree.Depth}\nLength: {tree.Length}";
+            
+            NotificationService.Notify(NotificationSeverity.Info, "Diagnostic Tree Generated", 
+                $"Tree created with depth {tree.Depth} and length {tree.Length}");
+        }
+        catch (Exception ex)
+        {
+            diagnosticTree = $"Error: {ex.Message}";
+            NotificationService.Notify(NotificationSeverity.Error, "Diagnostic Failed", ex.Message);
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task StartExperiment()
+    {
+        if (string.IsNullOrEmpty(selectedDataset))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Dataset Required", "Please select a dataset");
+            return;
+        }
+
+        isRunning = true;
+        currentMetrics.Clear();
+        currentResult = null;
+        selectedTab = 2; // Switch to Progress tab
+        StateHasChanged();
+
+        try
+        {
+            var progress = new Progress<GenerationMetrics>(metrics =>
+            {
+                currentMetrics.Add(metrics);
+                UpdateProgressChart();
+                InvokeAsync(StateHasChanged);
+            });
+
+            currentResult = await ExperimentRunner.RunExperimentAsync(config, selectedDataset, progress);
+            
+            UpdateResultsChart();
+            selectedTab = 1; // Switch to Results tab
+            
+            NotificationService.Notify(NotificationSeverity.Success, "Experiment Complete", 
+                $"Experiment completed with best fitness: {currentResult.BestFitness:F3}");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Experiment Failed", ex.Message);
+        }
+        finally
+        {
+            isRunning = false;
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateProgressChart()
+    {
+        if (currentMetrics.Count == 0) return;
+
+        var generations = currentMetrics.Select(m => m.Generation).ToArray();
+        var bestFitness = currentMetrics.Select(m => m.BestFitness).ToArray();
+
+        plotData = new List<ITrace>
+        {
+            new Scatter
+            {
+                Name = "Best Fitness",
+                Mode = ModeFlag.Lines | ModeFlag.Markers,
+                X = generations.Cast<object>().ToArray(),
+                Y = bestFitness.Cast<object>().ToArray()
+            }
+        };
+    }
+
+    private void UpdateResultsChart()
+    {
+        if (currentResult == null) return;
+
+        var generations = currentResult.GenerationHistory.Select(m => m.Generation).ToArray();
+        var bestFitness = currentResult.GenerationHistory.Select(m => m.BestFitness).ToArray();
+        var avgFitness = currentResult.GenerationHistory.Select(m => m.AverageFitness).ToArray();
+
+        plotData = new List<ITrace>
+        {
+            new Scatter
+            {
+                Name = "Best Fitness",
+                Mode = ModeFlag.Lines | ModeFlag.Markers,
+                X = generations.Cast<object>().ToArray(),
+                Y = bestFitness.Cast<object>().ToArray(),
+                Line = new Line { Color = "rgb(55, 126, 184)" }
+            },
+            new Scatter
+            {
+                Name = "Average Fitness",
+                Mode = ModeFlag.Lines,
+                X = generations.Cast<object>().ToArray(),
+                Y = avgFitness.Cast<object>().ToArray(),
+                Line = new Line { Color = "rgb(255, 127, 0)" }
+            }
+        };
+    }
+    
+    private string GetClassificationFitnessDescription(ClassificationFitnessType type)
+    {
+        return type switch
+        {
+            ClassificationFitnessType.StandardAccuracy => "🔴 Accuracy padrão (0.5 threshold) - pode causar estagnação",
+            ClassificationFitnessType.ImprovedGradient => "🟢 Gradiente suave + parcimônia - evolução contínua",
+            _ => ""
+        };
+    }
+    
+    private string GetRegressionFitnessDescription(RegressionFitnessType type)
+    {
+        return type switch
+        {
+            RegressionFitnessType.MeanSquaredError => "📊 Mean Squared Error - minimiza diferença quadrática",
+            _ => ""
+        };
+    }
+}

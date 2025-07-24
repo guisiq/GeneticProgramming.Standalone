@@ -1,0 +1,120 @@
+@page "/compare"
+@using Radzen.Blazor
+@using GeneticProgramming.Playground.Services
+@using GeneticProgramming.Playground.Data.Models
+@inject ExperimentRepository ExperimentRepository
+@inject NotificationService NotificationService
+
+<PageTitle>Compare Experiments - GP Playground</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-pt-8">
+    📊 Compare Experiments
+</RadzenText>
+
+<RadzenRow Gap="2rem" class="rz-pt-4">
+    <RadzenColumn Size="12">
+        <RadzenCard class="rz-shadow-4">
+            <RadzenStack>
+                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">
+                    🔍 Select Experiments to Compare
+                </RadzenText>
+                
+                @if (experiments.Any())
+                {
+                    <RadzenDataGrid Data="experiments" TItem="ExperimentEntity" 
+                                   SelectionMode="DataGridSelectionMode.Multiple"
+                                   @bind-Value="selectedExperiments"
+                                   AllowFiltering="true" 
+                                   AllowSorting="true"
+                                   PageSize="10"
+                                   AllowPaging="true">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="Id" Title="ID" Width="60px" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="Name" Title="Name" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="DatasetName" Title="Dataset" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="BestFitness" Title="Best Fitness" FormatString="{0:F3}" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="TestAccuracy" Title="Test Accuracy" FormatString="{0:F3}" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="StartTime" Title="Start Time" FormatString="{0:yyyy-MM-dd HH:mm}" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Property="GenerationsCompleted" Title="Generations" />
+                            <RadzenDataGridColumn TItem="ExperimentEntity" Title="Actions" Width="100px">
+                                <Template Context="exp">
+                                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                                Click="@(() => DeleteExperiment(exp.Id))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                    
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-pt-4">
+                        <RadzenButton Text="Compare Selected" 
+                                    Icon="compare_arrows" 
+                                    ButtonStyle="ButtonStyle.Primary"
+                                    Click="CompareSelected" 
+                                    Disabled="selectedExperiments?.Count < 2" />
+                        
+                        <RadzenButton Text="Refresh" 
+                                    Icon="refresh" 
+                                    ButtonStyle="ButtonStyle.Secondary"
+                                    Click="LoadExperiments" />
+                    </RadzenStack>
+                }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info">
+                        <RadzenText>No experiments found. Run some experiments first!</RadzenText>
+                    </RadzenAlert>
+                }
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    private List<ExperimentEntity> experiments = new();
+    private IList<ExperimentEntity>? selectedExperiments;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExperiments();
+    }
+    
+    private async Task LoadExperiments()
+    {
+        try
+        {
+            experiments = await ExperimentRepository.GetAllExperimentsAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Failed to load experiments: {ex.Message}");
+        }
+    }
+    
+    private async Task CompareSelected()
+    {
+        if (selectedExperiments == null || selectedExperiments.Count < 2)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Selection Required", "Please select at least 2 experiments to compare");
+            return;
+        }
+        
+        NotificationService.Notify(NotificationSeverity.Info, "Coming Soon", "Comparison functionality will be implemented next!");
+    }
+    
+    private async Task DeleteExperiment(int id)
+    {
+        try
+        {
+            await ExperimentRepository.DeleteExperimentAsync(id);
+            await LoadExperiments();
+            
+            NotificationService.Notify(NotificationSeverity.Success, "Deleted", "Experiment deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Delete Failed", ex.Message);
+        }
+    }
+}
+
