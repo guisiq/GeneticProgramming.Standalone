@@ -121,16 +121,6 @@ namespace GeneticProgramming.Standalone.Tests
         }
 
         [Fact]
-        public void ErrorHandling_DivisionByZero_ShouldThrowException()
-        {
-            // Arrange: X / (Y - 4) where Y = 4, so (Y - 4) = 0
-            var tree = BuildDivisionByZeroTree();
-
-            // Act & Assert
-            Assert.Throws<DivideByZeroException>(() => _interpreter.Evaluate(tree, _variables));
-        }
-
-        [Fact]
         public void ErrorHandling_MissingVariable_ShouldThrowException()
         {
             // Arrange

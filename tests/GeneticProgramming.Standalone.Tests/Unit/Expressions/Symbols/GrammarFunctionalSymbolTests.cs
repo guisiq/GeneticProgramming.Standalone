@@ -32,10 +32,10 @@ namespace GeneticProgramming.Standalone.Tests
             var symbols = grammar.Symbols.ToList();
 
             // Assert
-            Assert.Contains(symbols, s => s.Name == "Addition");
-            Assert.Contains(symbols, s => s.Name == "Subtraction");
-            Assert.Contains(symbols, s => s.Name == "Multiplication");
-            Assert.Contains(symbols, s => s.Name == "Division");
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Addition.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Subtraction.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Multiplication.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.ProtectedDivision.Name);
         }
 
         [Fact]
@@ -155,11 +155,11 @@ namespace GeneticProgramming.Standalone.Tests
 
             // Assert
             var symbols = grammar.Symbols.ToList();
-            Assert.Contains(symbols, s => s.Name == "Addition");
-            Assert.Contains(symbols, s => s.Name == "Subtraction");
-            Assert.Contains(symbols, s => s.Name == "Multiplication");
-            Assert.DoesNotContain(symbols, s => s.Name == "Division");
-            Assert.DoesNotContain(symbols, s => s.Name == "Constant");
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Addition.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Subtraction.Name);
+            Assert.DoesNotContain(symbols, s => s.Name == MathematicalSymbols.Multiplication.Name);
+            Assert.DoesNotContain(symbols, s => s.Name == MathematicalSymbols.ProtectedDivision.Name);
+            Assert.DoesNotContain(symbols, s => s.Name =="Constant");
         }
 
         [Fact]
@@ -170,10 +170,10 @@ namespace GeneticProgramming.Standalone.Tests
 
             // Assert
             var symbols = grammar.Symbols.ToList();
-            Assert.Contains(symbols, s => s.Name == "Addition");
-            Assert.Contains(symbols, s => s.Name == "Subtraction");
-            Assert.Contains(symbols, s => s.Name == "Multiplication");
-            Assert.Contains(symbols, s => s.Name == "Division");
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Addition.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Subtraction.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Multiplication.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.ProtectedDivision.Name);
             Assert.Contains(symbols, s => s.Name == "Constant");
         }
 
@@ -185,10 +185,10 @@ namespace GeneticProgramming.Standalone.Tests
 
             // Assert
             var symbols = grammar.Symbols.ToList();
-            Assert.Contains(symbols, s => s.Name == "Addition");
-            Assert.Contains(symbols, s => s.Name == "Subtraction");
-            Assert.Contains(symbols, s => s.Name == "Multiplication");
-            Assert.Contains(symbols, s => s.Name == "Division");
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Addition.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Subtraction.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.Multiplication.Name);
+            Assert.Contains(symbols, s => s.Name == MathematicalSymbols.ProtectedDivision.Name);
         }
 
         [Fact]

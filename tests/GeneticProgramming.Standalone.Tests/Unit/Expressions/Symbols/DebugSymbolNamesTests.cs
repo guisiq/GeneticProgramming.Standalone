@@ -26,11 +26,11 @@ namespace GeneticProgramming.Standalone.Tests
             Assert.True(symbolNames.Count > 0);
             
             // Let's check each expected name
-            Assert.Contains("Addition", symbolNames);
-            Assert.Contains("Subtraction", symbolNames);
-            Assert.Contains("Multiplication", symbolNames);
-            Assert.Contains("Division", symbolNames);
-            
+            Assert.Contains(MathematicalSymbols.Addition.Name, symbolNames);
+            Assert.Contains(MathematicalSymbols.Subtraction.Name, symbolNames);
+            Assert.Contains(MathematicalSymbols.Multiplication.Name, symbolNames);
+            Assert.Contains(MathematicalSymbols.ProtectedDivision.Name, symbolNames);
+
             // Check variable name (should be X since we passed "X")
             Assert.Contains("X", symbolNames);
             

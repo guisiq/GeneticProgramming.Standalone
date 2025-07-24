@@ -195,53 +195,59 @@ namespace GeneticProgramming.Operators
                 return result;
             }
 
-            // Select a random node to change
-            var nodeToChange = nodes[random.Next(nodes.Count)];
-            var currentArity = nodeToChange.SubtreeCount;
-
-            // Find compatible symbols (same arity)
-            var compatibleSymbols = SymbolicExpressionTreeGrammar.Symbols
-                .Where(s => s.Enabled && 
-                           s.MinimumArity <= currentArity && 
-                           s.MaximumArity >= currentArity &&
-                           s.GetType() != nodeToChange.Symbol.GetType()) // Don't select the same symbol type
-                .ToList();
-
-            if (!compatibleSymbols.Any())
+            // Try to find a node that can be mutated by trying multiple random selections
+            var maxAttempts = Math.Min(nodes.Count, 10); // Try up to 10 nodes or all nodes if fewer
+            var nodesToTry = nodes.OrderBy(x => random.Next()).Take(maxAttempts).ToList();
+            
+            foreach (var nodeToChange in nodesToTry)
             {
-                return result; // No compatible symbols found
-            }
+                var currentArity = nodeToChange.SubtreeCount;
 
-            // Select a new symbol
-            var newSymbol = compatibleSymbols[random.Next(compatibleSymbols.Count)];
-            var newNode = newSymbol.CreateTreeNode();
+                // Find compatible symbols (same arity)
+                var compatibleSymbols = SymbolicExpressionTreeGrammar.Symbols
+                    .Where(s => s.Enabled && 
+                               s.MinimumArity <= currentArity && 
+                               s.MaximumArity >= currentArity &&
+                               s.GetType() != nodeToChange.Symbol.GetType()) // Don't select the same symbol type
+                    .ToList();
 
-            // Transfer children from old node to new node
-            var children = nodeToChange.Subtrees.ToList();
-            foreach (var child in children)
-            {
-                newNode.AddSubtree(child);
-            }
-
-            // Replace the node
-            if (nodeToChange == result.Root)
-            {
-                result.Root = newNode;
-            }
-            else
-            {
-                var parent = nodeToChange.Parent;
-                if (parent != null)
+                if (compatibleSymbols.Any())
                 {
-                    var childIndex = parent.IndexOfSubtree(nodeToChange);
-                    if (childIndex >= 0)
+                    // Found compatible symbols, perform the mutation
+                    var newSymbol = compatibleSymbols[random.Next(compatibleSymbols.Count)];
+                    var newNode = newSymbol.CreateTreeNode();
+
+                    // Transfer children from old node to new node
+                    var children = nodeToChange.Subtrees.ToList();
+                    foreach (var child in children)
                     {
-                        parent.RemoveSubtree(childIndex);
-                        parent.InsertSubtree(childIndex, newNode);
+                        newNode.AddSubtree(child);
                     }
+
+                    // Replace the node
+                    if (nodeToChange == result.Root)
+                    {
+                        result.Root = newNode;
+                    }
+                    else
+                    {
+                        var parent = nodeToChange.Parent;
+                        if (parent != null)
+                        {
+                            var childIndex = parent.IndexOfSubtree(nodeToChange);
+                            if (childIndex >= 0)
+                            {
+                                parent.RemoveSubtree(childIndex);
+                                parent.InsertSubtree(childIndex, newNode);
+                            }
+                        }
+                    }
+
+                    return result; // Mutation successful, return the mutated tree
                 }
             }
 
+            // If no compatible symbols found for any node, return the original tree
             return result;
         }
     }

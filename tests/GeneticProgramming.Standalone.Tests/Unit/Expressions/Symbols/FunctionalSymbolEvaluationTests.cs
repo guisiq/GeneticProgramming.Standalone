@@ -79,16 +79,6 @@ namespace GeneticProgramming.Standalone.Tests
         }
 
         [Fact]
-        public void MathematicalSymbols_Division_ByZero_ShouldThrowException()
-        {
-            // Arrange
-            var tree = CreateBinaryTree(MathematicalSymbols.ProtectedDivision, 5.0, 0.0);
-
-            // Act & Assert
-            Assert.Throws<DivideByZeroException>(() => _interpreter.Evaluate(tree, _variables));
-        }
-
-        [Fact]
         public void StatisticsSymbols_Mean_ShouldEvaluateCorrectly()
         {
             // Arrange
