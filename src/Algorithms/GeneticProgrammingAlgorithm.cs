@@ -415,6 +415,8 @@ namespace GeneticProgramming.Algorithms
 
         private void UpdateBestIndividual()
         {
+            // reset for this generation so BestFitness is the best individual in current generation
+            _bestFitness = double.NegativeInfinity;
             foreach (var individual in _population)
             {
                 var fitness = EvaluateFitness(individual);

@@ -54,11 +54,12 @@ namespace GeneticProgramming.Expressions.Symbols
 
         public static readonly FunctionalSymbol<double> Logarithm =
             SymbolFactory<double>.CreateBinary(
-                "Logarithm", "Logarithm operation (log)",
+                "Logarithm", "Protected logarithm operation (log)",
                 (a, b) =>
                 {
-                    if (a <= 0 || b <= 0 || a == 1)
-                        throw new ArgumentException("Base and value must be positive and base cannot be 1.");
+                    // domínio inválido? retorna 0 em vez de exception
+                    if (a <= 0 || b <= 0 || Math.Abs(a - 1.0) < double.Epsilon)
+                        return 0.0;
                     return Math.Log(b, a);
                 });
         //loga ritimo de base e
