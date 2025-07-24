@@ -33,7 +33,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetBostonHousingDatasetAsync()
         {
             string fileName = "boston_housing.csv";
-            string filePath = Path.Combine(_datasetPath, fileName);
+            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
 
             if (!File.Exists(filePath))
             {
@@ -57,8 +57,24 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         /// </summary>
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetDiabetesDatasetAsync()
         {
-            // Create synthetic diabetes-like dataset
-            return CreateSyntheticDiabetesDataset();
+            string fileName = "diabetes.csv";
+            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+
+            if (!File.Exists(filePath))
+            {
+                // Create synthetic diabetes-like dataset if download fails
+                return CreateSyntheticDiabetesDataset();
+            }
+
+            try
+            {
+                var lines = await File.ReadAllLinesAsync(filePath);
+                return ParseDiabetesDataset(lines);
+            }
+            catch
+            {
+                return CreateSyntheticDiabetesDataset();
+            }
         }
 
         /// <summary>
@@ -66,8 +82,24 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         /// </summary>
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetWineQualityDatasetAsync()
         {
-            // Create synthetic wine quality dataset
-            return CreateSyntheticWineDataset();
+            string fileName = "winequality-red.csv";
+            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+
+            if (!File.Exists(filePath))
+            {
+                // Create synthetic wine quality dataset if download fails
+                return CreateSyntheticWineDataset();
+            }
+
+            try
+            {
+                var lines = await File.ReadAllLinesAsync(filePath);
+                return ParseWineQualityDataset(lines);
+            }
+            catch
+            {
+                return CreateSyntheticWineDataset();
+            }
         }
 
         /// <summary>
@@ -75,8 +107,49 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         /// </summary>
         public static async Task<(double[][] inputs, int[] targets, string[] variableNames)> GetIrisDatasetAsync()
         {
-            // Create synthetic iris-like dataset
-            return CreateSyntheticIrisDataset();
+            string fileName = "iris.data";
+            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+
+            if (!File.Exists(filePath))
+            {
+                // Create synthetic iris-like dataset if download fails
+                return CreateSyntheticIrisDataset();
+            }
+
+            try
+            {
+                var lines = await File.ReadAllLinesAsync(filePath);
+                return ParseIrisDataset(lines);
+            }
+            catch
+            {
+                return CreateSyntheticIrisDataset();
+            }
+        }
+
+        /// <summary>
+        /// Downloads Optical Recognition of Handwritten Digits dataset for classification
+        /// </summary>
+        public static async Task<(double[][] inputs, int[] targets, string[] variableNames)> GetDigitsDatasetAsync()
+        {
+            string fileName = "optdigits_train.data";
+            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+
+            if (!File.Exists(filePath))
+            {
+                // Create synthetic digits-like dataset if download fails
+                return CreateSyntheticDigitsDataset();
+            }
+
+            try
+            {
+                var lines = await File.ReadAllLinesAsync(filePath);
+                return ParseDigitsDataset(lines);
+            }
+            catch
+            {
+                return CreateSyntheticDigitsDataset();
+            }
         }
 
         /// <summary>
@@ -256,6 +329,64 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         }
 
         /// <summary>
+        /// Creates synthetic handwritten digits dataset
+        /// </summary>
+        private static (double[][] inputs, int[] targets, string[] variableNames) CreateSyntheticDigitsDataset()
+        {
+            var random = new Random(42);
+            int samples = 200; // Smaller synthetic dataset for testing
+            
+            // 64 pixel features (8x8 image)
+            var variableNames = new string[64];
+            for (int i = 0; i < 64; i++)
+            {
+                variableNames[i] = $"Pixel_{i}";
+            }
+            
+            var inputs = new double[samples][];
+            var targets = new int[samples];
+
+            for (int i = 0; i < samples; i++)
+            {
+                inputs[i] = new double[64];
+                int digit = i % 10; // Digits 0-9
+                
+                // Generate simple patterns for each digit
+                for (int pixel = 0; pixel < 64; pixel++)
+                {
+                    int row = pixel / 8;
+                    int col = pixel % 8;
+                    
+                    // Create simple digit patterns based on position
+                    double value = 0;
+                    
+                    switch (digit)
+                    {
+                        case 0: // Circle-like pattern
+                            if ((row == 1 || row == 6) && col >= 2 && col <= 5) value = 12 + random.Next(5);
+                            else if ((col == 1 || col == 6) && row >= 2 && row <= 5) value = 12 + random.Next(5);
+                            break;
+                        case 1: // Vertical line in center
+                            if (col == 3 || col == 4) value = 10 + random.Next(7);
+                            break;
+                        case 2: // Horizontal lines at top, middle, bottom
+                            if (row == 1 || row == 3 || row == 6) value = 8 + random.Next(9);
+                            break;
+                        default: // Random pattern for other digits
+                            value = random.Next(17);
+                            break;
+                    }
+                    
+                    inputs[i][pixel] = value;
+                }
+                
+                targets[i] = digit;
+            }
+
+            return (inputs, targets, variableNames);
+        }
+
+        /// <summary>
         /// Parses Boston Housing dataset from CSV lines
         /// </summary>
         private static (double[][] inputs, double[] targets, string[] variableNames) ParseBostonDataset(string[] lines)
@@ -273,10 +404,146 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 
                 for (int j = 0; j < variableNames.Length; j++)
                 {
+                    // Remove quotes if present and parse
+                    var cleanValue = values[j].Trim('"');
+                    inputs[i][j] = double.Parse(cleanValue, CultureInfo.InvariantCulture);
+                }
+                
+                // Target is the last column (medv - median value)
+                var targetValue = values[variableNames.Length].Trim('"');
+                targets[i] = double.Parse(targetValue, CultureInfo.InvariantCulture);
+            }
+
+            return (inputs, targets, variableNames);
+        }
+
+        /// <summary>
+        /// Parses the Iris dataset
+        /// </summary>
+        private static (double[][] inputs, int[] targets, string[] variableNames) ParseIrisDataset(string[] lines)
+        {
+            var variableNames = new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" };
+            var dataLines = lines.Where(l => !string.IsNullOrWhiteSpace(l) && l.Contains(",")).ToArray();
+            
+            var inputs = new double[dataLines.Length][];
+            var targets = new int[dataLines.Length];
+
+            for (int i = 0; i < dataLines.Length; i++)
+            {
+                var values = dataLines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+                inputs[i] = new double[variableNames.Length];
+                
+                for (int j = 0; j < variableNames.Length; j++)
+                {
                     inputs[i][j] = double.Parse(values[j], CultureInfo.InvariantCulture);
                 }
                 
+                // Convert class name to integer
+                var className = values[4].Trim();
+                targets[i] = className switch
+                {
+                    "Iris-setosa" => 0,
+                    "Iris-versicolor" => 1,
+                    "Iris-virginica" => 2,
+                    _ => 0
+                };
+            }
+
+            return (inputs, targets, variableNames);
+        }
+
+        /// <summary>
+        /// Parses the Wine Quality dataset
+        /// </summary>
+        private static (double[][] inputs, double[] targets, string[] variableNames) ParseWineQualityDataset(string[] lines)
+        {
+            var variableNames = new[] { 
+                "FixedAcidity", "VolatileAcidity", "CitricAcid", "ResidualSugar", 
+                "Chlorides", "FreeSulfurDioxide", "TotalSulfurDioxide", "Density", 
+                "pH", "Sulphates", "Alcohol" 
+            };
+            var dataLines = lines.Skip(1).Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+            
+            var inputs = new double[dataLines.Length][];
+            var targets = new double[dataLines.Length];
+
+            for (int i = 0; i < dataLines.Length; i++)
+            {
+                var values = dataLines[i].Split(';', StringSplitOptions.RemoveEmptyEntries);
+                inputs[i] = new double[variableNames.Length];
+                
+                for (int j = 0; j < variableNames.Length; j++)
+                {
+                    // Remove quotes if present and parse
+                    var cleanValue = values[j].Trim('"');
+                    inputs[i][j] = double.Parse(cleanValue, CultureInfo.InvariantCulture);
+                }
+                
+                // Target is the last column (quality score)
+                var targetValue = values[variableNames.Length].Trim('"');
+                targets[i] = double.Parse(targetValue, CultureInfo.InvariantCulture);
+            }
+
+            return (inputs, targets, variableNames);
+        }
+
+        /// <summary>
+        /// Parses the Pima Indians Diabetes dataset
+        /// </summary>
+        private static (double[][] inputs, double[] targets, string[] variableNames) ParseDiabetesDataset(string[] lines)
+        {
+            var variableNames = new[] { "Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age" };
+            var dataLines = lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+            
+            var inputs = new double[dataLines.Length][];
+            var targets = new double[dataLines.Length];
+
+            for (int i = 0; i < dataLines.Length; i++)
+            {
+                var values = dataLines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+                inputs[i] = new double[variableNames.Length];
+                
+                for (int j = 0; j < variableNames.Length; j++)
+                {
+                    inputs[i][j] = double.Parse(values[j], CultureInfo.InvariantCulture);
+                }
+                
+                // Target is the last column (outcome - 0 or 1)
                 targets[i] = double.Parse(values[variableNames.Length], CultureInfo.InvariantCulture);
+            }
+
+            return (inputs, targets, variableNames);
+        }
+
+        /// <summary>
+        /// Parses the Optical Recognition of Handwritten Digits dataset
+        /// </summary>
+        private static (double[][] inputs, int[] targets, string[] variableNames) ParseDigitsDataset(string[] lines)
+        {
+            // 64 pixel features (8x8 image)
+            var variableNames = new string[64];
+            for (int i = 0; i < 64; i++)
+            {
+                variableNames[i] = $"Pixel_{i}";
+            }
+            
+            var dataLines = lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+            var inputs = new double[dataLines.Length][];
+            var targets = new int[dataLines.Length];
+
+            for (int i = 0; i < dataLines.Length; i++)
+            {
+                var values = dataLines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+                inputs[i] = new double[64]; // 64 pixels
+                
+                // Parse the 64 pixel values (0-16)
+                for (int j = 0; j < 64; j++)
+                {
+                    inputs[i][j] = double.Parse(values[j], CultureInfo.InvariantCulture);
+                }
+                
+                // Target is the last column (digit class 0-9)
+                targets[i] = int.Parse(values[64], CultureInfo.InvariantCulture);
             }
 
             return (inputs, targets, variableNames);
