@@ -137,7 +137,6 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 
             if (!File.Exists(filePath))
             {
-                // Create synthetic digits-like dataset if download fails
                 return CreateSyntheticDigitsDataset();
             }
 
@@ -536,10 +535,11 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 var values = dataLines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
                 inputs[i] = new double[64]; // 64 pixels
                 
-                // Parse the 64 pixel values (0-16)
+                // Parse the 64 pixel values (0-16) and normalize to [0,1]
                 for (int j = 0; j < 64; j++)
                 {
-                    inputs[i][j] = double.Parse(values[j], CultureInfo.InvariantCulture);
+                    double rawValue = double.Parse(values[j], CultureInfo.InvariantCulture);
+                    inputs[i][j] = rawValue / 16.0; // Normalize from [0,16] to [0,1]
                 }
                 
                 // Target is the last column (digit class 0-9)

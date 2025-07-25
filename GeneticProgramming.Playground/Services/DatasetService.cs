@@ -25,8 +25,8 @@ public class DatasetService
             },
             new DatasetInfo
             {
-                Name = "Handwritten Digits",
-                Description = "Optical recognition of handwritten digits (64 features, 10 classes)",
+                Name = "Handwritten Digits (Multiclass)",
+                Description = "Full multiclass digit recognition (64 features, 10 classes)",
                 Features = 64,
                 Samples = 5620,
                 Classes = 10,
@@ -70,7 +70,7 @@ public class DatasetService
         return datasetName switch
         {
             "Iris" => await DatasetManager.GetIrisDatasetAsync(),
-            "Handwritten Digits" => await DatasetManager.GetDigitsDatasetAsync(),
+            "Handwritten Digits (Multiclass)" => await DatasetManager.GetDigitsDatasetAsync(),
             "Simple Linear" => GenerateSimpleLinearDataset(),
             "Circle Classification" => GenerateCircleDataset(),
             "Multi-feature Statistical" => GenerateStatisticalDataset(),
