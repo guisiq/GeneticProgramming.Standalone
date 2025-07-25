@@ -26,7 +26,7 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Gets the name of this symbol
         /// </summary>
-        public virtual string SymbolName => GetType().Name;
+        public virtual string SymbolName => !string.IsNullOrEmpty(Name) ? Name : GetType().Name;
 
         /// <summary>
         /// Gets or sets the initial frequency of this symbol in random generation
