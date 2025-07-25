@@ -74,6 +74,9 @@ namespace GeneticProgramming.Problems.Evaluators
         /// </summary>
         private double CalculateSmoothFitness(double prediction, int target)
         {
+            // Clamp prediction para evitar valores extremos na sigmoid
+            prediction = Math.Max(-10.0, Math.Min(10.0, prediction));
+            
             // Normaliza a predição usando sigmoid para manter entre 0 e 1
             double normalizedPrediction = 1.0 / (1.0 + Math.Exp(-prediction));
             
