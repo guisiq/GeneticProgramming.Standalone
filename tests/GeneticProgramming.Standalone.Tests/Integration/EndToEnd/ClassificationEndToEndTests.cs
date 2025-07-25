@@ -412,13 +412,14 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             Array.Copy(fullInputs, 0, inputs, 0, subsetSize);
             Array.Copy(fullTargets, 0, targets, 0, subsetSize);
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Using {subsetSize} samples, converting to binary classification (digit 0 vs others)...");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Using {subsetSize} samples, converting to binary classification (even vs odd digits)...");
 
-            // Convert to binary classification for simplicity: digit 0 vs others
+            // Convert to binary classification: even digits (0,2,4,6,8) vs odd digits (1,3,5,7,9)
+            // This creates a more balanced dataset
             var binaryTargets = new int[subsetSize];
             for (int i = 0; i < subsetSize; i++)
             {
-                binaryTargets[i] = targets[i] == 0 ? 1 : 0; // 1 for digit 0, 0 for others
+                binaryTargets[i] = targets[i] % 2; // 0 for even digits, 1 for odd digits
             }
 
             // Split into train/test
