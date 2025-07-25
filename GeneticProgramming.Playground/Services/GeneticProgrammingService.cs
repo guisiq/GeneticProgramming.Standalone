@@ -124,6 +124,8 @@ public class GeneticProgrammingService
             MaxTreeLength = config.MaxTreeLength,
             CrossoverProbability = config.CrossoverProbability,
             MutationProbability = config.MutationProbability,
+            EliteCount = config.EliteCount,
+            EliteBreedingRatio = config.EliteBreedingRatio,
             FitnessEvaluator = evaluator
         };
 
@@ -168,6 +170,12 @@ public class ExperimentConfiguration
     
     [Range(0.0, 1.0)]
     public double MutationProbability { get; set; } = 0.1;
+
+    [Range(1, 10)]
+    public int EliteCount { get; set; } = 1;
+    
+    [Range(0.0, 1.0)]
+    public double EliteBreedingRatio { get; set; } = 0.2;
 
     public string Name { get; set; } = "New Experiment";
     public string Description { get; set; } = "";
@@ -257,4 +265,6 @@ public class GenerationMetrics
     public DateTime Timestamp { get; set; }
     public int BestTreeSize { get; set; }
     public double Diversity { get; set; }
+    // Representação em texto da melhor árvore nesta geração
+    public string BestTreeString { get; set; } = "";
 }

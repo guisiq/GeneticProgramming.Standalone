@@ -22,6 +22,8 @@ namespace GeneticProgramming.Algorithms
         private int _maxTreeDepth = 10;
         private double _crossoverProbability = 0.9;
         private double _mutationProbability = 0.1;
+        private int _eliteCount = 1; // Número de elites a preservar
+        private double _eliteBreedingRatio = 0.3; // % da população gerada a partir dos elites
         private ISymbolicExpressionTreeGrammar? _grammar;
         private ISymbolicExpressionTreeCreator? _treeCreator;
         private ISymbolicExpressionTreeCrossover? _crossover;
@@ -127,6 +129,38 @@ namespace GeneticProgramming.Algorithms
                 {
                     _mutationProbability = value;
                     OnPropertyChanged(nameof(MutationProbability));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of elite individuals to preserve each generation
+        /// </summary>
+        public int EliteCount
+        {
+            get => _eliteCount;
+            set
+            {
+                if (_eliteCount != value && value >= 0)
+                {
+                    _eliteCount = value;
+                    OnPropertyChanged(nameof(EliteCount));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the ratio of population generated from elite breeding (0.0 to 1.0)
+        /// </summary>
+        public double EliteBreedingRatio
+        {
+            get => _eliteBreedingRatio;
+            set
+            {
+                if (_eliteBreedingRatio != value && value >= 0.0 && value <= 1.0)
+                {
+                    _eliteBreedingRatio = value;
+                    OnPropertyChanged(nameof(EliteBreedingRatio));
                 }
             }
         }
@@ -415,16 +449,18 @@ namespace GeneticProgramming.Algorithms
 
         private void UpdateBestIndividual()
         {
-            // reset for this generation so BestFitness is the best individual in current generation
-            _bestFitness = double.NegativeInfinity;
-            foreach (var individual in _population)
+            // Evaluate all individuals and sort by fitness (descending)
+            var evaluatedPopulation = _population
+                .Select(individual => new { Individual = individual, Fitness = EvaluateFitness(individual) })
+                .OrderByDescending(x => x.Fitness)
+                .ToList();
+
+            // Update global best
+            var currentBest = evaluatedPopulation.First();
+            if (currentBest.Fitness > _bestFitness)
             {
-                var fitness = EvaluateFitness(individual);
-                if (fitness > _bestFitness)
-                {
-                    _bestFitness = fitness;
-                    _bestIndividual = (ISymbolicExpressionTree)individual.Clone(new Cloner());
-                }
+                _bestFitness = currentBest.Fitness;
+                _bestIndividual = (ISymbolicExpressionTree)currentBest.Individual.Clone(new Cloner());
             }
         }
 
@@ -432,18 +468,44 @@ namespace GeneticProgramming.Algorithms
         {
             var newPopulation = new List<ISymbolicExpressionTree>();
 
-            // Add elite (best individual)
-            if (_bestIndividual != null)
+            // Evaluate all individuals and get the top performers
+            var evaluatedPopulation = _population
+                .Select(individual => new { Individual = individual, Fitness = EvaluateFitness(individual) })
+                .OrderByDescending(x => x.Fitness)
+                .ToList();
+
+            // 1. ELITISMO: Preservar os N melhores indivíduos
+            var elites = evaluatedPopulation.Take(_eliteCount).ToList();
+            foreach (var elite in elites)
             {
-                newPopulation.Add((ISymbolicExpressionTree)_bestIndividual.Clone(new Cloner()));
+                newPopulation.Add((ISymbolicExpressionTree)elite.Individual.Clone(new Cloner()));
             }
 
-            // Create offspring to fill the rest of the population
+            // 2. ELITE BREEDING: Gerar parte da população cruzando elites entre si
+            int eliteBreedingCount = (int)(_populationSize * _eliteBreedingRatio);
+            for (int i = 0; i < eliteBreedingCount && newPopulation.Count < _populationSize; i++)
+            {
+                // Selecionar dois elites aleatoriamente para crossover
+                var parent1 = elites[_random!.Next(elites.Count)].Individual;
+                var parent2 = elites[_random!.Next(elites.Count)].Individual;
+                
+                var offspring = _crossover!.Crossover(_random, parent1, parent2);
+                
+                // Aplicar mutação com probabilidade menor nos filhos dos elites
+                if (_random.NextDouble() < _mutationProbability * 0.5) // 50% da probabilidade normal
+                {
+                    offspring = _mutator!.Mutate(_random, offspring);
+                }
+                
+                newPopulation.Add(offspring);
+            }
+
+            // 3. REPRODUÇÃO NORMAL: Preencher resto da população
             while (newPopulation.Count < _populationSize)
             {
                 if (_random!.NextDouble() < _crossoverProbability && newPopulation.Count < _populationSize - 1)
                 {
-                    // Crossover
+                    // Crossover normal com seleção por torneio
                     var parent1 = _selector!.Select(_random!, _population, EvaluateFitness);
                     var parent2 = _selector!.Select(_random!, _population, EvaluateFitness);
                     var offspring = _crossover!.Crossover(_random, parent1, parent2);
@@ -457,14 +519,14 @@ namespace GeneticProgramming.Algorithms
                 }
                 else
                 {
-                    // Mutation only
+                    // Mutação apenas
                     var parent = _selector!.Select(_random!, _population, EvaluateFitness);
                     var offspring = _mutator!.Mutate(_random, parent);
                     newPopulation.Add(offspring);
                 }
             }
 
-            // Ensure exact population size
+            // Garantir tamanho exato da população
             while (newPopulation.Count > _populationSize)
             {
                 newPopulation.RemoveAt(newPopulation.Count - 1);
