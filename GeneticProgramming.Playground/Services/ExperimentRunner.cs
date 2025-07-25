@@ -69,7 +69,8 @@ public class ExperimentRunner
                     WorstFitness = 0, // Not available in GenerationEventArgs
                     Timestamp = DateTime.Now,
                     BestTreeSize = e.BestIndividual?.ToString()?.Length ?? 0,
-                    Diversity = 0 // Population not available in GenerationEventArgs
+                    Diversity = 0, // Population not available in GenerationEventArgs
+                    BestTreeString = e.BestIndividual?.ToTreeString() ?? string.Empty
                 };
 
                 generationMetrics.Add(metrics);
@@ -83,7 +84,18 @@ public class ExperimentRunner
             double testAccuracy = 0;
             if (testInputs.Length > 0 && algorithm.BestIndividual != null)
             {
-                var testEvaluator = new ClassificationFitnessEvaluator(testInputs, testTargets, variableNames);
+                // Use the same type of evaluator that was used for training
+                IFitnessEvaluator testEvaluator = config.ProblemType switch
+                {
+                    ProblemType.Classification => config.ClassificationFitnessType switch
+                    {
+                        ClassificationFitnessType.StandardAccuracy => new ClassificationFitnessEvaluator(testInputs, testTargets, variableNames),
+                        ClassificationFitnessType.ImprovedGradient => new ImprovedClassificationFitnessEvaluator(testInputs, testTargets, variableNames, config.ParsimonyPressure),
+                        _ => new ClassificationFitnessEvaluator(testInputs, testTargets, variableNames)
+                    },
+                    ProblemType.Regression => new RegressionFitnessEvaluator(testInputs, testTargets.Select(t => (double)t).ToArray(), variableNames),
+                    _ => new ClassificationFitnessEvaluator(testInputs, testTargets, variableNames)
+                };
                 testAccuracy = testEvaluator.Evaluate(algorithm.BestIndividual);
             }
 

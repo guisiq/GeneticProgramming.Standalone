@@ -50,6 +50,11 @@ namespace GeneticProgramming.Expressions
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesBreadth();
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPrefix();
         IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPostfix();
+        
+        // Métodos de visualização
+        string ToTreeString();
+        string ToMathString();
+        void PrintTree();
     }
 
     /// <summary>

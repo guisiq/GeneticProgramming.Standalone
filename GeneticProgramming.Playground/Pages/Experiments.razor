@@ -118,6 +118,24 @@
                                               Data="Enum.GetValues<CrossoverType>()" 
                                               class="w-100" />
                             </RadzenFormField>
+
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-pt-3 rz-color-primary">
+                                🏆 Elite Strategy
+                            </RadzenText>
+                            
+                            <RadzenFormField Text="Elite Count">
+                                <RadzenNumeric @bind-Value="config.EliteCount" Min="1" Max="10" class="w-100" />
+                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-info-light">
+                                    Número de melhores indivíduos preservados por geração
+                                </RadzenText>
+                            </RadzenFormField>
+
+                            <RadzenFormField Text="Elite Breeding Ratio">
+                                <RadzenNumeric @bind-Value="config.EliteBreedingRatio" Min="(decimal)0.0" Max="(decimal)1.0" Step="(decimal)0.1" Format="0.0" class="w-100" />
+                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-info-light">
+                                    % da população gerada cruzando elites entre si (0.2 = 20%)
+                                </RadzenText>
+                            </RadzenFormField>
                         </RadzenStack>
                     </RadzenCard>
                 </RadzenColumn>
@@ -337,6 +355,16 @@
                                                 <RadzenText TextStyle="TextStyle.H4">@latest.Diversity.ToString("F3")</RadzenText>
                                             </RadzenColumn>
                                         </RadzenRow>
+
+                                        <!-- Adicionado o bloco de visualização da árvore atual -->
+                                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pt-4">
+                                            Árvore Atual
+                                        </RadzenText>
+                                        <RadzenCard Variant="Variant.Outlined" style="white-space: pre-wrap;">
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-font-family-monospace">
+                                                @latest.BestTreeString
+                                            </RadzenText>
+                                        </RadzenCard>
                                     }
                                 }
                             </RadzenStack>
