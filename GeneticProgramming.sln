@@ -3,11 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone", "GeneticProgramming.Standalone.csproj", "{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Playground", "GeneticProgramming.Playground\GeneticProgramming.Playground.csproj", "{A5B8C912-3D2F-4E8A-9876-123456789ABC}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{846C7C2E-42EC-4726-AB0C-A28401AE038A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone", "GeneticProgramming.Standalone\GeneticProgramming.Standalone.csproj", "{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone.Tests", "tests\GeneticProgramming.Standalone.Tests\GeneticProgramming.Standalone.Tests.csproj", "{22EC2A84-CE23-4725-9D93-7A65BDF17624}"
 EndProject
@@ -24,16 +20,10 @@ Global
 		{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A5B8C912-3D2F-4E8A-9876-123456789ABC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A5B8C912-3D2F-4E8A-9876-123456789ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A5B8C912-3D2F-4E8A-9876-123456789ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A5B8C912-3D2F-4E8A-9876-123456789ABC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{22EC2A84-CE23-4725-9D93-7A65BDF17624}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{22EC2A84-CE23-4725-9D93-7A65BDF17624}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22EC2A84-CE23-4725-9D93-7A65BDF17624}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22EC2A84-CE23-4725-9D93-7A65BDF17624}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{22EC2A84-CE23-4725-9D93-7A65BDF17624} = {846C7C2E-42EC-4726-AB0C-A28401AE038A}
-	EndGlobalSection
+
 EndGlobal

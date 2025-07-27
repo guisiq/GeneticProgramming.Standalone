@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GeneticProgramming.Standalone.csproj" />
+    <ProjectReference Include="..\GeneticProgramming.Standalone\GeneticProgramming.Standalone.csproj" />
   </ItemGroup>
 
 </Project>
