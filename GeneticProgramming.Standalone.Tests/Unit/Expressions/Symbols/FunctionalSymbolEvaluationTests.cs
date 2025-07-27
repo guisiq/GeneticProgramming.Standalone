@@ -12,6 +12,7 @@ namespace GeneticProgramming.Standalone.Tests
     /// </summary>
     public class FunctionalSymbolEvaluationTests
     {
+
         private readonly ExpressionInterpreter _interpreter;
         private readonly IDictionary<string, double> _variables;
 

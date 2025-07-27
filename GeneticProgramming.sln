@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone", "GeneticProgramming.Standalone\GeneticProgramming.Standalone.csproj", "{32B9E103-86FB-42EB-9C92-86AF57B7A7FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone.Tests", "tests\GeneticProgramming.Standalone.Tests\GeneticProgramming.Standalone.Tests.csproj", "{22EC2A84-CE23-4725-9D93-7A65BDF17624}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneticProgramming.Standalone.Tests", "GeneticProgramming.Standalone.Tests\GeneticProgramming.Standalone.Tests.csproj", "{22EC2A84-CE23-4725-9D93-7A65BDF17624}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
