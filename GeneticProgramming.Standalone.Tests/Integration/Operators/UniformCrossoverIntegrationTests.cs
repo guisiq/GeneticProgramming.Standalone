@@ -55,7 +55,7 @@ namespace GeneticProgramming.Standalone.IntegrationTests.Operators
             var parent1 = _creator.CreateTree(random, _grammar, 20, 5);
             var parent2 = _creator.CreateTree(random, _grammar, 20, 5);
             var crossover = new UniformCrossover { SymbolicExpressionTreeGrammar = _grammar };
-
+            crossover.SwapProbability = 1.0;
             var offspring = crossover.Crossover(random, parent1, parent2);
             var symbols1 = GetSymbolNames(parent1);
             var symbols2 = GetSymbolNames(parent2);

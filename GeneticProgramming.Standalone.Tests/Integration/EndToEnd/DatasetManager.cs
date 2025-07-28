@@ -14,7 +14,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
     public static class DatasetManager
     {
         private static readonly HttpClient _httpClient = new HttpClient();
-        private static readonly string _datasetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "datasets");
+        private static readonly string _datasetPath = "D:\\repos\\GeneticProgramming.Standalone\\datasets";
 
         /// <summary>
         /// Ensures dataset directory exists
@@ -33,7 +33,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetBostonHousingDatasetAsync()
         {
             string fileName = "boston_housing.csv";
-            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+            string filePath = Path.Combine(_datasetPath, fileName);
 
             if (!File.Exists(filePath))
             {
@@ -58,7 +58,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetDiabetesDatasetAsync()
         {
             string fileName = "diabetes.csv";
-            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+            string filePath = Path.Combine(_datasetPath, fileName);
 
             if (!File.Exists(filePath))
             {
@@ -83,7 +83,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, double[] targets, string[] variableNames)> GetWineQualityDatasetAsync()
         {
             string fileName = "winequality-red.csv";
-            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+            string filePath = Path.Combine(_datasetPath, fileName);
 
             if (!File.Exists(filePath))
             {
@@ -108,7 +108,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, int[] targets, string[] variableNames)> GetIrisDatasetAsync()
         {
             string fileName = "iris.data";
-            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+            string filePath = Path.Combine(_datasetPath, fileName);
 
             if (!File.Exists(filePath))
             {
@@ -133,7 +133,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         public static async Task<(double[][] inputs, int[] targets, string[] variableNames)> GetDigitsDatasetAsync()
         {
             string fileName = "optdigits_train.data";
-            string filePath = Path.Combine(Environment.CurrentDirectory, "datasets", fileName);
+            string filePath = Path.Combine(_datasetPath, fileName);
 
             if (!File.Exists(filePath))
             {
