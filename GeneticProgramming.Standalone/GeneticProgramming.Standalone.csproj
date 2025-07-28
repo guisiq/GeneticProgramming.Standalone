@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>12.0</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Authors>Extracted from HeuristicLab</Authors>
+    <Description>Standalone Genetic Programming library extracted from HeuristicLab</Description>
+    <Copyright>Based on HeuristicLab - GNU GPL v3</Copyright>
+    <OutputType>Library</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

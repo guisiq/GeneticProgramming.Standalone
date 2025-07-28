@@ -1,0 +1,149 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp","languageName":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!pwsh
+
+# Testando compilação do projeto
+cd "C:\Users\lopes\source\repos\GeneticProgramming.Standalone-1"
+dotnet build GeneticProgramming.sln --verbosity normal
+
+#!csharp
+
+// Configurando referências para o projeto
+#r "C:\Users\lopes\source\repos\GeneticProgramming.Standalone-1\bin\Debug\net8.0\GeneticProgramming.Standalone.dll"
+
+using GeneticProgramming.Core;
+using GeneticProgramming.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using GeneticProgramming.Expressions.Symbols;
+
+Console.WriteLine("✅ Referências carregadas com sucesso!");
+Console.WriteLine($"📦 Assemblies carregados: {AppDomain.CurrentDomain.GetAssemblies().Length}");
+
+#!csharp
+
+// === EXEMPLO 1: Usando Símbolos Matemáticos Pré-definidos ===
+Console.WriteLine("\n=== Exemplo 1: Símbolos Matemáticos Básicos ===");
+
+// Acessando símbolos já definidos no projeto
+var addition = MathematicalSymbols.Addition;
+var multiplication = MathematicalSymbols.Multiplication;
+
+Console.WriteLine($"✅ Símbolo de adição: {addition.SymbolName} (arity: {addition.MinimumArity}-{addition.MaximumArity})");
+Console.WriteLine($"✅ Símbolo de multiplicação: {multiplication.SymbolName} (arity: {multiplication.MinimumArity}-{multiplication.MaximumArity})");
+
+#!csharp
+
+// === EXEMPLO 2: Criando Símbolos Customizados ===
+Console.WriteLine("\n=== Exemplo 2: Criando Símbolos Customizados ===");
+
+// Usando SymbolFactory para criar símbolos
+var square = SymbolFactory<double>.CreateUnary(
+    "Square", 
+    "Square operation (x²)",
+    x => x * x);
+
+var power = SymbolFactory<double>.CreateBinary(
+    "Power", 
+    "Power operation (a^b)",
+    (a, b) => Math.Pow(a, b));
+
+Console.WriteLine($"✅ Criado símbolo Square: {square.SymbolName}");
+Console.WriteLine($"✅ Criado símbolo Power: {power.SymbolName}");
+
+#!csharp
+
+// === EXEMPLO 3: Criando uma Gramática Simples ===
+Console.WriteLine("\n=== Exemplo 3: Criando Gramática ===");
+
+var grammar = new SymbolicExpressionTreeGrammar("teste1","Testando gramática simples");
+
+// Adicionando símbolos matemáticos básicos
+grammar.AddSymbol(MathematicalSymbols.Addition);
+grammar.AddSymbol(MathematicalSymbols.Subtraction);
+grammar.AddSymbol(MathematicalSymbols.Multiplication);
+grammar.AddSymbol(MathematicalLogarithmicSymbols.Exponential);
+
+Console.WriteLine($"✅ Gramática criada com {grammar.Symbols.Count()} símbolos");
+
+#!csharp
+
+// === EXEMPLO 4: Criando Nós de Árvore ===
+Console.WriteLine("\n=== Exemplo 4: Criando Nós de Expressão ===");
+
+// Criando nós terminais (folhas)
+var variableNode = new VariableTreeNode(new Symbols.Variable(), "X");
+
+
+var constantNode = new SymbolicExpressionTreeNode(
+    SymbolFactory<double>.CreateConstant("5", "Constant 5", 5.0));
+
+// Criando nó funcional (operação)
+var additionNode = new SymbolicExpressionTreeNode(MathematicalSymbols.Addition);
+additionNode.AddSubtree(variableNode);
+additionNode.AddSubtree(constantNode);
+
+Console.WriteLine($"✅ Criado nó de adição com {additionNode.Subtrees.Count()} filhos");
+Console.WriteLine($"   - Filho 1: {variableNode.Symbol.SymbolName}");
+Console.WriteLine($"   - Filho 2: {constantNode.Symbol.SymbolName}");
+
+#!csharp
+
+// === EXEMPLO 5: Criando uma Árvore de Expressão Completa ===
+Console.WriteLine("\n=== Exemplo 5: Árvore de Expressão Completa ===");
+
+var tree = new SymbolicExpressionTree(additionNode);
+
+Console.WriteLine($"✅ Árvore criada: {tree.Root.Symbol.SymbolName}");
+Console.WriteLine($"   Representa a expressão: X + 5");
+Console.WriteLine($"   Altura da árvore: {tree.Length}");
+
+// === EXEMPLO 6: Expressão Mais Complexa (X² + 5) * 2 ===
+Console.WriteLine("\n=== Exemplo 6: Expressão Complexa (X² + 5) * 2 ===");
+
+// Nós folha
+var xNode = new SymbolicExpressionTreeNode(
+    SymbolFactory<double>.CreateConstant("X", "Variable X", 3.0)); // X = 3 para teste
+
+var fiveNode = new SymbolicExpressionTreeNode(
+    SymbolFactory<double>.CreateConstant("5", "Constant 5", 5.0));
+
+var twoNode = new SymbolicExpressionTreeNode(
+    SymbolFactory<double>.CreateConstant("2", "Constant 2", 2.0));
+
+// X²
+var squareNode = new SymbolicExpressionTreeNode(square);
+squareNode.AddSubtree(xNode);
+
+// X² + 5
+var addNode = new SymbolicExpressionTreeNode(addition);
+addNode.AddSubtree(squareNode);
+addNode.AddSubtree(fiveNode);
+
+// (X² + 5) * 2
+var multiplyNode = new SymbolicExpressionTreeNode(multiplication);
+multiplyNode.AddSubtree(addNode);
+multiplyNode.AddSubtree(twoNode);
+
+var complexTree = new SymbolicExpressionTree(multiplyNode);
+
+Console.WriteLine($"✅ Árvore complexa criada: (X² + 5) * 2");
+Console.WriteLine($"   Altura: {complexTree.Length}");
+Console.WriteLine($"   Número total de nós: {CountNodes(complexTree.Root)}");
+
+// Função auxiliar para contar nós
+int CountNodes(ISymbolicExpressionTreeNode node)
+{
+    return 1 + node.Subtrees.Sum(child => CountNodes(child));
+}
+
+Console.WriteLine("\n=== Resumo dos Componentes Principais ===");
+Console.WriteLine("🔹 ISymbol: Interface base para todos os símbolos");
+Console.WriteLine("🔹 FunctionalSymbol<T>: Implementação de símbolos funcionais");
+Console.WriteLine("🔹 SymbolFactory<T>: Factory para criar símbolos facilmente");
+Console.WriteLine("🔹 SymbolicExpressionTreeNode: Nós da árvore de expressão");
+Console.WriteLine("🔹 SymbolicExpressionTree: Árvore completa da expressão");
+Console.WriteLine("🔹 SymbolicExpressionTreeGrammar: Conjunto de símbolos permitidos");
