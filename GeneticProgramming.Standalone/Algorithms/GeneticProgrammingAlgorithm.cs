@@ -464,7 +464,7 @@ namespace GeneticProgramming.Algorithms
             }
         }
 
-        private void CreateNextGeneration()
+        protected virtual void CreateNextGeneration()
         {
             var newPopulation = new List<ISymbolicExpressionTree>();
 
