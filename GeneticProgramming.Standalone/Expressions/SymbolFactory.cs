@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Factory for creating reusable functional symbols of type T.
     /// </summary>
-    public static class SymbolFactory<T>
+    public static class SymbolFactory<T> where T : struct
     {
         private static readonly Dictionary<string, FunctionalSymbol<T>> _cache = new();
 

@@ -11,8 +11,8 @@ namespace GeneticProgramming.Expressions
     /// </summary>
     public class SymbolicExpressionTreeNode : Item, ISymbolicExpressionTreeNode
     {
-        private IList<ISymbolicExpressionTreeNode> subtrees;
-        private ISymbol symbol;
+        private IList<ISymbolicExpressionTreeNode>? subtrees;
+        private ISymbol? symbol;
 
         // Cached values to prevent unnecessary tree iterations
         private ushort length;
@@ -20,7 +20,7 @@ namespace GeneticProgramming.Expressions
 
         public ISymbol Symbol
         {
-            get { return symbol; }
+            get { return symbol ?? throw new InvalidOperationException("Symbol not set"); }
             protected set { symbol = value; }
         }        private ISymbolicExpressionTreeNode? parent;
         public ISymbolicExpressionTreeNode? Parent
@@ -39,7 +39,7 @@ namespace GeneticProgramming.Expressions
             get { return subtrees ?? Enumerable.Empty<ISymbolicExpressionTreeNode>(); }
         }
 
-        public virtual ISymbolicExpressionTreeGrammar Grammar
+        public virtual ISymbolicExpressionTreeGrammar? Grammar
         {
             get { return parent?.Grammar; }
         }
@@ -88,9 +88,12 @@ namespace GeneticProgramming.Expressions
                 subtrees = new List<ISymbolicExpressionTreeNode>(original.subtrees.Count);
                 foreach (var subtree in original.subtrees)
                 {
-                    var clonedSubtree = cloner.Clone(subtree);
-                    subtrees.Add(clonedSubtree);
-                    clonedSubtree.Parent = this;
+                    var clonedSubtree = cloner.Clone(subtree) as ISymbolicExpressionTreeNode;
+                    if (clonedSubtree != null)
+                    {
+                        subtrees.Add(clonedSubtree);
+                        clonedSubtree.Parent = this;
+                    }
                 }
             }
         }
@@ -343,6 +346,249 @@ namespace GeneticProgramming.Expressions
             
             if (parent is SymbolicExpressionTreeNode parentNode)
                 parentNode.ResetCachedValues();
+        }
+    }
+
+    /// <summary>
+    /// Generic implementation of a symbolic expression tree node that can have child nodes.
+    /// This is the main implementation for non-terminal nodes in the tree with type safety.
+    /// </summary>
+    /// <typeparam name="T">The value type that the node evaluates to (must be a struct)</typeparam>
+    public class SymbolicExpressionTreeNode<T> : SymbolicExpressionTreeNode, ISymbolicExpressionTreeNode<T> where T : struct
+    {
+        private IList<ISymbolicExpressionTreeNode<T>>? genericSubtrees;
+        private ISymbol<T> genericSymbol;
+
+        /// <summary>
+        /// Gets the generic symbol this node represents
+        /// </summary>
+        public new ISymbol<T> Symbol
+        {
+            get { return genericSymbol; }
+            protected set { genericSymbol = value; }
+        }
+
+        /// <summary>
+        /// Gets the output type of this node
+        /// </summary>
+        public Type OutputType => typeof(T);
+
+        /// <summary>
+        /// Gets the parent node as a generic type
+        /// </summary>
+        public new ISymbolicExpressionTreeNode<T>? Parent
+        {
+            get { return base.Parent as ISymbolicExpressionTreeNode<T>; }
+            set { base.Parent = value; }
+        }
+
+        /// <summary>
+        /// Gets the grammar as a generic type
+        /// </summary>
+        public new ISymbolicExpressionTreeGrammar<T>? Grammar
+        {
+            get { return Parent?.Grammar; }
+        }
+
+        /// <summary>
+        /// Gets the generic subtrees
+        /// </summary>
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> Subtrees
+        {
+            get { return genericSubtrees ?? Enumerable.Empty<ISymbolicExpressionTreeNode<T>>(); }
+        }
+
+        /// <summary>
+        /// Creates a new generic node with the specified symbol
+        /// </summary>
+        /// <param name="symbol">The generic symbol this node represents</param>
+        public SymbolicExpressionTreeNode(ISymbol<T> symbol) : base(symbol)
+        {
+            genericSymbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
+            genericSubtrees = new List<ISymbolicExpressionTreeNode<T>>(3);
+        }
+
+        /// <summary>
+        /// Copy constructor for cloning
+        /// </summary>
+        /// <param name="original">Original node to clone</param>
+        /// <param name="cloner">Cloner instance</param>
+        protected SymbolicExpressionTreeNode(SymbolicExpressionTreeNode<T> original, Cloner cloner)
+            : base(original, cloner)
+        {
+            genericSymbol = original.genericSymbol;
+            
+            if (original.genericSubtrees != null)
+            {
+                genericSubtrees = new List<ISymbolicExpressionTreeNode<T>>(original.genericSubtrees.Count);
+                foreach (var subtree in original.genericSubtrees)
+                {
+                    var clonedSubtree = (ISymbolicExpressionTreeNode<T>)cloner.Clone(subtree);
+                    genericSubtrees.Add(clonedSubtree);
+                    clonedSubtree.Parent = this;
+                }
+            }
+        }
+
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        {
+            return new SymbolicExpressionTreeNode<T>(this, cloner);
+        }
+
+        /// <summary>
+        /// Gets a generic subtree at the specified index
+        /// </summary>
+        public new ISymbolicExpressionTreeNode<T> GetSubtree(int index)
+        {
+            if (genericSubtrees == null)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return genericSubtrees[index];
+        }
+
+        /// <summary>
+        /// Gets the index of a generic subtree
+        /// </summary>
+        public int IndexOfSubtree(ISymbolicExpressionTreeNode<T> tree)
+        {
+            return genericSubtrees?.IndexOf(tree) ?? -1;
+        }
+
+        /// <summary>
+        /// Adds a generic subtree with type validation
+        /// </summary>
+        public void AddSubtree(ISymbolicExpressionTreeNode<T> tree)
+        {
+            if (tree == null)
+                throw new ArgumentNullException(nameof(tree));
+
+            if (!IsCompatibleChild(tree))
+                throw new ArgumentException($"Child node output type {tree.OutputType} is not compatible with expected input type at position {SubtreeCount}");
+
+            genericSubtrees ??= new List<ISymbolicExpressionTreeNode<T>>(3);
+            genericSubtrees.Add(tree);
+            tree.Parent = this;
+
+            // Also add to base subtrees for compatibility
+            base.AddSubtree(tree);
+        }
+
+        /// <summary>
+        /// Inserts a generic subtree at the specified index with type validation
+        /// </summary>
+        public void InsertSubtree(int index, ISymbolicExpressionTreeNode<T> tree)
+        {
+            if (tree == null)
+                throw new ArgumentNullException(nameof(tree));
+
+            if (!IsCompatibleChild(tree))
+                throw new ArgumentException($"Child node output type {tree.OutputType} is not compatible with expected input type at position {index}");
+
+            genericSubtrees ??= new List<ISymbolicExpressionTreeNode<T>>(3);
+            genericSubtrees.Insert(index, tree);
+            tree.Parent = this;
+
+            // Also insert to base subtrees for compatibility
+            base.InsertSubtree(index, tree);
+        }
+
+        /// <summary>
+        /// Replaces a generic subtree at the specified index with type validation
+        /// </summary>
+        public void ReplaceSubtree(int index, ISymbolicExpressionTreeNode<T> tree)
+        {
+            if (tree == null)
+                throw new ArgumentNullException(nameof(tree));
+
+            if (!IsCompatibleChild(tree))
+                throw new ArgumentException($"Child node output type {tree.OutputType} is not compatible with expected input type at position {index}");
+
+            if (genericSubtrees == null)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            var oldTree = genericSubtrees[index];
+            oldTree.Parent = null;
+            
+            genericSubtrees[index] = tree;
+            tree.Parent = this;
+
+            // Also replace in base subtrees for compatibility
+            base.ReplaceSubtree(index, tree);
+        }
+
+        /// <summary>
+        /// Replaces a generic subtree with another with type validation
+        /// </summary>
+        public void ReplaceSubtree(ISymbolicExpressionTreeNode<T> original, ISymbolicExpressionTreeNode<T> replacement)
+        {
+            int index = IndexOfSubtree(original);
+            if (index >= 0)
+                ReplaceSubtree(index, replacement);
+        }
+
+        /// <summary>
+        /// Validates type compatibility when adding a subtree
+        /// </summary>
+        /// <param name="child">The child node to validate</param>
+        /// <returns>True if the child is compatible, false otherwise</returns>
+        public bool IsCompatibleChild(ISymbolicExpressionTreeNode<T> child)
+        {
+            if (child == null || genericSymbol == null)
+                return false;
+
+            int currentChildCount = SubtreeCount;
+            return genericSymbol.IsCompatibleChildType(child.OutputType, currentChildCount);
+        }
+
+        /// <summary>
+        /// Generic iteration methods
+        /// </summary>
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesBreadth()
+        {
+            var queue = new Queue<ISymbolicExpressionTreeNode<T>>();
+            queue.Enqueue(this);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                yield return current;
+
+                foreach (var child in current.Subtrees)
+                    queue.Enqueue(child);
+            }
+        }
+
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix()
+        {
+            foreach (var child in Subtrees)
+                foreach (var node in child.IterateNodesPostfix())
+                    yield return node;
+
+            yield return this;
+        }
+
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPrefix()
+        {
+            yield return this;
+
+            foreach (var child in Subtrees)
+                foreach (var node in child.IterateNodesPrefix())
+                    yield return node;
+        }
+
+        public void ForEachNodePostfix(Action<ISymbolicExpressionTreeNode<T>> action)
+        {
+            foreach (var child in Subtrees)
+                child.ForEachNodePostfix(action);
+
+            action(this);
+        }
+
+        public void ForEachNodePrefix(Action<ISymbolicExpressionTreeNode<T>> action)
+        {
+            action(this);
+
+            foreach (var child in Subtrees)
+                child.ForEachNodePrefix(action);
         }
     }
 }

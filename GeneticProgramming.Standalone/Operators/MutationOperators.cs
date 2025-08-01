@@ -10,7 +10,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates a tree by replacing a randomly selected subtree with a newly generated one
     /// </summary>
-    public class SubtreeMutator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeMutator
+    public class SubtreeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
     {
         private int _maxTreeLength = 25;
         private int _maxTreeDepth = 10;
@@ -59,7 +59,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original mutator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected SubtreeMutator(SubtreeMutator original, Cloner cloner) : base(original, cloner)
+        protected SubtreeMutator(SubtreeMutator<T> original, Cloner cloner) : base(original, cloner)
         {
             _maxTreeLength = original._maxTreeLength;
             _maxTreeDepth = original._maxTreeDepth;
@@ -72,7 +72,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A deep clone of this mutator</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new SubtreeMutator(this, cloner);
+            return new SubtreeMutator<T>(this, cloner);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace GeneticProgramming.Operators
         /// <param name="random">Random number generator</param>
         /// <param name="symbolicExpressionTree">Tree to mutate</param>
         /// <returns>Mutated tree</returns>
-        public ISymbolicExpressionTree Mutate(IRandom random, ISymbolicExpressionTree symbolicExpressionTree)
+        public ISymbolicExpressionTree<T> Mutate(IRandom random, ISymbolicExpressionTree<T> symbolicExpressionTree)
         {
             if (symbolicExpressionTree?.Root == null)
             {
@@ -94,7 +94,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Clone the tree
-            var result = (ISymbolicExpressionTree)symbolicExpressionTree.Clone(new Cloner());
+            var result = (ISymbolicExpressionTree<T>)symbolicExpressionTree.Clone(new Cloner());
 
             // Get all nodes
             var nodes = result.IterateNodesPostfix().ToList();
@@ -107,7 +107,7 @@ namespace GeneticProgramming.Operators
             var nodeToReplace = nodes[random.Next(nodes.Count)];
 
             // Create a new subtree using the grow method
-            var creator = new GrowTreeCreator();
+            var creator = new GrowTreeCreator<T>();
             creator.SymbolicExpressionTreeGrammar = SymbolicExpressionTreeGrammar;
             var newSubtree = creator.CreateTree(random, SymbolicExpressionTreeGrammar, _maxTreeLength, _maxTreeDepth);
 
@@ -139,7 +139,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates a tree by changing the symbol of a randomly selected node
     /// </summary>
-    public class ChangeNodeTypeMutator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeMutator
+    public class ChangeNodeTypeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
     {
         /// <summary>
         /// Initializes a new instance of the ChangeNodeTypeMutator class
@@ -153,7 +153,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original mutator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected ChangeNodeTypeMutator(ChangeNodeTypeMutator original, Cloner cloner) : base(original, cloner)
+        protected ChangeNodeTypeMutator(ChangeNodeTypeMutator<T> original, Cloner cloner) : base(original, cloner)
         {
         }
 
@@ -164,7 +164,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A deep clone of this mutator</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new ChangeNodeTypeMutator(this, cloner);
+            return new ChangeNodeTypeMutator<T>(this, cloner);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace GeneticProgramming.Operators
         /// <param name="random">Random number generator</param>
         /// <param name="symbolicExpressionTree">Tree to mutate</param>
         /// <returns>Mutated tree</returns>
-        public ISymbolicExpressionTree Mutate(IRandom random, ISymbolicExpressionTree symbolicExpressionTree)
+        public ISymbolicExpressionTree<T> Mutate(IRandom random, ISymbolicExpressionTree<T> symbolicExpressionTree)
         {
             if (symbolicExpressionTree?.Root == null)
             {
@@ -186,7 +186,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Clone the tree
-            var result = (ISymbolicExpressionTree)symbolicExpressionTree.Clone(new Cloner());
+            var result = (ISymbolicExpressionTree<T>)symbolicExpressionTree.Clone(new Cloner());
 
             // Get all nodes
             var nodes = result.IterateNodesPostfix().ToList();
@@ -255,7 +255,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates terminal nodes by changing their values
     /// </summary>
-    public class ChangeTerminalMutator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeMutator
+    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
     {
         private double _constantMutationRange = 1.0;
 
@@ -287,7 +287,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original mutator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected ChangeTerminalMutator(ChangeTerminalMutator original, Cloner cloner) : base(original, cloner)
+        protected ChangeTerminalMutator(ChangeTerminalMutator<T> original, Cloner cloner) : base(original, cloner)
         {
             _constantMutationRange = original._constantMutationRange;
         }
@@ -299,7 +299,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A deep clone of this mutator</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new ChangeTerminalMutator(this, cloner);
+            return new ChangeTerminalMutator<T>(this, cloner);
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace GeneticProgramming.Operators
         /// <param name="random">Random number generator</param>
         /// <param name="symbolicExpressionTree">Tree to mutate</param>
         /// <returns>Mutated tree</returns>
-        public ISymbolicExpressionTree Mutate(IRandom random, ISymbolicExpressionTree symbolicExpressionTree)
+        public ISymbolicExpressionTree<T> Mutate(IRandom random, ISymbolicExpressionTree<T> symbolicExpressionTree)
         {
             if (symbolicExpressionTree?.Root == null)
             {
@@ -316,7 +316,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Clone the tree
-            var result = (ISymbolicExpressionTree)symbolicExpressionTree.Clone(new Cloner());
+            var result = (ISymbolicExpressionTree<T>)symbolicExpressionTree.Clone(new Cloner());
 
             // Find terminal nodes
             var terminalNodes = result.IterateNodesPostfix()

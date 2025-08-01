@@ -115,4 +115,107 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         event EventHandler? Changed;
     }
+
+    /// <summary>
+    /// Generic interface for symbolic expression tree grammars that define the allowed symbols and their relationships.
+    /// </summary>
+    /// <typeparam name="T">The value type that the grammar supports (must be a struct)</typeparam>
+    public interface ISymbolicExpressionTreeGrammar<T> : ISymbolicExpressionTreeGrammar where T : struct
+    {
+        /// <summary>
+        /// Gets all symbols available in this grammar.
+        /// </summary>
+        new IEnumerable<ISymbol<T>> Symbols { get; }
+
+        /// <summary>
+        /// Gets all symbols that can be used as root symbols.
+        /// </summary>
+        new IEnumerable<ISymbol<T>> StartSymbols { get; }
+
+        /// <summary>
+        /// Gets symbols that are allowed as children of the specified parent symbol.
+        /// </summary>
+        /// <param name="parent">The parent symbol.</param>
+        /// <returns>Collection of allowed child symbols.</returns>
+        IEnumerable<ISymbol<T>> GetAllowedChildSymbols(ISymbol<T> parent);
+
+        /// <summary>
+        /// Gets symbols that are allowed as children of the specified parent symbol at a specific child index.
+        /// </summary>
+        /// <param name="parent">The parent symbol.</param>
+        /// <param name="childIndex">The index of the child position.</param>
+        /// <returns>Collection of allowed child symbols for the specified position.</returns>
+        IEnumerable<ISymbol<T>> GetAllowedChildSymbols(ISymbol<T> parent, int childIndex);
+
+        /// <summary>
+        /// Checks if the specified symbol is allowed as a child of the parent symbol.
+        /// </summary>
+        /// <param name="parent">The parent symbol.</param>
+        /// <param name="child">The child symbol to check.</param>
+        /// <returns>True if the child is allowed, false otherwise.</returns>
+        bool IsAllowedChildSymbol(ISymbol<T> parent, ISymbol<T> child);
+
+        /// <summary>
+        /// Checks if the specified symbol is allowed as a child of the parent symbol at a specific child index.
+        /// </summary>
+        /// <param name="parent">The parent symbol.</param>
+        /// <param name="child">The child symbol to check.</param>
+        /// <param name="childIndex">The index of the child position.</param>
+        /// <returns>True if the child is allowed at the specified position, false otherwise.</returns>
+        bool IsAllowedChildSymbol(ISymbol<T> parent, ISymbol<T> child, int childIndex);
+
+        /// <summary>
+        /// Gets the maximum allowed subtree count for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol to check.</param>
+        /// <returns>Maximum allowed subtree count.</returns>
+        int GetMaximumSubtreeCount(ISymbol<T> symbol);
+
+        /// <summary>
+        /// Gets the minimum allowed subtree count for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol to check.</param>
+        /// <returns>Minimum allowed subtree count.</returns>
+        int GetMinimumSubtreeCount(ISymbol<T> symbol);
+
+        /// <summary>
+        /// Adds a symbol to the grammar.
+        /// </summary>
+        /// <param name="symbol">The symbol to add.</param>
+        void AddSymbol(ISymbol<T> symbol);
+
+        /// <summary>
+        /// Removes a symbol from the grammar.
+        /// </summary>
+        /// <param name="symbol">The symbol to remove.</param>
+        void RemoveSymbol(ISymbol<T> symbol);
+
+        /// <summary>
+        /// Checks if the grammar contains the specified symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol to check.</param>
+        /// <returns>True if the symbol exists in the grammar, false otherwise.</returns>
+        bool ContainsSymbol(ISymbol<T> symbol);
+
+        /// <summary>
+        /// Gets a symbol by its name.
+        /// </summary>
+        /// <param name="symbolName">The name of the symbol.</param>
+        /// <returns>The symbol with the specified name, or null if not found.</returns>
+        new ISymbol<T>? GetSymbol(string symbolName);
+
+        /// <summary>
+        /// Gets symbols that are compatible with the specified type
+        /// </summary>
+        /// <param name="outputType">The required output type</param>
+        /// <returns>Collection of symbols that produce the specified output type</returns>
+        IEnumerable<ISymbol<T>> GetSymbolsByOutputType(Type outputType);
+
+        /// <summary>
+        /// Gets functional symbols that accept specific input types
+        /// </summary>
+        /// <param name="inputTypes">The required input types</param>
+        /// <returns>Collection of functional symbols that accept the specified input types</returns>
+        IEnumerable<ISymbol<T>> GetFunctionalSymbols(params Type[] inputTypes);
+    }
 }

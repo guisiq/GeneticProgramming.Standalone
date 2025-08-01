@@ -254,4 +254,96 @@ namespace GeneticProgramming.Expressions
             Console.WriteLine($"Profundidade: {Depth} níveis");
         }
     }
+
+    /// <summary>
+    /// Generic implementation of a symbolic expression tree with type safety
+    /// </summary>
+    /// <typeparam name="T">The value type that the tree evaluates to (must be a struct)</typeparam>
+    [Item("SymbolicExpressionTree<T>", "Represents a generic symbolic expression tree")]
+    public class SymbolicExpressionTree<T> : SymbolicExpressionTree, ISymbolicExpressionTree<T> where T : struct
+    {
+        private ISymbolicExpressionTreeNode<T>? genericRoot;
+
+        /// <summary>
+        /// Gets or sets the generic root node
+        /// </summary>
+        public new ISymbolicExpressionTreeNode<T> Root
+        {
+            get => genericRoot ?? throw new InvalidOperationException("Root node is not set");
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                
+                if (value != genericRoot)
+                {
+                    genericRoot = value;
+                    base.Root = value; // Also set base root for compatibility
+                    OnPropertyChanged(nameof(Root));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the output type of this tree
+        /// </summary>
+        public Type OutputType => typeof(T);
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public SymbolicExpressionTree() : base() { }
+
+        /// <summary>
+        /// Creates a new tree with the specified root
+        /// </summary>
+        /// <param name="root">The generic root node</param>
+        public SymbolicExpressionTree(ISymbolicExpressionTreeNode<T> root) : base()
+        {
+            Root = root;
+        }
+
+        /// <summary>
+        /// Copy constructor for cloning
+        /// </summary>
+        /// <param name="original">Original tree to clone</param>
+        /// <param name="cloner">Cloner instance</param>
+        protected SymbolicExpressionTree(SymbolicExpressionTree<T> original, Cloner cloner) : base(original, cloner)
+        {
+            if (original.genericRoot != null)
+            {
+                var clonedRoot = cloner.Clone(original.genericRoot) as ISymbolicExpressionTreeNode<T>;
+                genericRoot = clonedRoot ?? throw new InvalidOperationException("Failed to clone root node");
+            }
+        }
+
+        protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
+        {
+            return new SymbolicExpressionTree<T>(this, cloner);
+        }
+
+        /// <summary>
+        /// Generic iteration methods
+        /// </summary>
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesBreadth()
+        {
+            if (genericRoot == null)
+                return Enumerable.Empty<ISymbolicExpressionTreeNode<T>>();
+            return genericRoot.IterateNodesBreadth();
+        }
+
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPrefix()
+        {
+            if (genericRoot == null)
+                return Enumerable.Empty<ISymbolicExpressionTreeNode<T>>();
+            return genericRoot.IterateNodesPrefix();
+        }
+
+        public new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix()
+        {
+            if (genericRoot == null)
+                return Enumerable.Empty<ISymbolicExpressionTreeNode<T>>();
+            return genericRoot.IterateNodesPostfix();
+        }
+    }
 }

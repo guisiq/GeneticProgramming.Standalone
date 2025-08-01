@@ -9,7 +9,7 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Interface for genetic programming algorithms
     /// </summary>
-    public interface IGeneticProgrammingAlgorithm : IItem
+    public interface IGeneticProgrammingAlgorithm<T> : IItem where T : struct
     {
         /// <summary>
         /// Gets or sets the population size
@@ -44,22 +44,22 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the grammar used for tree creation
         /// </summary>
-        ISymbolicExpressionTreeGrammar? Grammar { get; set; }
+        ISymbolicExpressionTreeGrammar<T>? Grammar { get; set; }
 
         /// <summary>
         /// Gets or sets the tree creator
         /// </summary>
-        ISymbolicExpressionTreeCreator? TreeCreator { get; set; }
+        ISymbolicExpressionTreeCreator<T>? TreeCreator { get; set; }
 
         /// <summary>
         /// Gets or sets the crossover operator
         /// </summary>
-        ISymbolicExpressionTreeCrossover? Crossover { get; set; }
+        ISymbolicExpressionTreeCrossover<T>? Crossover { get; set; }
 
         /// <summary>
         /// Gets or sets the mutator
         /// </summary>
-        ISymbolicExpressionTreeMutator? Mutator { get; set; }
+        ISymbolicExpressionTreeMutator<T>? Mutator { get; set; }
 
         /// <summary>
         /// Gets or sets the random number generator

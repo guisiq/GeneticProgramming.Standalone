@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Inserts a new node into a symbolic expression tree by wrapping an existing subtree.
     /// </summary>
-    public class NodeInsertionManipulator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeMutator
+    public class NodeInsertionManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
     {
         private int _maxTreeLength = 25;
         private int _maxTreeDepth = 10;
@@ -48,7 +48,7 @@ namespace GeneticProgramming.Operators
 
         public NodeInsertionManipulator() : base() { }
 
-        protected NodeInsertionManipulator(NodeInsertionManipulator original, Cloner cloner) : base(original, cloner)
+        protected NodeInsertionManipulator(NodeInsertionManipulator<T> original, Cloner cloner) : base(original, cloner)
         {
             _maxTreeLength = original._maxTreeLength;
             _maxTreeDepth = original._maxTreeDepth;
@@ -56,17 +56,17 @@ namespace GeneticProgramming.Operators
 
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new NodeInsertionManipulator(this, cloner);
+            return new NodeInsertionManipulator<T>(this, cloner);
         }
 
-        public ISymbolicExpressionTree Mutate(IRandom random, ISymbolicExpressionTree tree)
+        public ISymbolicExpressionTree<T> Mutate(IRandom random, ISymbolicExpressionTree<T> tree)
         {
             if (tree?.Root == null)
                 throw new ArgumentException("Tree must have a valid root node");
             if (SymbolicExpressionTreeGrammar == null)
                 throw new InvalidOperationException("Grammar must be set before mutation");
 
-            var result = (ISymbolicExpressionTree)tree.Clone(new Cloner());
+            var result = (ISymbolicExpressionTree<T>)tree.Clone(new Cloner());
             var nodes = result.IterateNodesPostfix().ToList();
             if (!nodes.Any()) return result;
 
@@ -83,9 +83,9 @@ namespace GeneticProgramming.Operators
                 : random.Next(chosen.MinimumArity, chosen.MaximumArity + 1);
 
             var newNode = chosen.CreateTreeNode();
-            var creator = new GrowTreeCreator { SymbolicExpressionTreeGrammar = SymbolicExpressionTreeGrammar };
+            var creator = new GrowTreeCreator<T> { SymbolicExpressionTreeGrammar = SymbolicExpressionTreeGrammar };
 
-            ISymbolicExpressionTreeNode? parent = null;
+            ISymbolicExpressionTreeNode<T>? parent = null;
             int index = -1;
             var replacingRoot = target == result.Root;
             if (!replacingRoot)
@@ -119,22 +119,22 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Removes a node from the tree. Children of the removed node are discarded.
     /// </summary>
-    public class NodeRemovalManipulator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeMutator
+    public class NodeRemovalManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
     {
         public NodeRemovalManipulator() : base() { }
-        protected NodeRemovalManipulator(NodeRemovalManipulator original, Cloner cloner) : base(original, cloner) { }
+        protected NodeRemovalManipulator(NodeRemovalManipulator<T> original, Cloner cloner) : base(original, cloner) { }
 
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new NodeRemovalManipulator(this, cloner);
+            return new NodeRemovalManipulator<T>(this, cloner);
         }
 
-        public ISymbolicExpressionTree Mutate(IRandom random, ISymbolicExpressionTree tree)
+        public ISymbolicExpressionTree<T> Mutate(IRandom random, ISymbolicExpressionTree<T> tree)
         {
             if (tree?.Root == null)
                 throw new ArgumentException("Tree must have a valid root node");
 
-            var result = (ISymbolicExpressionTree)tree.Clone(new Cloner());
+            var result = (ISymbolicExpressionTree<T>)tree.Clone(new Cloner());
             var nodes = result.IterateNodesPostfix().Where(n => n != result.Root).ToList();
             if (!nodes.Any()) return result;
 

@@ -12,9 +12,9 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Basic genetic programming algorithm implementation
     /// </summary>
-    public class GeneticProgrammingAlgorithm : Item,
-        IGeneticProgrammingAlgorithm,
-        Abstractions.Optimization.IGeneticProgrammingAlgorithm
+    public class GeneticProgrammingAlgorithm<T> : Item,
+        IGeneticProgrammingAlgorithm<T>,
+        Abstractions.Optimization.IGeneticProgrammingAlgorithm<T> where T : struct
     {
         private int _populationSize = 100;
         private int _maxGenerations = 50;
@@ -25,9 +25,9 @@ namespace GeneticProgramming.Algorithms
         private int _eliteCount = 1; // Número de elites a preservar
         private double _eliteBreedingRatio = 0.3; // % da população gerada a partir dos elites
         private ISymbolicExpressionTreeGrammar? _grammar;
-        private ISymbolicExpressionTreeCreator? _treeCreator;
-        private ISymbolicExpressionTreeCrossover? _crossover;
-        private ISymbolicExpressionTreeMutator? _mutator;
+        private ISymbolicExpressionTreeCreator<T>? _treeCreator;
+        private ISymbolicExpressionTreeCrossover<T>? _crossover;
+        private ISymbolicExpressionTreeMutator<T>? _mutator;
         private IRandom? _random;
         private ISymbolicExpressionTreeSelector? _selector;
         private int _generation;
