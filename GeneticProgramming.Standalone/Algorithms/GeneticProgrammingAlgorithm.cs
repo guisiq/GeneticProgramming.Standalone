@@ -36,6 +36,7 @@ namespace GeneticProgramming.Algorithms
         private double _bestFitness = double.NegativeInfinity;
         private bool _stopRequested;
         private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? _fitnessEvaluator;
+        private bool _enableParallelEvaluation = true;
 
         /// <summary>
         /// Gets or sets the population size
@@ -306,6 +307,22 @@ namespace GeneticProgramming.Algorithms
         public event EventHandler? IterationCompleted;
 
         /// <summary>
+        /// Gets or sets whether parallel evaluation is enabled for fitness calculations
+        /// </summary>
+        public bool EnableParallelEvaluation
+        {
+            get => _enableParallelEvaluation;
+            set
+            {
+                if (_enableParallelEvaluation != value)
+                {
+                    _enableParallelEvaluation = value;
+                    OnPropertyChanged(nameof(EnableParallelEvaluation));
+                }
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the GeneticProgrammingAlgorithm class
         /// </summary>
         public GeneticProgrammingAlgorithm() : base()
@@ -362,8 +379,10 @@ namespace GeneticProgramming.Algorithms
                 EvaluatePopulation();
                 UpdateBestIndividual();
 
-                // Raise generation completed event
-                var averageFitness = _population.Average(EvaluateFitness);
+                // Raise generation completed event with conditional parallel average calculation
+                var averageFitness = _enableParallelEvaluation 
+                    ? _population.AsParallel().Average(EvaluateFitness)
+                    : _population.Average(EvaluateFitness);
                 GenerationCompleted?.Invoke(this, new GenerationEventArgs(_generation, _bestFitness, averageFitness, _bestIndividual!));
                 IterationCompleted?.Invoke(this, EventArgs.Empty);
 
@@ -440,10 +459,22 @@ namespace GeneticProgramming.Algorithms
 
         private void EvaluatePopulation()
         {
-            foreach (var individual in _population)
+            if (_enableParallelEvaluation)
             {
-                // In a real implementation, you might want to cache fitness values
-                var fitness = EvaluateFitness(individual);
+                // Parallel evaluation for better performance
+                _population.AsParallel().ForAll(individual =>
+                {
+                    // In a real implementation, you might want to cache fitness values
+                    var fitness = EvaluateFitness(individual);
+                });
+            }
+            else
+            {
+                // Sequential evaluation
+                foreach (var individual in _population)
+                {
+                    var fitness = EvaluateFitness(individual);
+                }
             }
         }
 
@@ -457,6 +488,7 @@ namespace GeneticProgramming.Algorithms
 
             // Update global best
             var currentBest = evaluatedPopulation.First();
+
             if (currentBest.Fitness > _bestFitness)
             {
                 _bestFitness = currentBest.Fitness;
