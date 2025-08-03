@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Performs subtree crossover between two symbolic expression trees
     /// </summary>
-    public class SubtreeCrossover : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeCrossover
+    public class SubtreeCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
     {
         private double _internalNodeProbability = 0.9;
 
@@ -41,7 +41,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original crossover operator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected SubtreeCrossover(SubtreeCrossover original, Cloner cloner) : base(original, cloner)
+        protected SubtreeCrossover(SubtreeCrossover<T> original, Cloner cloner) : base(original, cloner)
         {
             _internalNodeProbability = original._internalNodeProbability;
         }
@@ -56,7 +56,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A new instance of SubtreeCrossover.</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new SubtreeCrossover(this, cloner);
+            return new SubtreeCrossover<T>(this, cloner);
         }
 
         /// <summary>
@@ -66,7 +66,8 @@ namespace GeneticProgramming.Operators
         /// <param name="parent0">First parent tree</param>
         /// <param name="parent1">Second parent tree</param>
         /// <returns>Offspring tree created by crossover</returns>
-        public ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1)
+
+        public  ISymbolicExpressionTree<T> Crossover(IRandom random, ISymbolicExpressionTree<T> parent0, ISymbolicExpressionTree<T> parent1)
         {
             if (parent0?.Root == null || parent1?.Root == null)
             {
@@ -74,7 +75,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Clone the first parent to create offspring
-            var offspring = (ISymbolicExpressionTree)parent0.Clone(new Cloner());
+            var offspring = (ISymbolicExpressionTree<T>)parent0.Clone(new Cloner());
 
             // Get all nodes from both trees
             var offspringNodes = offspring.IterateNodesPostfix().ToList();
@@ -96,7 +97,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Perform the crossover
-            var clonedDonorSubtree = (ISymbolicExpressionTreeNode)donorSubtree.Clone(new Cloner());
+            var clonedDonorSubtree = (ISymbolicExpressionTreeNode<T>)donorSubtree.Clone(new Cloner());
             
             if (crossoverPoint == offspring.Root)
             {
@@ -121,7 +122,7 @@ namespace GeneticProgramming.Operators
             return offspring;
         }
 
-        private ISymbolicExpressionTreeNode SelectCrossoverPoint(IRandom random, IList<ISymbolicExpressionTreeNode> nodes)
+        private ISymbolicExpressionTreeNode<T> SelectCrossoverPoint(IRandom random, IList<ISymbolicExpressionTreeNode<T>> nodes)
         {
             if (random.NextDouble() < _internalNodeProbability)
             {
@@ -137,7 +138,7 @@ namespace GeneticProgramming.Operators
             return nodes[random.Next(nodes.Count)];
         }
 
-        private ISymbolicExpressionTreeNode? SelectCompatibleDonor(IRandom random, IList<ISymbolicExpressionTreeNode> donorNodes, ISymbolicExpressionTreeNode crossoverPoint)
+        private ISymbolicExpressionTreeNode<T>? SelectCompatibleDonor(IRandom random, IList<ISymbolicExpressionTreeNode<T>> donorNodes, ISymbolicExpressionTreeNode<T> crossoverPoint)
         {
             // For basic implementation, any node is compatible
             // In more advanced implementations, this would check type constraints
@@ -153,7 +154,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Performs one-point crossover at the same depth level
     /// </summary>
-    public class OnePointCrossover : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeCrossover
+    public class OnePointCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
     {
         /// <summary>
         /// Initializes a new instance of the OnePointCrossover class
@@ -167,7 +168,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original crossover operator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected OnePointCrossover(OnePointCrossover original, Cloner cloner) : base(original, cloner)
+        protected OnePointCrossover(OnePointCrossover<T> original, Cloner cloner) : base(original, cloner)
         {
         }
 
@@ -181,7 +182,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A new instance of OnePointCrossover.</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new OnePointCrossover(this, cloner);
+            return new OnePointCrossover<T>(this, cloner);
         }
 
         /// <summary>
@@ -191,7 +192,7 @@ namespace GeneticProgramming.Operators
         /// <param name="parent0">First parent tree</param>
         /// <param name="parent1">Second parent tree</param>
         /// <returns>Offspring tree created by crossover</returns>
-        public ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1)
+        public ISymbolicExpressionTree<T> Crossover(IRandom random, ISymbolicExpressionTree<T> parent0, ISymbolicExpressionTree<T> parent1)
         {
             if (parent0?.Root == null || parent1?.Root == null)
             {
@@ -199,7 +200,7 @@ namespace GeneticProgramming.Operators
             }
 
             // Clone the first parent
-            var offspring = (ISymbolicExpressionTree)parent0.Clone(new Cloner());
+            var offspring = (ISymbolicExpressionTree<T>)parent0.Clone(new Cloner());
 
             // Get the maximum common depth
             var depth0 = offspring.Root.GetDepth();
@@ -228,7 +229,7 @@ namespace GeneticProgramming.Operators
             var donorNode = donorNodesAtDepth[random.Next(donorNodesAtDepth.Count)];
 
             // Clone the donor subtree
-            var clonedDonorSubtree = (ISymbolicExpressionTreeNode)donorNode.Clone(new Cloner());
+            var clonedDonorSubtree = (ISymbolicExpressionTreeNode<T>)donorNode.Clone(new Cloner());
 
             // Replace the subtree
             var parent = offspringNode.Parent;
@@ -250,7 +251,7 @@ namespace GeneticProgramming.Operators
             return offspring;
         }
 
-        private IEnumerable<ISymbolicExpressionTreeNode> GetNodesAtDepth(ISymbolicExpressionTreeNode root, int targetDepth)
+        private IEnumerable<ISymbolicExpressionTreeNode<T>> GetNodesAtDepth(ISymbolicExpressionTreeNode<T> root, int targetDepth)
         {
             if (targetDepth == 0)
             {
@@ -258,7 +259,7 @@ namespace GeneticProgramming.Operators
                 yield break;
             }
 
-            var queue = new Queue<(ISymbolicExpressionTreeNode node, int depth)>();
+            var queue = new Queue<(ISymbolicExpressionTreeNode<T> node, int depth)>();
             queue.Enqueue((root, 0));
 
             while (queue.Count > 0)

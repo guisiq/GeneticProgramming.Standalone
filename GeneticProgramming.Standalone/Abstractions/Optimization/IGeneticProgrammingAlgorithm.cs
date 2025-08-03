@@ -8,7 +8,7 @@ namespace GeneticProgramming.Abstractions.Optimization
     /// <summary>
     /// Interface for genetic programming specific optimization.
     /// </summary>
-    public interface IGeneticProgrammingAlgorithm : IOptimizationAlgorithm
+    public interface IGeneticProgrammingAlgorithm<T> : IOptimizationAlgorithm
     {
         int PopulationSize { get; set; }
         int MaxGenerations { get; set; }
@@ -18,6 +18,6 @@ namespace GeneticProgramming.Abstractions.Optimization
         /// <summary>
         /// Evaluates fitness of an individual solution.
         /// </summary>
-        double EvaluateFitness(object individual);
+        T EvaluateFitness(object individual);
     }
 }

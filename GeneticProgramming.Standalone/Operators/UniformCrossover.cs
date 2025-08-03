@@ -11,7 +11,7 @@ namespace GeneticProgramming.Operators
     /// of the first parent has a chance to be replaced by a compatible node from
     /// the second parent.
     /// </summary>
-    public class UniformCrossover : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeCrossover
+    public class UniformCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
     {
         private double _swapProbability = 0.5;
 
@@ -41,7 +41,7 @@ namespace GeneticProgramming.Operators
         /// <summary>
         /// Copy constructor for cloning.
         /// </summary>
-        protected UniformCrossover(UniformCrossover original, Cloner cloner) : base(original, cloner)
+        protected UniformCrossover(UniformCrossover<T> original, Cloner cloner) : base(original, cloner)
         {
             _swapProbability = original._swapProbability;
         }
@@ -49,20 +49,20 @@ namespace GeneticProgramming.Operators
         /// <inheritdoc/>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new UniformCrossover(this, cloner);
+            return new UniformCrossover<T>(this, cloner);
         }
 
         /// <summary>
         /// Performs uniform crossover between two parent trees.
         /// </summary>
-        public ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1)
+        public ISymbolicExpressionTree<T> Crossover(IRandom random, ISymbolicExpressionTree<T> parent0, ISymbolicExpressionTree<T> parent1)
         {
             if (parent0?.Root == null || parent1?.Root == null)
                 throw new ArgumentException("Parent trees must have valid root nodes");
             if (SymbolicExpressionTreeGrammar == null)
                 throw new InvalidOperationException("Grammar must be set before crossover");
 
-            var offspring = (ISymbolicExpressionTree)parent0.Clone(new Cloner());
+            var offspring = (ISymbolicExpressionTree<T>)parent0.Clone(new Cloner());
             var donorNodes = parent1.IterateNodesPostfix().ToList();
             var nodes = offspring.IterateNodesPostfix().ToList();
 
@@ -75,7 +75,7 @@ namespace GeneticProgramming.Operators
                 {
                     var donor = SelectCompatibleRoot(random, donorNodes);
                     if (donor == null) continue;
-                    offspring.Root = (ISymbolicExpressionTreeNode)donor.Clone(new Cloner());
+                    offspring.Root = (ISymbolicExpressionTreeNode<T>)donor.Clone(new Cloner());
                 }
                 else
                 {
@@ -84,13 +84,13 @@ namespace GeneticProgramming.Operators
                     var donor = SelectCompatibleDonor(random, donorNodes, parent.Symbol, index);
                     if (donor == null) continue;
                     parent.RemoveSubtree(index);
-                    parent.InsertSubtree(index, (ISymbolicExpressionTreeNode)donor.Clone(new Cloner()));
+                    parent.InsertSubtree(index, (ISymbolicExpressionTreeNode<T>)donor.Clone(new Cloner()));
                 }
             }
             return offspring;
         }
 
-        private ISymbolicExpressionTreeNode? SelectCompatibleRoot(IRandom random, IList<ISymbolicExpressionTreeNode> donors)
+        private ISymbolicExpressionTreeNode<T>? SelectCompatibleRoot(IRandom random, IList<ISymbolicExpressionTreeNode<T>> donors)
         {
             var grammar = SymbolicExpressionTreeGrammar;
             if (grammar == null || donors.Count == 0) return null;
@@ -99,7 +99,7 @@ namespace GeneticProgramming.Operators
             return compatible[random.Next(compatible.Count)];
         }
 
-        private ISymbolicExpressionTreeNode? SelectCompatibleDonor(IRandom random, IList<ISymbolicExpressionTreeNode> donors, ISymbol parentSymbol, int index)
+        private ISymbolicExpressionTreeNode<T>? SelectCompatibleDonor(IRandom random, IList<ISymbolicExpressionTreeNode<T>> donors, ISymbol parentSymbol, int index)
         {
             var grammar = SymbolicExpressionTreeGrammar;
             if (grammar == null || donors.Count == 0) return null;

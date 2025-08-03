@@ -74,22 +74,22 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets the current population
         /// </summary>
-        IList<ISymbolicExpressionTree> Population { get; }
+        IList<ISymbolicExpressionTree<T>> Population { get; }
 
         /// <summary>
         /// Gets the best individual found so far
         /// </summary>
-        ISymbolicExpressionTree? BestIndividual { get; }
+        ISymbolicExpressionTree<T>? BestIndividual { get; }
 
         /// <summary>
         /// Gets the fitness of the best individual
         /// </summary>
-        double BestFitness { get; }
+        T BestFitness { get; }
 
         /// <summary>
         /// Event raised when a generation is completed
         /// </summary>
-        event EventHandler<GenerationEventArgs>? GenerationCompleted;
+        event EventHandler<GenerationEventArgs<T>>? GenerationCompleted;
 
         /// <summary>
         /// Runs the genetic programming algorithm
@@ -104,6 +104,6 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
         /// <returns>The fitness value (higher is better)</returns>
-        double EvaluateFitness(ISymbolicExpressionTree individual);
+        T EvaluateFitness(ISymbolicExpressionTree individual);
     }
 }

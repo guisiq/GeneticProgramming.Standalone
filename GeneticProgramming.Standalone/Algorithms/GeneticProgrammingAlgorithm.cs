@@ -6,6 +6,7 @@ using AbstractionOptimization = GeneticProgramming.Abstractions.Optimization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GeneticProgramming.Algorithms
 {
@@ -14,7 +15,8 @@ namespace GeneticProgramming.Algorithms
     /// </summary>
     public class GeneticProgrammingAlgorithm<T> : Item,
         IGeneticProgrammingAlgorithm<T>,
-        Abstractions.Optimization.IGeneticProgrammingAlgorithm<T> where T : struct
+        Abstractions.Optimization.IGeneticProgrammingAlgorithm<T> 
+        where T : struct, IComparable<T>, IEquatable<T>
     {
         private int _populationSize = 100;
         private int _maxGenerations = 50;
@@ -24,19 +26,20 @@ namespace GeneticProgramming.Algorithms
         private double _mutationProbability = 0.1;
         private int _eliteCount = 1; // Número de elites a preservar
         private double _eliteBreedingRatio = 0.3; // % da população gerada a partir dos elites
-        private ISymbolicExpressionTreeGrammar? _grammar;
+        private ISymbolicExpressionTreeGrammar<T>? _grammar;
         private ISymbolicExpressionTreeCreator<T>? _treeCreator;
         private ISymbolicExpressionTreeCrossover<T>? _crossover;
         private ISymbolicExpressionTreeMutator<T>? _mutator;
         private IRandom? _random;
         private ISymbolicExpressionTreeSelector? _selector;
         private int _generation;
-        private List<ISymbolicExpressionTree> _population;
-        private ISymbolicExpressionTree? _bestIndividual;
-        private double _bestFitness = double.NegativeInfinity;
+        private List<ISymbolicExpressionTree<T>> _population;
+        private ISymbolicExpressionTree<T>? _bestIndividual;
+        private T _bestFitness = default!;
         private bool _stopRequested;
-        private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? _fitnessEvaluator;
+        private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator<T>? _fitnessEvaluator;
         private bool _enableParallelEvaluation = true;
+        private Dictionary<int, T> _fitnessCache = new Dictionary<int, T>();
 
         /// <summary>
         /// Gets or sets the population size
@@ -169,7 +172,7 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the grammar used for tree creation
         /// </summary>
-        public ISymbolicExpressionTreeGrammar? Grammar
+        public ISymbolicExpressionTreeGrammar<T>? Grammar
         {
             get => _grammar;
             set
@@ -185,7 +188,7 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the tree creator
         /// </summary>
-        public ISymbolicExpressionTreeCreator? TreeCreator
+        public ISymbolicExpressionTreeCreator<T>? TreeCreator
         {
             get => _treeCreator;
             set
@@ -201,7 +204,7 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the crossover operator
         /// </summary>
-        public ISymbolicExpressionTreeCrossover? Crossover
+        public ISymbolicExpressionTreeCrossover<T>? Crossover
         {
             get => _crossover;
             set
@@ -217,7 +220,7 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the mutator
         /// </summary>
-        public ISymbolicExpressionTreeMutator? Mutator
+        public ISymbolicExpressionTreeMutator<T>? Mutator
         {
             get => _mutator;
             set
@@ -265,7 +268,7 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the fitness evaluator used for individuals.
         /// </summary>
-        public GeneticProgramming.Problems.Evaluators.IFitnessEvaluator? FitnessEvaluator
+        public GeneticProgramming.Problems.Evaluators.IFitnessEvaluator<T>? FitnessEvaluator
         {
             get => _fitnessEvaluator;
             set
@@ -286,22 +289,22 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets the current population
         /// </summary>
-        public IList<ISymbolicExpressionTree> Population => _population.AsReadOnly();
+        public IList<ISymbolicExpressionTree<T>> Population => _population.AsReadOnly();
 
         /// <summary>
         /// Gets the best individual found so far
         /// </summary>
-        public ISymbolicExpressionTree? BestIndividual => _bestIndividual;
+        public ISymbolicExpressionTree<T>? BestIndividual => _bestIndividual;
 
         /// <summary>
         /// Gets the fitness of the best individual
         /// </summary>
-        public double BestFitness => _bestFitness;
+        public T BestFitness => _bestFitness;
 
         /// <summary>
         /// Event raised when a generation is completed
         /// </summary>
-        public event EventHandler<GenerationEventArgs>? GenerationCompleted;
+        public event EventHandler<GenerationEventArgs<T>>? GenerationCompleted;
 
         // Explicit abstraction event
         public event EventHandler? IterationCompleted;
@@ -327,7 +330,7 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         public GeneticProgrammingAlgorithm() : base()
         {
-            _population = new List<ISymbolicExpressionTree>();
+            _population = new List<ISymbolicExpressionTree<T>>();
         }
 
         /// <summary>
@@ -335,7 +338,7 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         /// <param name="original">The original algorithm to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected GeneticProgrammingAlgorithm(GeneticProgrammingAlgorithm original, Cloner cloner) : base(original, cloner)
+        protected GeneticProgrammingAlgorithm(GeneticProgrammingAlgorithm<T> original, Cloner cloner) : base(original, cloner)
         {
             _populationSize = original._populationSize;
             _maxGenerations = original._maxGenerations;
@@ -343,6 +346,8 @@ namespace GeneticProgramming.Algorithms
             _maxTreeDepth = original._maxTreeDepth;
             _crossoverProbability = original._crossoverProbability;
             _mutationProbability = original._mutationProbability;
+            _eliteCount = original._eliteCount;
+            _eliteBreedingRatio = original._eliteBreedingRatio;
             _grammar = cloner.Clone(original._grammar);
             _treeCreator = cloner.Clone(original._treeCreator);
             _crossover = cloner.Clone(original._crossover);
@@ -350,10 +355,13 @@ namespace GeneticProgramming.Algorithms
             _random = cloner.Clone(original._random);
             _selector = cloner.Clone(original._selector);
             _generation = original._generation;
-            _population = new List<ISymbolicExpressionTree>(original._population.Select(ind => cloner.Clone(ind)).Where(ind => ind != null)!);
+            _population = new List<ISymbolicExpressionTree<T>>(original._population.Select(ind => cloner.Clone(ind)).Where(ind => ind != null)!);
             _bestIndividual = cloner.Clone(original._bestIndividual);
             _bestFitness = original._bestFitness;
             _stopRequested = original._stopRequested;
+            _fitnessEvaluator = cloner.Clone(original._fitnessEvaluator);
+            _enableParallelEvaluation = original._enableParallelEvaluation;
+            _fitnessCache = new Dictionary<int, T>(original._fitnessCache);
         }
 
         /// <summary>
@@ -363,7 +371,7 @@ namespace GeneticProgramming.Algorithms
         /// <returns>A deep clone of this algorithm</returns>
         public override IDeepCloneable Clone(Cloner cloner)
         {
-            return new GeneticProgrammingAlgorithm(this, cloner);
+            return new GeneticProgrammingAlgorithm<T>(this, cloner);
         }
 
         /// <summary>
@@ -380,10 +388,12 @@ namespace GeneticProgramming.Algorithms
                 UpdateBestIndividual();
 
                 // Raise generation completed event with conditional parallel average calculation
-                var averageFitness = _enableParallelEvaluation 
-                    ? _population.AsParallel().Average(EvaluateFitness)
-                    : _population.Average(EvaluateFitness);
-                GenerationCompleted?.Invoke(this, new GenerationEventArgs(_generation, _bestFitness, averageFitness, _bestIndividual!));
+                // Calcula média de fitness usando o AverageCalculator do evaluator
+                var averageCalculator = _fitnessEvaluator?.AverageCalculator ?? _fitnessEvaluator?.GetAverageCalculator();
+                var averageFitness = _enableParallelEvaluation
+                    ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
+                    : averageCalculator(_fitnessCache.Values);
+                GenerationCompleted?.Invoke(this, new GenerationEventArgs<T>(_generation, _bestFitness, averageFitness, _bestIndividual!));
                 IterationCompleted?.Invoke(this, EventArgs.Empty);
 
                 if (_generation < _maxGenerations - 1)
@@ -404,11 +414,25 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets cached fitness for an individual or evaluates if not cached
+        /// </summary>
+        /// <param name="index">Index of individual in population</param>
+        /// <returns>Fitness value</returns>
+        private T GetCachedFitness(int index)
+        {
+            if (!_fitnessCache.ContainsKey(index))
+            {
+                _fitnessCache[index] = EvaluateFitness(_population[index]);
+            }
+            return _fitnessCache[index];
+        }
+
+        /// <summary>
         /// Evaluates the fitness of an individual
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
         /// <returns>The fitness value (higher is better)</returns>
-        public virtual double EvaluateFitness(ISymbolicExpressionTree individual)
+        public virtual T EvaluateFitness(ISymbolicExpressionTree individual)
         {
             if (_fitnessEvaluator != null)
             {
@@ -416,10 +440,10 @@ namespace GeneticProgramming.Algorithms
             }
 
             // Default implementation - just return negative tree size (for parsimony)
-            return -individual.Length;
+            return default; // Assuming T is a struct, this will return the default value for T
         }
 
-        double AbstractionOptimization.IGeneticProgrammingAlgorithm.EvaluateFitness(object individual)
+        T AbstractionOptimization.IGeneticProgrammingAlgorithm<T>.EvaluateFitness(object individual)
         {
             if (individual is ISymbolicExpressionTree tree)
                 return EvaluateFitness(tree);
@@ -440,9 +464,10 @@ namespace GeneticProgramming.Algorithms
         {
             _generation = 0;
             _stopRequested = false;
-            _bestFitness = double.NegativeInfinity;
+            _bestFitness = default!;
             _bestIndividual = null;
             _population.Clear();
+            _fitnessCache.Clear();
 
             // Set operator grammars
             _treeCreator!.SymbolicExpressionTreeGrammar = _grammar;
@@ -459,50 +484,62 @@ namespace GeneticProgramming.Algorithms
 
         private void EvaluatePopulation()
         {
+            // Clear cache for new generation
+            _fitnessCache.Clear();
+            
             if (_enableParallelEvaluation)
             {
-                // Parallel evaluation for better performance
-                _population.AsParallel().ForAll(individual =>
+                // Parallel evaluation with proper caching
+                Parallel.For(0, _population.Count, i =>
                 {
-                    // In a real implementation, you might want to cache fitness values
-                    var fitness = EvaluateFitness(individual);
+                    var fitness = EvaluateFitness(_population[i]);
+                    lock (_fitnessCache)
+                    {
+                        _fitnessCache[i] = fitness;
+                    }
                 });
             }
             else
             {
-                // Sequential evaluation
-                foreach (var individual in _population)
+                // Sequential evaluation with caching
+                for (int i = 0; i < _population.Count; i++)
                 {
-                    var fitness = EvaluateFitness(individual);
+                    _fitnessCache[i] = EvaluateFitness(_population[i]);
                 }
             }
         }
 
         private void UpdateBestIndividual()
         {
-            // Evaluate all individuals and sort by fitness (descending)
-            var evaluatedPopulation = _population
-                .Select(individual => new { Individual = individual, Fitness = EvaluateFitness(individual) })
-                .OrderByDescending(x => x.Fitness)
-                .ToList();
+            // Use cached fitness values - no re-evaluation needed
+            T currentGenBestFitness = default;
+            ISymbolicExpressionTree<T>? currentGenBestIndividual = null;
 
-            // Update global best
-            var currentBest = evaluatedPopulation.First();
-
-            if (currentBest.Fitness > _bestFitness)
+            for (int i = 0; i < _population.Count; i++)
             {
-                _bestFitness = currentBest.Fitness;
-                _bestIndividual = (ISymbolicExpressionTree)currentBest.Individual.Clone(new Cloner());
+                var fitness = GetCachedFitness(i);
+                if (fitness.CompareTo(currentGenBestFitness) > 0)
+                {
+                    currentGenBestFitness = fitness;
+                    currentGenBestIndividual = _population[i];
+                }
+            }
+
+            // Update global best if this generation's best is better
+            if (currentGenBestFitness.CompareTo(_bestFitness) > 0)
+            {
+                _bestFitness = currentGenBestFitness;
+                _bestIndividual = (ISymbolicExpressionTree<T>)currentGenBestIndividual!.Clone(new Cloner());
             }
         }
 
         protected virtual void CreateNextGeneration()
         {
-            var newPopulation = new List<ISymbolicExpressionTree>();
+            var newPopulation = new List<ISymbolicExpressionTree<T>>();
 
-            // Evaluate all individuals and get the top performers
+            // Use cached fitness values - no re-evaluation needed
             var evaluatedPopulation = _population
-                .Select(individual => new { Individual = individual, Fitness = EvaluateFitness(individual) })
+                .Select((individual, index) => new { Individual = individual, Fitness = GetCachedFitness(index), Index = index })
                 .OrderByDescending(x => x.Fitness)
                 .ToList();
 
@@ -510,7 +547,7 @@ namespace GeneticProgramming.Algorithms
             var elites = evaluatedPopulation.Take(_eliteCount).ToList();
             foreach (var elite in elites)
             {
-                newPopulation.Add((ISymbolicExpressionTree)elite.Individual.Clone(new Cloner()));
+                newPopulation.Add((ISymbolicExpressionTree<T>)elite.Individual.Clone(new Cloner()));
             }
 
             // 2. ELITE BREEDING: Gerar parte da população cruzando elites entre si
@@ -537,9 +574,15 @@ namespace GeneticProgramming.Algorithms
             {
                 if (_random!.NextDouble() < _crossoverProbability && newPopulation.Count < _populationSize - 1)
                 {
-                    // Crossover normal com seleção por torneio
-                    var parent1 = _selector!.Select(_random!, _population, EvaluateFitness);
-                    var parent2 = _selector!.Select(_random!, _population, EvaluateFitness);
+                    // Crossover normal com seleção por torneio - use cached fitness
+                    var parent1 = _selector!.Select(_random!, _population, (ind) => {
+                        var idx = _population.IndexOf(ind);
+                        return GetCachedFitness(idx);
+                    });
+                    var parent2 = _selector!.Select(_random!, _population, (ind) => {
+                        var idx = _population.IndexOf(ind);
+                        return GetCachedFitness(idx);
+                    });
                     var offspring = _crossover!.Crossover(_random, parent1, parent2);
                     
                     if (_random.NextDouble() < _mutationProbability)
@@ -551,8 +594,11 @@ namespace GeneticProgramming.Algorithms
                 }
                 else
                 {
-                    // Mutação apenas
-                    var parent = _selector!.Select(_random!, _population, EvaluateFitness);
+                    // Mutação apenas - use cached fitness for selection
+                    var parent = _selector!.Select(_random!, _population, (ind) => {
+                        var idx = _population.IndexOf(ind);
+                        return GetCachedFitness(idx);
+                    });
                     var offspring = _mutator!.Mutate(_random, parent);
                     newPopulation.Add(offspring);
                 }
@@ -570,14 +616,14 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
         {
             ISymbolicExpressionTree? best = null;
-            double bestFitness = double.NegativeInfinity;
+            T bestFitness = default;
 
             for (int i = 0; i < tournamentSize; i++)
             {
                 var candidate = _population[_random!.Next(_population.Count)];
                 var fitness = EvaluateFitness(candidate);
-                
-                if (fitness > bestFitness)
+
+                if (fitness.CompareTo(bestFitness) > 0)
                 {
                     bestFitness = fitness;
                     best = candidate;
@@ -589,7 +635,7 @@ namespace GeneticProgramming.Algorithms
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
-            return new GeneticProgrammingAlgorithm(this, cloner);
+            return new GeneticProgrammingAlgorithm<T>(this, cloner);
         }
     }
 }

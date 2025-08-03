@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Creates random symbolic expression trees using the full method
     /// </summary>
-    public class FullTreeCreator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeCreator
+    public class FullTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : struct
     {
         /// <summary>
         /// Initializes a new instance of the FullTreeCreator class
@@ -23,7 +23,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original creator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected FullTreeCreator(FullTreeCreator original, Cloner cloner) : base(original, cloner)
+        protected FullTreeCreator(FullTreeCreator<T> original, Cloner cloner) : base(original, cloner)
         {
         }
 
@@ -34,7 +34,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A deep clone of this creator</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new FullTreeCreator(this, cloner);
+            return new FullTreeCreator<T>(this, cloner);
         }
 
         /// <summary>
@@ -45,29 +45,29 @@ namespace GeneticProgramming.Operators
         /// <param name="maxTreeLength">Maximum length of the created tree</param>
         /// <param name="maxTreeDepth">Maximum depth of the created tree</param>
         /// <returns>A new symbolic expression tree</returns>
-        public ISymbolicExpressionTree CreateTree(IRandom random, ISymbolicExpressionTreeGrammar grammar, int maxTreeLength, int maxTreeDepth)
+        public ISymbolicExpressionTree<T> CreateTree(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar, int maxTreeLength, int maxTreeDepth)
         {
             // Validate parameters
             if (random == null) throw new ArgumentNullException(nameof(random));
             if (grammar == null) throw new ArgumentNullException(nameof(grammar));
             if (maxTreeLength < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeLength), "Maximum tree length must be greater than or equal to 0");
             if (maxTreeDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxTreeDepth), "Maximum tree depth must be greater than or equal to 0");
-            
+
             // If max length or depth is 0, or max length is 1, must create terminal
             if (maxTreeLength <= 1 || maxTreeDepth <= 1)
             {
-                var tree = new SymbolicExpressionTree();
+                var tree = new SymbolicExpressionTree<T>();
                 tree.Root = CreateTerminalNode(random, grammar);
                 return tree;
             }
-            
-            var resultTree = new SymbolicExpressionTree();
+
+            var resultTree = new SymbolicExpressionTree<T>();
             var rootNode = CreateFullNode(random, grammar, maxTreeDepth, maxTreeLength);
             resultTree.Root = rootNode;
             return resultTree;
         }
 
-        private ISymbolicExpressionTreeNode CreateFullNode(IRandom random, ISymbolicExpressionTreeGrammar grammar, int depth, int maxLength)
+        private ISymbolicExpressionTreeNode<T> CreateFullNode(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar, int depth, int maxLength)
         {
             if (depth <= 1 || maxLength <= 1)
             {
@@ -84,7 +84,7 @@ namespace GeneticProgramming.Operators
             }
 
             var selectedSymbol = SelectSymbolByFrequency(random, nonTerminals);
-            var node = selectedSymbol.CreateTreeNode();
+            var node = (ISymbolicExpressionTreeNode<T>)selectedSymbol.CreateTreeNode();
 
             // Check if we have enough remaining length for minimum arity
             var remainingLength = maxLength - 1; // Subtract 1 for current node
@@ -95,18 +95,18 @@ namespace GeneticProgramming.Operators
             }
 
             // Add maximum arity children but respect length constraints
-            var maxArity = selectedSymbol.MaximumArity == int.MaxValue ? 
+            var maxArity = selectedSymbol.MaximumArity == int.MaxValue ?
                 Math.Min(5, remainingLength) : selectedSymbol.MaximumArity; // Limit variadic symbols
             var arity = Math.Min(maxArity, remainingLength);
             var childLength = remainingLength / arity;
-            
+
             for (int i = 0; i < arity; i++)
             {
                 var actualChildLength = Math.Max(1, childLength);
                 var child = CreateFullNode(random, grammar, depth - 1, actualChildLength);
                 node.AddSubtree(child);
                 remainingLength -= child.GetLength();
-                
+
                 // Stop if we're running out of length budget
                 if (remainingLength <= 0) break;
             }
@@ -114,7 +114,7 @@ namespace GeneticProgramming.Operators
             return node;
         }
 
-        private ISymbolicExpressionTreeNode CreateTerminalNode(IRandom random, ISymbolicExpressionTreeGrammar grammar)
+        private ISymbolicExpressionTreeNode<T> CreateTerminalNode(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar)
         {
             var terminals = grammar.Symbols.Where(s => s.Enabled && s.MaximumArity == 0).ToList();
             if (!terminals.Any())
@@ -123,10 +123,10 @@ namespace GeneticProgramming.Operators
             }
 
             var selectedTerminal = SelectSymbolByFrequency(random, terminals);
-            return selectedTerminal.CreateTreeNode();
+            return (ISymbolicExpressionTreeNode<T>)selectedTerminal.CreateTreeNode();
         }
 
-        private ISymbol SelectSymbolByFrequency(IRandom random, IList<ISymbol> symbols)
+        private ISymbol SelectSymbolByFrequency(IRandom random, IList<ISymbol<T>> symbols)
         {
             if (!symbols.Any())
             {

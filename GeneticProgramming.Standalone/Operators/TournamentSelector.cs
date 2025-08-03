@@ -42,29 +42,33 @@ namespace GeneticProgramming.Operators
         }
 
         /// <inheritdoc />
-        public ISymbolicExpressionTree Select(IRandom random, IList<ISymbolicExpressionTree> population, Func<ISymbolicExpressionTree, double> fitness)
+        public ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, Func<ISymbolicExpressionTree<T>, T> fitness)
+            where T : struct, IComparable<T>, IEquatable<T>
         {
             if (population == null || population.Count == 0)
                 throw new ArgumentException("Population cannot be empty", nameof(population));
             if (random == null) throw new ArgumentNullException(nameof(random));
             if (fitness == null) throw new ArgumentNullException(nameof(fitness));
 
-            ISymbolicExpressionTree? best = null;
-            double bestFitness = double.NegativeInfinity;
+            ISymbolicExpressionTree<T>? best = null;
+            T bestFitness = default(T);
+            bool firstCandidate = true;
 
             for (int i = 0; i < _tournamentSize; i++)
             {
                 var candidate = population[random.Next(population.Count)];
                 var fit = fitness(candidate);
 
-                if (fit > bestFitness)
+                if (firstCandidate || fit.CompareTo(bestFitness) > 0)
                 {
                     bestFitness = fit;
                     best = candidate;
+                    firstCandidate = false;
                 }
             }
 
-            return (ISymbolicExpressionTree)best!.Clone(new Cloner());
+            return (ISymbolicExpressionTree<T>)best!.Clone(new Cloner());
         }
+
     }
 }

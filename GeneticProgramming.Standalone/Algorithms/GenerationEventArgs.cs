@@ -6,7 +6,7 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Event arguments for generation completed events
     /// </summary>
-    public class GenerationEventArgs : EventArgs
+    public class GenerationEventArgs<T> : EventArgs where T : struct
     {
         /// <summary>
         /// Gets the generation number
@@ -16,17 +16,17 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets the best fitness in this generation
         /// </summary>
-        public double BestFitness { get; }
+        public T BestFitness { get; }
 
         /// <summary>
         /// Gets the average fitness in this generation
         /// </summary>
-        public double AverageFitness { get; }
+        public T AverageFitness { get; }
 
         /// <summary>
         /// Gets the best individual in this generation
         /// </summary>
-        public ISymbolicExpressionTree BestIndividual { get; }
+        public ISymbolicExpressionTree<T> BestIndividual { get; }
 
         /// <summary>
         /// Initializes a new instance of the GenerationEventArgs class
@@ -35,7 +35,7 @@ namespace GeneticProgramming.Algorithms
         /// <param name="bestFitness">The best fitness</param>
         /// <param name="averageFitness">The average fitness</param>
         /// <param name="bestIndividual">The best individual</param>
-        public GenerationEventArgs(int generation, double bestFitness, double averageFitness, ISymbolicExpressionTree bestIndividual)
+        public GenerationEventArgs(int generation, T bestFitness, T averageFitness, ISymbolicExpressionTree<T> bestIndividual)
         {
             Generation = generation;
             BestFitness = bestFitness;
