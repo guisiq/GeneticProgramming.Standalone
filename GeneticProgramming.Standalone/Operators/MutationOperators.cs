@@ -255,7 +255,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates terminal nodes by changing their values
     /// </summary>
-    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
+    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct, IConvertible
     {
         private double _constantMutationRange = 1.0;
 
@@ -332,17 +332,22 @@ namespace GeneticProgramming.Operators
             var terminalToMutate = terminalNodes[random.Next(terminalNodes.Count)];
 
             // Mutate based on terminal type
-            if (terminalToMutate is ConstantTreeNode constantNode)
+            if (terminalToMutate is ConstantTreeNode<T> constantNode)
             {
-                // Mutate constant value
-                var currentValue = constantNode.Value;
-                var delta = (random.NextDouble() - 0.5) * 2 * _constantMutationRange;
-                constantNode.Value = currentValue + delta;
+                if (MutateConstantValue != null)
+                {
+                    var currentValue = constantNode.Value;
+                    constantNode.Value = MutateConstantValue(currentValue, _constantMutationRange);
+                }
+                else
+                {
+                    throw new InvalidOperationException("MutateConstantValue delegate must be set for constant mutation.");
+                }
             }
-            else if (terminalToMutate is VariableTreeNode variableNode && SymbolicExpressionTreeGrammar != null)
-            {                // Change to a different variable
+            else if (terminalToMutate is VariableTreeNode<T> variableNode && SymbolicExpressionTreeGrammar != null)
+            {
                 var variableSymbols = SymbolicExpressionTreeGrammar.Symbols
-                    .OfType<Variable>()
+                    .OfType<Variable<T>>()
                     .Where(v => v.Enabled)
                     .ToList();
 
@@ -362,5 +367,22 @@ namespace GeneticProgramming.Operators
 
             return result;
         }
+
+        private static readonly Dictionary<Type, Func<object, double, object>> DefaultMutateFunctions = new()
+        {
+            { typeof(int), (value, range) => (int)value + (int)(range * 10) },
+            { typeof(double), (value, range) => (double)value + range },
+            { typeof(float), (value, range) => (float)value + (float)range },
+            { typeof(long), (value, range) => (long)value + (long)(range * 10) }
+        };
+
+        public Func<T, double, T>? MutateConstantValue { get; set; } = (currentValue, mutationRange) =>
+        {
+            if (DefaultMutateFunctions.TryGetValue(typeof(T), out var mutateFunc))
+            {
+                return (T)mutateFunc(currentValue, mutationRange);
+            }
+            throw new InvalidOperationException($"No default mutation function defined for type {typeof(T)}");
+        };
     }
 }

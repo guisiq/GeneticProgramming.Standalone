@@ -7,7 +7,7 @@ namespace GeneticProgramming.Problems.Evaluators
     /// <summary>
     /// Evaluates trees for regression problems using mean squared error.
     /// </summary>
-    public class RegressionFitnessEvaluator : IFitnessEvaluator
+    public class RegressionFitnessEvaluator : IFitnessEvaluator<double>
     {
         private readonly double[][] _inputs;
         private readonly double[] _targets;
@@ -22,8 +22,7 @@ namespace GeneticProgramming.Problems.Evaluators
             if (_inputs.Length != _targets.Length)
                 throw new ArgumentException("Inputs and targets must have same length");
         }
-
-        public double Evaluate(ISymbolicExpressionTree tree)
+        public double Evaluate(ISymbolicExpressionTree<double> tree)
         {
             double mse = 0.0;
             var vars = new Dictionary<string, double>();
@@ -40,5 +39,7 @@ namespace GeneticProgramming.Problems.Evaluators
             mse /= _inputs.Length;
             return -mse; // minimize error => maximize negative error
         }
+
+
     }
 }

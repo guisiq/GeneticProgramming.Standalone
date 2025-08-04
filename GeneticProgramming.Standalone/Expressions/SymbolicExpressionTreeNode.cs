@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using GeneticProgramming.Core;
 
 namespace GeneticProgramming.Expressions
@@ -22,7 +23,8 @@ namespace GeneticProgramming.Expressions
         {
             get { return symbol ?? throw new InvalidOperationException("Symbol not set"); }
             protected set { symbol = value; }
-        }        private ISymbolicExpressionTreeNode? parent;
+        }
+        private ISymbolicExpressionTreeNode? parent;
         public ISymbolicExpressionTreeNode? Parent
         {
             get { return parent; }
@@ -538,6 +540,10 @@ namespace GeneticProgramming.Expressions
             int currentChildCount = SubtreeCount;
             return genericSymbol.IsCompatibleChildType(child.OutputType, currentChildCount);
         }
+
+
+
+
 
         /// <summary>
         /// Generic iteration methods

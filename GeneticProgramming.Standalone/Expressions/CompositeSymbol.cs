@@ -11,14 +11,14 @@ namespace GeneticProgramming.Expressions
     /// the ability for genetic operators to mutate and crossover within the generated subtree.
     /// </summary>
     /// <typeparam name="T">The data type this symbol operates on.</typeparam>
-    public class CompositeSymbol<T> : Symbol
+    public class CompositeSymbol<T> : Symbol<T> where T : struct
     
     {
         /// <summary>
         /// Delegate that builds the subtree structure when CreateTreeNode is called.
         /// The parameter array represents placeholder nodes that will be replaced with actual child nodes.
         /// </summary>
-        public Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> SubtreeBuilder { get; }
+        public Func<ISymbolicExpressionTreeNode<T>[], ISymbolicExpressionTreeNode<T>> SubtreeBuilder { get; }
 
         public int _MinimumArity;
         public int _MaximumArity;
@@ -35,7 +35,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="subtreeBuilder">Delegate that builds the subtree structure using placeholder nodes.</param>
         /// <param name="operation">Operation to execute when evaluating (for compatibility with FunctionalSymbol).</param>
         public CompositeSymbol(string name, string description, 
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,int arity)
+            Func<ISymbolicExpressionTreeNode<T>[], ISymbolicExpressionTreeNode<T>> subtreeBuilder,int arity)
             : base(name, description)
         {
             _MinimumArity = arity;
@@ -44,7 +44,7 @@ namespace GeneticProgramming.Expressions
             SubtreeBuilder = subtreeBuilder ?? throw new ArgumentNullException(nameof(subtreeBuilder));
         }
         public CompositeSymbol(string name, string description, 
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder,int minarity, int? maxarity = null)
+            Func<ISymbolicExpressionTreeNode<T>[], ISymbolicExpressionTreeNode<T>> subtreeBuilder,int minarity, int? maxarity = null)
             : base(name, description)
         {
             _MinimumArity = minarity;
@@ -73,10 +73,10 @@ namespace GeneticProgramming.Expressions
         /// replaced with actual child nodes during tree construction.
         /// </summary>
         /// <returns>The root node of the generated subtree.</returns>
-        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        public override ISymbolicExpressionTreeNode<T> CreateTreeNode()
         {
             // Create placeholder nodes for each input parameter
-            var placeholders = new ISymbolicExpressionTreeNode[_MinimumArity];
+            var placeholders = new ISymbolicExpressionTreeNode<T>[_MinimumArity];
             for (int i = 0; i < _MinimumArity; i++)
             {
                 placeholders[i] = new ParameterPlaceholderNode<T>(i);
@@ -91,6 +91,24 @@ namespace GeneticProgramming.Expressions
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets the input types for this composite symbol.
+        /// Composite symbols accept any input types, so this returns an empty array.
+        /// </summary>
+        public override Type[] InputTypes => Array.Empty<Type>();
+
+        /// <summary>
+        /// Validates if a child symbol type is compatible with this composite symbol.
+        /// Composite symbols accept any child types, so this always returns true.
+        /// </summary>
+        /// <param name="childOutputType">The output type of the child symbol.</param>
+        /// <param name="argumentIndex">The position where the child would be placed.</param>
+        /// <returns>True, as composite symbols accept any child types.</returns>
+        public override bool IsCompatibleChildType(Type childOutputType, int argumentIndex)
+        {
+            
+            return childOutputType == typeof(T); // Composite symbols accept any child types
+        }
     }
 
     /// <summary>
@@ -98,7 +116,7 @@ namespace GeneticProgramming.Expressions
     /// These nodes will be replaced with actual child nodes during tree building.
     /// </summary>
     /// <typeparam name="T">The data type this node operates on.</typeparam>
-    internal class ParameterPlaceholderNode<T> : SymbolicExpressionTreeNode, IEvaluable<T>
+    internal class ParameterPlaceholderNode<T> : SymbolicExpressionTreeNode<T>, IEvaluable<T> where T : struct
     {
         /// <summary>
         /// The parameter index this placeholder represents.
@@ -150,7 +168,7 @@ namespace GeneticProgramming.Expressions
     /// Symbol representing a parameter placeholder in composite symbol subtrees.
     /// </summary>
     /// <typeparam name="T">The data type this symbol operates on.</typeparam>
-    internal class ParameterPlaceholderSymbol<T> : Symbol
+    internal class ParameterPlaceholderSymbol<T> : Symbol<T> where T : struct
     {
         /// <summary>
         /// The parameter index this symbol represents.
@@ -189,9 +207,27 @@ namespace GeneticProgramming.Expressions
             return $"${ParameterIndex}";
         }
 
-        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        public override ISymbolicExpressionTreeNode<T> CreateTreeNode()
         {
             return new ParameterPlaceholderNode<T>(ParameterIndex);
+        }
+
+        /// <summary>
+        /// Gets the input types for this parameter placeholder symbol.
+        /// Parameter placeholders do not accept any input types, so this returns an empty array.
+        /// </summary>
+        public override Type[] InputTypes => Array.Empty<Type>();
+
+        /// <summary>
+        /// Validates if a child symbol type is compatible with this parameter placeholder symbol.
+        /// Parameter placeholders do not accept children, so this always returns false.
+        /// </summary>
+        /// <param name="childOutputType">The output type of the child symbol.</param>
+        /// <param name="argumentIndex">The position where the child would be placed.</param>
+        /// <returns>False, as parameter placeholders do not accept children.</returns>
+        public override bool IsCompatibleChildType(Type childOutputType, int argumentIndex)
+        {
+            return false; // Parameter placeholders do not accept children
         }
     }
 }

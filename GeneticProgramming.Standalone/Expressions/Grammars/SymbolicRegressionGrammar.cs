@@ -9,10 +9,11 @@ namespace GeneticProgramming.Expressions.Grammars
     /// A specialized grammar for symbolic regression problems.
     /// </summary>
     [Serializable]
-    public class SymbolicRegressionGrammar : SymbolicExpressionTreeGrammar
+    /// <typeparam name="T">o tipo dos valores de entrada e saída que devem ser numéricos.</typeparam>
+    public class SymbolicRegressionGrammar<T> : SymbolicExpressionTreeGrammar<T> where T : struct, IComparable<T>, IEquatable<T>, IConvertible
     {
         private readonly List<string> _variableNames;
-        private readonly List<ISymbol> _funSymbols;
+        private readonly List<ISymbol<T>> _funSymbols;
         private bool _allowConstants;
 
         /// <summary>
@@ -23,7 +24,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// <summary>
         /// Gets the functional symbols used in this grammar.
         /// </summary>
-        public IEnumerable<ISymbol> FunSymbols => _funSymbols.AsReadOnly();
+        public IEnumerable<ISymbol<T>> FunSymbols => _funSymbols.AsReadOnly();
 
         /// <summary>
         /// Gets or sets whether constants are allowed in expressions.
@@ -34,22 +35,14 @@ namespace GeneticProgramming.Expressions.Grammars
             set
             {
                 if (_allowConstants != value)
-                {                    _allowConstants = value;
+                {
+                    _allowConstants = value;
                     UpdateConstants();
                     OnPropertyChanged(nameof(AllowConstants));
                 }
             }
         }
 
-        /// <summary>
-        /// Initializes a new instance of the SymbolicRegressionGrammar class with default variable "X".
-        /// </summary>
-        public SymbolicRegressionGrammar() : this(new[] { "X" }, MathematicalSymbols.AllSymbols, allowConstants: true) { }
-
-        /// <summary>
-        /// Creates the default set of functional symbols for symbolic regression.
-        /// </summary>
-        /// <returns>A collection of default functional symbols.</returns>
 
         /// <summary>
         /// Initializes a new instance of the SymbolicRegressionGrammar class.
@@ -57,11 +50,11 @@ namespace GeneticProgramming.Expressions.Grammars
         /// <param name="variableNames">The names of input variables.</param>
         /// <param name="funSymbols">The functional symbols to include in the grammar.</param>
         /// <param name="allowConstants">Whether to allow constants in expressions.</param>
-        public SymbolicRegressionGrammar(IEnumerable<string> variableNames, IEnumerable<ISymbol> funSymbols = null, bool allowConstants = true)
+        public SymbolicRegressionGrammar(IEnumerable<string> variableNames, IEnumerable<ISymbol<T>> funSymbols , bool allowConstants = true)
             : base("SymbolicRegressionGrammar", "A grammar for symbolic regression with mathematical operations and variables")
         {
             _variableNames = new List<string>(variableNames ?? throw new ArgumentNullException(nameof(variableNames)));
-            _funSymbols = new List<ISymbol>(funSymbols ?? MathematicalSymbols.AllSymbols);
+            _funSymbols = new List<ISymbol<T>>(funSymbols);
             _allowConstants = allowConstants;
 
             if (!_variableNames.Any())
@@ -78,11 +71,11 @@ namespace GeneticProgramming.Expressions.Grammars
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
         /// <param name="cloner">The cloner to use for deep cloning.</param>
-        private SymbolicRegressionGrammar(SymbolicRegressionGrammar original, Core.Cloner cloner)
+        private SymbolicRegressionGrammar(SymbolicRegressionGrammar<T> original, Core.Cloner cloner)
             : base(original, cloner)
         {
             _variableNames = new List<string>(original._variableNames);
-            _funSymbols = new List<ISymbol>(original._funSymbols);
+            _funSymbols = new List<ISymbol<T>>(original._funSymbols);
             _allowConstants = original._allowConstants;
         }
 
@@ -93,7 +86,7 @@ namespace GeneticProgramming.Expressions.Grammars
         /// <returns>A cloned instance of the grammar.</returns>
         public override Core.IDeepCloneable Clone(Core.Cloner cloner)
         {
-            return new SymbolicRegressionGrammar(this, cloner);
+            return new SymbolicRegressionGrammar<T>(this, cloner);
         }
 
         /// <summary>
@@ -110,13 +103,13 @@ namespace GeneticProgramming.Expressions.Grammars
             // Add variables
             foreach (var variableName in _variableNames)
             {
-                var variable = new Variable { Name = variableName };
+                var variable = new Variable<T> { Name = variableName };
                 AddSymbol(variable);
             }
 
             // Add constant if allowed
             if (_allowConstants)
-                AddSymbol(new Constant { Name = "Constant" });
+                AddSymbol(new Constant<T> { Name = "Constant" });
 
             // Configure grammar rules
             ConfigureRegressionRules();
@@ -166,7 +159,7 @@ namespace GeneticProgramming.Expressions.Grammars
             if (_variableNames.Contains(variableName))
                 return; // Variable already exists
             _variableNames.Add(variableName); // This line is crucial for adding the name to VariableNames
-            var variable = new Variable { Name = variableName };
+            var variable = new Variable<T> { Name = variableName };
             AddSymbol(variable);
             AddStartSymbol(variable);
 
@@ -196,9 +189,9 @@ namespace GeneticProgramming.Expressions.Grammars
         private void UpdateConstants()
         {
             var constant = GetSymbol("Constant");
-              if (_allowConstants && constant == null)
+            if (_allowConstants && constant == null)
             {
-                AddSymbol(new Constant { Name = "Constant" });
+                AddSymbol(new Constant<T> { Name = "Constant" });
                 ConfigureRegressionRules();
             }
             else if (!_allowConstants && constant != null)
@@ -208,34 +201,10 @@ namespace GeneticProgramming.Expressions.Grammars
         }
 
         /// <summary>
-        /// Creates a simple grammar with only addition, subtraction, and specified variables.
-        /// </summary>
-        /// <param name="variableNames">The names of variables to include.</param>
-        /// <returns>A simple regression grammar.</returns>
-        public static SymbolicRegressionGrammar CreateSimpleGrammar(IEnumerable<string> variableNames)
-        {
-            var simpleSymbols = new ISymbol[]
-            {
-                MathematicalSymbols.Addition,
-                MathematicalSymbols.Subtraction
-            };
-            return new SymbolicRegressionGrammar(variableNames, simpleSymbols, allowConstants: false);
-        }
-
-        /// <summary>
-        /// Creates a standard grammar with basic operations and constants.
-        /// </summary>
-        /// <param name="variableNames">The names of variables to include.</param>
-        /// <returns>A standard regression grammar.</returns>
-        public static SymbolicRegressionGrammar CreateStandardGrammar(IEnumerable<string> variableNames)
-        {
-            return new SymbolicRegressionGrammar(variableNames, MathematicalSymbols.AllSymbols, allowConstants: true);
-        }
-
-        /// <summary>
         /// Validates the grammar for regression problems.
         /// </summary>
-        public bool ValidateForRegression() {
+        public bool ValidateForRegression()
+        {
             return Validate();
         }
     }

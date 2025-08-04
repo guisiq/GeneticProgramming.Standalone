@@ -75,7 +75,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="operation">Operation to execute when evaluating.</param>
         /// <returns>A composite symbol that generates subtrees.</returns>
         public static CompositeSymbol<T> CreateComposite(string name, string description, int arity,
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder)
+            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode<T>> subtreeBuilder)
         {
             return new CompositeSymbol<T>(name, description, subtreeBuilder, arity);
         }
@@ -90,7 +90,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="subtreeBuilder">Delegate that builds the subtree structure.</param>
         /// <returns>A composite symbol that generates subtrees.</returns>
         public static CompositeSymbol<T> CreateComposite(string name, string description, int minarity, int? maxarity,
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder)
+            Func<ISymbolicExpressionTreeNode<T>[], ISymbolicExpressionTreeNode<T>> subtreeBuilder)
         {
             return new CompositeSymbol<T>(name, description, subtreeBuilder, minarity, maxarity);
         }

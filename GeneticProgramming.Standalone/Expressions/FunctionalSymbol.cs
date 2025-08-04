@@ -6,7 +6,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Symbol that executes a provided delegate when evaluated, operating on generic type T.
     /// </summary>
-    public class FunctionalSymbol<T> : Symbol, IEvaluable<T>, ISymbol<T> where T : struct
+    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T> where T : struct
     {
         /// <summary>
         /// Delegate representing the operation of this symbol.
@@ -30,12 +30,14 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Gets the types that this symbol accepts as input
         /// </summary>
-        public Type[] InputTypes { get; }
+        /// 
+        public Type[] _inputTypes;
+        public override Type[] InputTypes => _inputTypes;
 
         /// <summary>
         /// Gets the type that this symbol produces as output
         /// </summary>
-        public Type OutputType => typeof(T);
+        public override Type OutputType => typeof(T);
 
         /// <summary>
         /// Creates a new functional symbol with generic operation.
@@ -57,19 +59,19 @@ namespace GeneticProgramming.Expressions
             // Default input types to T for all arguments
             if (inputTypes == null)
             {
-                InputTypes = new Type[maxArity];
+                _inputTypes = new Type[maxArity];
                 for (int i = 0; i < maxArity; i++)
                 {
-                    InputTypes[i] = typeof(T);
+                    _inputTypes[i] = typeof(T);
                 }
             }
             else
             {
-                InputTypes = inputTypes;
+                _inputTypes = inputTypes;
             }
             
             // Validate input types array length
-            if (InputTypes.Length < maxArity)
+            if (_inputTypes.Length < maxArity)
             {
                 throw new ArgumentException($"InputTypes array must have at least {maxArity} elements");
             }
@@ -84,7 +86,7 @@ namespace GeneticProgramming.Expressions
             Operation = original.Operation;
             MinArity = original.MinArity;
             MaxArity = original.MaxArity;
-            InputTypes = (Type[])original.InputTypes.Clone();
+            _inputTypes = (Type[])original.InputTypes.Clone();
         }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
@@ -97,19 +99,11 @@ namespace GeneticProgramming.Expressions
             return Name;
         }
 
-        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        public override ISymbolicExpressionTreeNode<T> CreateTreeNode()
         {
             return new SymbolicExpressionTreeNode<T>(this);
         }
 
-        /// <summary>
-        /// Creates a generic tree node for this symbol
-        /// </summary>
-        /// <returns>A new generic tree node instance</returns>
-        ISymbolicExpressionTreeNode<T> ISymbol<T>.CreateTreeNode()
-        {
-            return new SymbolicExpressionTreeNode<T>(this);
-        }
 
         /// <summary>
         /// Validates if a child symbol type is compatible with this symbol at the given position
@@ -117,11 +111,11 @@ namespace GeneticProgramming.Expressions
         /// <param name="childOutputType">The output type of the child symbol</param>
         /// <param name="argumentIndex">The position where the child would be placed</param>
         /// <returns>True if compatible, false otherwise</returns>
-        public bool IsCompatibleChildType(Type childOutputType, int argumentIndex)
+        public override bool IsCompatibleChildType(Type childOutputType, int argumentIndex)
         {
             if (argumentIndex < 0 || argumentIndex >= InputTypes.Length)
                 return false;
-                
+
             return InputTypes[argumentIndex] == childOutputType;
         }
 

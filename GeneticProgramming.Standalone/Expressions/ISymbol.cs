@@ -37,10 +37,10 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         bool Enabled { get; set; }
 
-        /// <summary>
-        /// Creates a tree node for this symbol
-        /// </summary>
-        /// <returns>A new tree node instance</returns>
+        // /// <summary>
+        // /// Creates a tree node for this symbol
+        // /// </summary>
+        // /// <returns>A new tree node instance</returns>
         ISymbolicExpressionTreeNode CreateTreeNode();
 
         /// <summary>
@@ -70,6 +70,11 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <returns>A new generic tree node instance</returns>
         new ISymbolicExpressionTreeNode<T> CreateTreeNode();
+
+        ISymbolicExpressionTreeNode ISymbol.CreateTreeNode()
+        {
+            return CreateTreeNode();
+        }
 
         /// <summary>
         /// Validates if a child symbol type is compatible with this symbol at the given position

@@ -7,7 +7,7 @@ namespace GeneticProgramming.Problems.Evaluators
     /// <summary>
     /// Melhorado avaliador de fitness para classificação com gradiente suave e pressão de parcimônia
     /// </summary>
-    public class ImprovedClassificationFitnessEvaluator : IFitnessEvaluator
+    public class ImprovedClassificationFitnessEvaluator : IFitnessEvaluator<double>
     {
         private readonly double[][] _inputs;
         private readonly int[] _targets;
@@ -25,7 +25,7 @@ namespace GeneticProgramming.Problems.Evaluators
                 throw new ArgumentException("Inputs and targets must have same length");
         }
 
-        public double Evaluate(ISymbolicExpressionTree tree)
+        public double Evaluate(ISymbolicExpressionTree<double> tree)
         {
             double totalScore = 0.0;
             var vars = new Dictionary<string, double>();

@@ -104,6 +104,6 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
         /// <returns>The fitness value (higher is better)</returns>
-        T EvaluateFitness(ISymbolicExpressionTree individual);
+        T EvaluateFitness(ISymbolicExpressionTree<T> individual);
     }
 }

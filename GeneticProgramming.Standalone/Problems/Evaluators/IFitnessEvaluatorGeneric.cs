@@ -12,20 +12,16 @@ namespace GeneticProgramming.Problems.Evaluators
     /// <typeparam name="T">The data type used in the expressions</typeparam>
     public interface IFitnessEvaluator<T> where T : struct
     {
-        Func<IEnumerable<T>, T> AverageCalculator { get; set; }
-
         /// <summary>
-        /// Define um calculador de média padrão baseado no tipo T
+        /// Gets the average calculator function for the specified type.
+        /// Uses the cached implementation from AverageCalculatorCache by default.
         /// </summary>
-        Func<IEnumerable<T>, T> GetAverageCalculator()
-        {
-            return AverageCalculatorCache.Instance<T>();
-        }
+        Func<IEnumerable<T>, T> AverageCalculator => AverageCalculatorCache.Instance<T>();
 
         /// <summary>
         /// Computes the fitness of the given tree. Higher is better.
         /// </summary>
-        T Evaluate(ISymbolicExpressionTree tree);
+        T Evaluate(ISymbolicExpressionTree<T> tree);
     }
 
     /// <summary>

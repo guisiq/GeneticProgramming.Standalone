@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using GeneticProgramming.Abstractions.Parameters; // For IParameterCollection
+using GeneticProgramming.Core; // For Item and Cloner base types
 
 namespace GeneticProgramming.Expressions
 {
@@ -10,12 +11,12 @@ namespace GeneticProgramming.Expressions
     /// Base implementation of a symbolic expression tree grammar.
     /// </summary>
     [Serializable]
-    public class SymbolicExpressionTreeGrammar : Core.Item, ISymbolicExpressionTreeGrammar
+    public class SymbolicExpressionTreeGrammar<T> : Core.Item, ISymbolicExpressionTreeGrammar<T> where T : struct
     {
-        private readonly Dictionary<ISymbol, ReadOnlyCollection<ISymbol>> _allowedChildSymbols;
-        private readonly Dictionary<string, ISymbol> _symbolsByName;
-        private readonly List<ISymbol> _symbols;
-        private readonly List<ISymbol> _startSymbols;
+        private readonly Dictionary<ISymbol<T>, ReadOnlyCollection<ISymbol<T>>> _allowedChildSymbols;
+        private readonly Dictionary<string, ISymbol<T>> _symbolsByName;
+        private readonly List<ISymbol<T>> _symbols;
+        private readonly List<ISymbol<T>> _startSymbols;
 
         private int _maximumExpressionLength = 100;
         private int _maximumExpressionDepth = 10;
@@ -25,12 +26,12 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Gets all symbols available in this grammar.
         /// </summary>
-        public IEnumerable<ISymbol> Symbols => _symbols.AsReadOnly();
+        public IEnumerable<ISymbol<T>> Symbols => _symbols.AsReadOnly();
 
         /// <summary>
         /// Gets all symbols that can be used as root symbols.
         /// </summary>
-        public IEnumerable<ISymbol> StartSymbols => _startSymbols.AsReadOnly();
+        public IEnumerable<ISymbol<T>> StartSymbols => _startSymbols.AsReadOnly();
 
         /// <summary>
         /// Gets or sets the maximum allowed expression length.
@@ -113,10 +114,10 @@ namespace GeneticProgramming.Expressions
         {
             Name = name;
             Description = description;
-            _symbols = new List<ISymbol>();
-            _startSymbols = new List<ISymbol>();
-            _symbolsByName = new Dictionary<string, ISymbol>();
-            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
+            _symbols = new List<ISymbol<T>>();
+            _startSymbols = new List<ISymbol<T>>();
+            _symbolsByName = new Dictionary<string, ISymbol<T>>();
+            _allowedChildSymbols = new Dictionary<ISymbol<T>, ReadOnlyCollection<ISymbol<T>>>();
             // Parameters = new ParameterCollection(); // Already initialized in base Item constructor
         }
 
@@ -125,7 +126,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="original">The original grammar to copy.</param>
         /// <param name="cloner">The cloner to use for deep cloning.</param>
-        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar original, Core.Cloner cloner)
+        protected SymbolicExpressionTreeGrammar(SymbolicExpressionTreeGrammar<T> original, Core.Cloner cloner)
             : base(original, cloner)
         {
             _maximumExpressionLength = original._maximumExpressionLength;
@@ -133,17 +134,17 @@ namespace GeneticProgramming.Expressions
             _minimumExpressionLength = original._minimumExpressionLength;
             _minimumExpressionDepth = original._minimumExpressionDepth;
 
-            _symbols = new List<ISymbol>();
-            _startSymbols = new List<ISymbol>();
-            _symbolsByName = new Dictionary<string, ISymbol>();
-            _allowedChildSymbols = new Dictionary<ISymbol, ReadOnlyCollection<ISymbol>>();
+            _symbols = new List<ISymbol<T>>();
+            _startSymbols = new List<ISymbol<T>>();
+            _symbolsByName = new Dictionary<string, ISymbol<T>>();
+            _allowedChildSymbols = new Dictionary<ISymbol<T>, ReadOnlyCollection<ISymbol<T>>>();
 
             // Clone symbols and their relationships
-            var clonedSymbolsMap = new Dictionary<ISymbol, ISymbol>();
+            var clonedSymbolsMap = new Dictionary<ISymbol<T>, ISymbol<T>>();
 
             foreach (var symbol in original._symbols)
             {
-                var clonedSymbol = cloner.Clone(symbol);
+                var clonedSymbol = (ISymbol<T>)cloner.Clone(symbol)!;  // Clone and cast to ISymbol<T>
                 _symbols.Add(clonedSymbol);
                 _symbolsByName.Add(clonedSymbol.Name, clonedSymbol);
                 clonedSymbolsMap[symbol] = clonedSymbol;
@@ -161,10 +162,12 @@ namespace GeneticProgramming.Expressions
             {
                 if (clonedSymbolsMap.TryGetValue(kvp.Key, out var clonedParentSymbol))
                 {
-                    var allowedChildren = kvp.Value.Select(child => clonedSymbolsMap.TryGetValue(child, out var clonedChild) ? clonedChild : null)
-                                                 .Where(cs => cs != null)
-                                                 .ToList()!; // Explicitly non-null
-                    _allowedChildSymbols.Add(clonedParentSymbol, new ReadOnlyCollection<ISymbol>(allowedChildren));
+                    var allowedChildren = kvp.Value
+                        .Select(child => clonedSymbolsMap.TryGetValue(child, out var clonedChild) ? clonedChild : null)
+                        .Where(cs => cs != null)
+                        .Select(cs => cs!)  // Assert non-null
+                        .ToList();
+                    _allowedChildSymbols.Add(clonedParentSymbol, new ReadOnlyCollection<ISymbol<T>>(allowedChildren));
                 }
             }
         }        /// <summary>
@@ -174,7 +177,7 @@ namespace GeneticProgramming.Expressions
         /// <returns>A cloned instance of the grammar.</returns>
         public override Core.IDeepCloneable Clone(Core.Cloner cloner)
         {
-            return new SymbolicExpressionTreeGrammar(this, cloner);
+            return new SymbolicExpressionTreeGrammar<T>(this, cloner);
         }
 
         /// <summary>
@@ -184,7 +187,7 @@ namespace GeneticProgramming.Expressions
         /// <returns>A new clone instance of the grammar.</returns>
         protected override Core.IDeepCloneable CreateCloneInstance(Core.Cloner cloner)
         {
-            return new SymbolicExpressionTreeGrammar(this, cloner);
+            return new SymbolicExpressionTreeGrammar<T>(this, cloner);
         }
 
         /// <summary>
@@ -192,7 +195,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="parent">The parent symbol.</param>
         /// <returns>Collection of allowed child symbols.</returns>
-        public virtual IEnumerable<ISymbol> GetAllowedChildSymbols(ISymbol parent)
+        public virtual IEnumerable<ISymbol<T>> GetAllowedChildSymbols(ISymbol<T> parent)
         {
             if (_allowedChildSymbols.TryGetValue(parent, out var allowedSymbols))
                 return allowedSymbols;
@@ -207,7 +210,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="parent">The parent symbol.</param>
         /// <param name="childIndex">The index of the child position.</param>
         /// <returns>Collection of allowed child symbols for the specified position.</returns>
-        public virtual IEnumerable<ISymbol> GetAllowedChildSymbols(ISymbol parent, int childIndex)
+        public virtual IEnumerable<ISymbol<T>> GetAllowedChildSymbols(ISymbol<T> parent, int childIndex)
         {
             // Default implementation: same allowed symbols for all child positions
             return GetAllowedChildSymbols(parent);
@@ -219,7 +222,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="parent">The parent symbol.</param>
         /// <param name="child">The child symbol to check.</param>
         /// <returns>True if the child is allowed, false otherwise.</returns>
-        public virtual bool IsAllowedChildSymbol(ISymbol parent, ISymbol child)
+        public virtual bool IsAllowedChildSymbol(ISymbol<T> parent, ISymbol<T> child)
         {
             return GetAllowedChildSymbols(parent).Contains(child);
         }
@@ -231,7 +234,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="child">The child symbol to check.</param>
         /// <param name="childIndex">The index of the child position.</param>
         /// <returns>True if the child is allowed at the specified position, false otherwise.</returns>
-        public virtual bool IsAllowedChildSymbol(ISymbol parent, ISymbol child, int childIndex)
+        public virtual bool IsAllowedChildSymbol(ISymbol<T> parent, ISymbol<T> child, int childIndex)
         {
             return GetAllowedChildSymbols(parent, childIndex).Contains(child);
         }
@@ -241,7 +244,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="symbol">The symbol to check.</param>
         /// <returns>Maximum allowed subtree count.</returns>
-        public virtual int GetMaximumSubtreeCount(ISymbol symbol)
+        public virtual int GetMaximumSubtreeCount(ISymbol<T> symbol)
         {
             return symbol.MaximumArity;
         }
@@ -251,7 +254,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="symbol">The symbol to check.</param>
         /// <returns>Minimum allowed subtree count.</returns>
-        public virtual int GetMinimumSubtreeCount(ISymbol symbol)
+        public virtual int GetMinimumSubtreeCount(ISymbol<T> symbol)
         {
             return symbol.MinimumArity;
         }
@@ -260,7 +263,8 @@ namespace GeneticProgramming.Expressions
         /// Adds a symbol to the grammar.
         /// </summary>
         /// <param name="symbol">The symbol to add.</param>
-        public virtual void AddSymbol(ISymbol symbol)
+                       ///void AddSymbol(ISymbol<T> symbol);
+        public virtual void AddSymbol(ISymbol<T> symbol)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -282,7 +286,7 @@ namespace GeneticProgramming.Expressions
         /// Removes a symbol from the grammar.
         /// </summary>
         /// <param name="symbol">The symbol to remove.</param>
-        public virtual void RemoveSymbol(ISymbol symbol)
+        public virtual void RemoveSymbol(ISymbol<T> symbol)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -301,7 +305,7 @@ namespace GeneticProgramming.Expressions
                     if (currentAllowed.Contains(symbol))
                     {
                         var newAllowed = currentAllowed.Where(s => s != symbol).ToList();
-                        _allowedChildSymbols[parentSymbol] = new ReadOnlyCollection<ISymbol>(newAllowed);
+                        _allowedChildSymbols[parentSymbol] = new ReadOnlyCollection<ISymbol<T>>(newAllowed);
                     }
                 }
 
@@ -314,7 +318,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="symbol">The symbol to check.</param>
         /// <returns>True if the symbol exists in the grammar, false otherwise.</returns>
-        public bool ContainsSymbol(ISymbol symbol)
+        public bool ContainsSymbol(ISymbol<T> symbol)
         {
             return _symbols.Contains(symbol);
         }
@@ -324,7 +328,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="symbolName">The name of the symbol.</param>
         /// <returns>The symbol with the specified name, or null if not found.</returns>
-        public ISymbol? GetSymbol(string symbolName)
+        public ISymbol<T>? GetSymbol(string symbolName)
         {
             _symbolsByName.TryGetValue(symbolName, out var symbol);
             return symbol;
@@ -335,21 +339,21 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="parent">The parent symbol.</param>
         /// <param name="allowedChildren">The allowed child symbols.</param>
-        protected void SetAllowedChildSymbols(ISymbol parent, IEnumerable<ISymbol> allowedChildren)
+        protected void SetAllowedChildSymbols(ISymbol<T> parent, IEnumerable<ISymbol<T>> allowedChildren)
         {
             if (parent == null)
                 throw new ArgumentNullException(nameof(parent));
             if (allowedChildren == null)
                 throw new ArgumentNullException(nameof(allowedChildren));
 
-            _allowedChildSymbols[parent] = new ReadOnlyCollection<ISymbol>(allowedChildren.ToList());
+            _allowedChildSymbols[parent] = new ReadOnlyCollection<ISymbol<T>>(allowedChildren.ToList());
         }
 
         /// <summary>
         /// Adds a symbol as a start symbol.
         /// </summary>
         /// <param name="symbol">The symbol to add as a start symbol.</param>
-        protected void AddStartSymbol(ISymbol symbol)
+        protected void AddStartSymbol(ISymbol<T> symbol)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -365,7 +369,7 @@ namespace GeneticProgramming.Expressions
         /// Removes a symbol from start symbols.
         /// </summary>
         /// <param name="symbol">The symbol to remove from start symbols.</param>
-        protected void RemoveStartSymbol(ISymbol symbol)
+        protected void RemoveStartSymbol(ISymbol<T> symbol)
         {
             if (_startSymbols.Remove(symbol))
                 OnChanged();
@@ -387,6 +391,24 @@ namespace GeneticProgramming.Expressions
         {
             // Basic validation: must have at least one symbol and one start symbol
             return _symbols.Count > 0 && _startSymbols.Count > 0;
+        }
+
+        /// <summary>
+        /// Gets symbols that produce the specified output type.
+        /// </summary>
+        public virtual IEnumerable<ISymbol<T>> GetSymbolsByOutputType(Type outputType)
+        {
+            if (outputType == null) throw new ArgumentNullException(nameof(outputType));
+            return _symbols.Where(s => s.OutputType == outputType);
+        }
+
+        /// <summary>
+        /// Gets functional symbols that accept the specified input types.
+        /// </summary>
+        public virtual IEnumerable<ISymbol<T>> GetFunctionalSymbols(params Type[] inputTypes)
+        {
+            if (inputTypes == null) throw new ArgumentNullException(nameof(inputTypes));
+            return _symbols.Where(s => s.InputTypes != null && s.InputTypes.SequenceEqual(inputTypes));
         }
     }
 }

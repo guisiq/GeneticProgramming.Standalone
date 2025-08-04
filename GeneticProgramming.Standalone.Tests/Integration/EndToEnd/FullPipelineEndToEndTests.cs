@@ -13,14 +13,8 @@ using GeneticProgramming.Expressions;
 
 namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 {
-    /// <summary>
-    /// Complete end-to-end validation tests simulating real machine learning pipelines
-    /// </summary>
     public class FullPipelineEndToEndTests
     {
-        /// <summary>
-        /// Complete machine learning pipeline: data loading, preprocessing, training, validation, testing
-        /// </summary>
         [Fact]
         public async Task CompleteMachineLearningPipeline_BostonHousing_ShouldWorkEndToEnd()
         {
@@ -42,7 +36,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             Assert.True(testInputs.Length > 0, "Test set should not be empty");
 
             // Step 4: Model Configuration
-            var grammar = new SymbolicRegressionGrammar(variableNames, new[]
+            var grammar = new SymbolicRegressionGrammar<double>(variableNames, new[]
             {
                 MathematicalSymbols.Addition,
                 MathematicalSymbols.Subtraction,
@@ -57,12 +51,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             var bestConfig = SelectBestConfiguration(grammar, trainEvaluator, valEvaluator);
 
             // Step 6: Final Model Training
-            var finalAlgorithm = new GeneticProgrammingAlgorithm
+            var finalAlgorithm = new GeneticProgrammingAlgorithm<double>
             {
                 Grammar = grammar,
                 TreeCreator = bestConfig.TreeCreator,
                 Crossover = bestConfig.Crossover,
-                Mutator = new SubtreeMutator(),
+                Mutator = new SubtreeMutator<double>(),
                 Selector = new TournamentSelector(),
                 Random = new MersenneTwister(42),
                 PopulationSize = bestConfig.PopulationSize,

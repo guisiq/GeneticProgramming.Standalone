@@ -7,11 +7,29 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Base class for all symbols in symbolic expression trees
     /// </summary>
-    public abstract class Symbol : Item, ISymbol
+    public abstract class Symbol<T> : Item, ISymbol<T> where T : struct
     {
         private double initialFrequency = 1.0;
         private double weight = 1.0;
         private bool enabled = true;
+
+        /// <summary>
+        /// Gets the input types for this symbol.
+        /// </summary>
+        public abstract Type[] InputTypes { get; }
+
+        /// <summary>
+        /// Gets the output type for this symbol.
+        /// </summary>
+        public virtual Type OutputType => typeof(T);
+
+        /// <summary>
+        /// Checks if the given child type is compatible at the specified index.
+        /// </summary>
+        /// <param name="childType">Type of the child.</param>
+        /// <param name="argumentIndex">Index of the argument.</param>
+        /// <returns>True if compatible, otherwise false.</returns>
+        public abstract bool IsCompatibleChildType(Type childType, int argumentIndex);
 
         /// <summary>
         /// Gets the minimum number of arguments this symbol requires
@@ -90,7 +108,7 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         /// <param name="original">Original symbol to clone</param>
         /// <param name="cloner">Cloner instance</param>
-        protected Symbol(Symbol original, Cloner cloner) : base(original, cloner)
+        protected Symbol(Symbol<T> original, Cloner cloner) : base(original, cloner)
         {
             initialFrequency = original.initialFrequency;
             enabled = original.enabled;
@@ -110,7 +128,7 @@ namespace GeneticProgramming.Expressions
         /// Creates a tree node for this symbol
         /// </summary>
         /// <returns>A new tree node instance</returns>
-        public abstract ISymbolicExpressionTreeNode CreateTreeNode();
+        public abstract ISymbolicExpressionTreeNode<T> CreateTreeNode();
 
         // Evaluate method remains abstract as its implementation is specific to each symbol type
         // public abstract object Evaluate(params object[] arguments); // Example, adjust as per your design

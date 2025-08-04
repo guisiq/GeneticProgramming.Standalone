@@ -389,7 +389,7 @@ namespace GeneticProgramming.Algorithms
 
                 // Raise generation completed event with conditional parallel average calculation
                 // Calcula média de fitness usando o AverageCalculator do evaluator
-                var averageCalculator = _fitnessEvaluator?.AverageCalculator ?? _fitnessEvaluator?.GetAverageCalculator();
+                var averageCalculator = _fitnessEvaluator?.AverageCalculator ?? _fitnessEvaluator?.AverageCalculator;
                 var averageFitness = _enableParallelEvaluation
                     ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
                     : averageCalculator(_fitnessCache.Values);
@@ -432,7 +432,7 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
         /// <returns>The fitness value (higher is better)</returns>
-        public virtual T EvaluateFitness(ISymbolicExpressionTree individual)
+        public virtual T EvaluateFitness(ISymbolicExpressionTree<T> individual)
         {
             if (_fitnessEvaluator != null)
             {
@@ -445,7 +445,7 @@ namespace GeneticProgramming.Algorithms
 
         T AbstractionOptimization.IGeneticProgrammingAlgorithm<T>.EvaluateFitness(object individual)
         {
-            if (individual is ISymbolicExpressionTree tree)
+            if (individual is ISymbolicExpressionTree<T> tree)
                 return EvaluateFitness(tree);
             throw new ArgumentException("Individual must be an ISymbolicExpressionTree", nameof(individual));
         }
