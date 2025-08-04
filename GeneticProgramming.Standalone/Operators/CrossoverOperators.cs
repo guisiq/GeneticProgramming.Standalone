@@ -111,7 +111,7 @@ namespace GeneticProgramming.Operators
                 if (parent != null)
                 {
                     var childIndex = parent.IndexOfSubtree(crossoverPoint);
-                    if (childIndex >= 0)
+                    if (childIndex >= 0 && childIndex < parent.SubtreeCount)
                     {
                         parent.RemoveSubtree(childIndex);
                         parent.InsertSubtree(childIndex, clonedDonorSubtree);

@@ -100,27 +100,22 @@ namespace GeneticProgramming.Operators
 
             // Add children for non-terminals
             var remainingLength = maxLength - 1; // Account for current node
-            var maxArity = selectedSymbol.MaximumArity == int.MaxValue ? 
-                Math.Min(5, remainingLength) : selectedSymbol.MaximumArity; // Limit variadic symbols to reasonable size
             
-            var minArity = selectedSymbol.MinimumArity;
+            // For binary operators, always use exactly 2 children
+            var arity = selectedSymbol.MinimumArity == selectedSymbol.MaximumArity ? 
+                selectedSymbol.MinimumArity : 
+                random.Next(selectedSymbol.MinimumArity, Math.Min(selectedSymbol.MaximumArity, Math.Min(5, remainingLength)) + 1);
             
-            // Ensure we don't exceed available length
-            maxArity = Math.Min(maxArity, remainingLength);
-            
-            // Ensure min is not greater than max
-            if (minArity > maxArity)
+            // Ensure we don't violate minimum arity constraints
+            if (arity < selectedSymbol.MinimumArity)
             {
-                // If we can't satisfy minimum arity, fall back to terminal
-                return CreateTerminalNode(random, grammar);
+                arity = selectedSymbol.MinimumArity;
             }
             
-            var arity = random.Next(minArity, maxArity + 1);
-            
-            // Check if we have enough remaining length to satisfy minimum arity
-            if (remainingLength < selectedSymbol.MinimumArity)
+            // Check if we have enough remaining length to satisfy arity
+            if (remainingLength < arity)
             {
-                // If we can't satisfy minimum arity, fall back to terminal
+                // If we can't satisfy arity requirements, fall back to terminal
                 return CreateTerminalNode(random, grammar);
             }
             

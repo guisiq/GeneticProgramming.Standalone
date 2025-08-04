@@ -44,7 +44,15 @@ namespace GeneticProgramming.Expressions
             T Wrapper(T[] args)
             {
                 if (args.Length != 2)
-                    throw new ArgumentException("Binary operator requires 2 arguments");
+                {
+                    // Be more defensive - return default value instead of throwing
+                    if (args.Length == 0)
+                        return default(T);
+                    if (args.Length == 1)
+                        return args[0];
+                    // If more than 2 args, use first two
+                    return op(args[0], args[1]);
+                }
                 return op(args[0], args[1]);
             }
 

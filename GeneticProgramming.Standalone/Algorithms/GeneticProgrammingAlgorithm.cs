@@ -518,18 +518,18 @@ namespace GeneticProgramming.Algorithms
             for (int i = 0; i < _population.Count; i++)
             {
                 var fitness = GetCachedFitness(i);
-                if (fitness.CompareTo(currentGenBestFitness) > 0)
+                if (currentGenBestIndividual == null || fitness.CompareTo(currentGenBestFitness) > 0)
                 {
                     currentGenBestFitness = fitness;
                     currentGenBestIndividual = _population[i];
                 }
             }
 
-            // Update global best if this generation's best is better
-            if (currentGenBestFitness.CompareTo(_bestFitness) > 0)
+            // Update global best if this generation's best is better or if we don't have a best yet
+            if (currentGenBestIndividual != null && (_bestIndividual == null || currentGenBestFitness.CompareTo(_bestFitness) > 0))
             {
                 _bestFitness = currentGenBestFitness;
-                _bestIndividual = (ISymbolicExpressionTree<T>)currentGenBestIndividual!.Clone(new Cloner());
+                _bestIndividual = (ISymbolicExpressionTree<T>)currentGenBestIndividual.Clone(new Cloner());
             }
         }
 
