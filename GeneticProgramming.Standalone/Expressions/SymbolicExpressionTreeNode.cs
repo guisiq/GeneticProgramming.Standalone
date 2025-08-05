@@ -213,10 +213,13 @@ namespace GeneticProgramming.Expressions
         {
             var futureCount = currentCount + operationDelta;
             
+            // Always validate maximum arity to prevent exceeding capacity
             if (futureCount > Symbol.MaximumArity)
                 throw new MaximumArityExceededException(Symbol.SymbolName, currentCount, futureCount, Symbol.MaximumArity);
                 
-            if (futureCount < Symbol.MinimumArity)
+            // For minimum arity, only validate removal operations that would violate it
+            // During construction (adding children), allow intermediate states below minimum arity
+            if (operationDelta < 0 && futureCount < Symbol.MinimumArity)
                 throw new MinimumArityViolatedException(Symbol.SymbolName, currentCount, futureCount, Symbol.MinimumArity);
         }
 
@@ -379,12 +382,19 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null)
                 subtrees = new List<ISymbolicExpressionTreeNode>(3);
             
-            // Validate arity constraints
-            ValidateSubtreeArity(subtrees.Count, 1);
-            
-            subtrees.Insert(index, tree);
-            tree.Parent = this;
-            ResetCachedValues();
+            try
+            {
+                // Validate arity constraints
+                ValidateSubtreeArity(subtrees.Count, 1);
+                
+                subtrees.Insert(index, tree);
+                tree.Parent = this;
+                ResetCachedValues();
+            }
+            catch (MaximumArityExceededException ex)
+            {
+                HandleArityViolation(ex, tree);
+            }
         }
 
         public virtual void RemoveSubtree(int index)
@@ -392,12 +402,40 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null || index < 0 || index >= subtrees.Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
             
-            // Validate arity constraints
-            ValidateSubtreeArity(subtrees.Count, -1);
-            
-            subtrees[index].Parent = null;
-            subtrees.RemoveAt(index);
-            ResetCachedValues();
+            try
+            {
+                // Validate arity constraints
+                ValidateSubtreeArity(subtrees.Count, -1);
+                
+                subtrees[index].Parent = null;
+                subtrees.RemoveAt(index);
+                ResetCachedValues();
+            }
+            catch (MinimumArityViolatedException ex)
+            {
+                HandleMinimumArityViolation(ex, index);
+            }
+        }
+
+        /// <summary>
+        /// Handles minimum arity violations (when trying to remove too many children)
+        /// </summary>
+        protected virtual void HandleMinimumArityViolation(MinimumArityViolatedException ex, int indexToRemove)
+        {
+            switch (ArityStrategy)
+            {
+                case ArityViolationStrategy.ThrowException:
+                    throw ex;
+                    
+                case ArityViolationStrategy.SkipAndContinue:
+                    System.Diagnostics.Debug.WriteLine($"Skipped removing child at index {indexToRemove} from {ex.SymbolName}: {ex.Message}");
+                    break;
+                    
+                default:
+                    // For removal operations, most strategies fall back to skipping
+                    System.Diagnostics.Debug.WriteLine($"Cannot remove child at index {indexToRemove} from {ex.SymbolName}, would violate minimum arity");
+                    break;
+            }
         }
 
         public virtual void ReplaceSubtree(int index, ISymbolicExpressionTreeNode tree)
@@ -654,14 +692,26 @@ namespace GeneticProgramming.Expressions
             
             try
             {
-                // Validate arity constraints
-                ValidateSubtreeArity(genericSubtrees.Count, 1);
+                // Validate arity constraints against the current total subtree count
+                ValidateSubtreeArity(SubtreeCount, 1);
                 
                 genericSubtrees.Add(tree);
                 tree.Parent = this;
 
                 // Also add to base subtrees for compatibility
-                base.AddSubtree(tree);
+                // Use the base implementation but wrap it to handle any nested exceptions
+                try
+                {
+                    base.AddSubtree(tree);
+                }
+                catch (MaximumArityExceededException)
+                {
+                    // This should not happen since we already validated, but if it does,
+                    // we need to undo the generic addition and re-throw our original exception
+                    genericSubtrees.Remove(tree);
+                    tree.Parent = null;
+                    throw;
+                }
             }
             catch (MaximumArityExceededException ex)
             {
