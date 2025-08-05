@@ -880,8 +880,30 @@ namespace GeneticProgramming.Expressions
             if (child == null || genericSymbol == null)
                 return false;
 
-            int currentChildCount = SubtreeCount;
-            return genericSymbol.IsCompatibleChildType(child.OutputType, currentChildCount);
+            // Para tipos genéricos iguais, sempre compatible durante crossover
+            if (child.OutputType == typeof(T))
+                return true;
+
+            // Validação adicional apenas se necessário
+            try
+            {
+                int currentChildCount = SubtreeCount;
+                
+                // Verificar se estamos dentro dos limites do array InputTypes
+                if (currentChildCount < genericSymbol.InputTypes.Length)
+                {
+                    return genericSymbol.IsCompatibleChildType(child.OutputType, currentChildCount);
+                }
+                
+                // Se estamos além dos tipos esperados, usar validação básica
+                return child.OutputType == typeof(T);
+            }
+            catch (Exception ex)
+            {
+                // Durante crossover, ser permissivo com erros de validação
+                System.Diagnostics.Debug.WriteLine($"Type compatibility check failed: {ex.Message}");
+                return child.OutputType == typeof(T);
+            }
         }
 
 
