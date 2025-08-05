@@ -3,9 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.Marshalling;
 using GeneticProgramming.Core;
+using GeneticProgramming.Expressions.Exceptions;
 
 namespace GeneticProgramming.Expressions
 {
+    /// <summary>
+    /// Strategy for handling arity violations when adding subtrees
+    /// </summary>
+    public enum ArityViolationStrategy
+    {
+        /// <summary>
+        /// Throw exception immediately (default behavior)
+        /// </summary>
+        ThrowException,
+        
+        /// <summary>
+        /// Replace one of the existing children with the new subtree
+        /// </summary>
+        ReplaceExistingChild,
+        
+        /// <summary>
+        /// Skip adding the subtree and continue
+        /// </summary>
+        SkipAndContinue,
+        
+        /// <summary>
+        /// Replace current node with a terminal that fits
+        /// </summary>
+        ReplaceWithTerminal
+    }
     /// <summary>
     /// Represents a node in a symbolic expression tree that can have child nodes.
     /// This is the main implementation for non-terminal nodes in the tree.
@@ -18,6 +44,11 @@ namespace GeneticProgramming.Expressions
         // Cached values to prevent unnecessary tree iterations
         private ushort length;
         private ushort depth;
+        
+        /// <summary>
+        /// Strategy to use when arity violations occur
+        /// </summary>
+        public ArityViolationStrategy ArityStrategy { get; set; } = ArityViolationStrategy.ReplaceExistingChild;
 
         public ISymbol Symbol
         {
@@ -183,10 +214,36 @@ namespace GeneticProgramming.Expressions
             var futureCount = currentCount + operationDelta;
             
             if (futureCount > Symbol.MaximumArity)
-                throw new InvalidOperationException($"Cannot add more subtrees. Symbol '{Symbol.SymbolName}' allows maximum {Symbol.MaximumArity} subtrees, but would have {futureCount}.");
+                throw new MaximumArityExceededException(Symbol.SymbolName, currentCount, futureCount, Symbol.MaximumArity);
                 
             if (futureCount < Symbol.MinimumArity)
-                throw new InvalidOperationException($"Cannot remove subtrees. Symbol '{Symbol.SymbolName}' requires minimum {Symbol.MinimumArity} subtrees, but would have {futureCount}.");
+                throw new MinimumArityViolatedException(Symbol.SymbolName, currentCount, futureCount, Symbol.MinimumArity);
+        }
+
+        /// <summary>
+        /// Validates current arity without considering future operations
+        /// </summary>
+        protected virtual void ValidateCurrentArity()
+        {
+            int currentCount = SubtreeCount;
+            if (currentCount < Symbol.MinimumArity || currentCount > Symbol.MaximumArity)
+                throw new InvalidArityException(Symbol.SymbolName, currentCount, Symbol.MinimumArity, Symbol.MaximumArity);
+        }
+
+        /// <summary>
+        /// Creates a replacement terminal node when arity violations occur
+        /// </summary>
+        protected virtual ISymbolicExpressionTreeNode CreateReplacementTerminal()
+        {
+            var terminalSymbols = Grammar?.Symbols.Where(s => s.MaximumArity == 0).ToList();
+            if (terminalSymbols != null && terminalSymbols.Any())
+            {
+                var random = new Random();
+                var randomTerminal = terminalSymbols[random.Next(terminalSymbols.Count)];
+                return randomTerminal.CreateTreeNode();
+            }
+
+            throw new InvalidOperationException("No terminal symbols available for replacement.");
         }
 
         public virtual ISymbolicExpressionTreeNode GetSubtree(int index)
@@ -211,12 +268,107 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null)
                 subtrees = new List<ISymbolicExpressionTreeNode>(3);
             
-            // Validate arity constraints
-            ValidateSubtreeArity(subtrees.Count, 1);
+            try
+            {
+                // Validate arity constraints
+                ValidateSubtreeArity(subtrees.Count, 1);
+                
+                subtrees.Add(tree);
+                tree.Parent = this;
+                ResetCachedValues();
+            }
+            catch (MaximumArityExceededException ex)
+            {
+                HandleArityViolation(ex, tree);
+            }
+        }
+
+        /// <summary>
+        /// Handles arity violations based on the configured strategy
+        /// </summary>
+        protected virtual void HandleArityViolation(MaximumArityExceededException ex, ISymbolicExpressionTreeNode newTree)
+        {
+            switch (ArityStrategy)
+            {
+                case ArityViolationStrategy.ThrowException:
+                    throw ex; // Re-throw the original exception
+                    
+                case ArityViolationStrategy.ReplaceExistingChild:
+                    HandleReplaceExistingChild(newTree);
+                    break;
+                    
+                case ArityViolationStrategy.SkipAndContinue:
+                    HandleSkipAndContinue(ex);
+                    break;
+                    
+                case ArityViolationStrategy.ReplaceWithTerminal:
+                    HandleReplaceWithTerminal(ex, newTree);
+                    break;
+                    
+                default:
+                    throw ex; // Fallback to throwing
+            }
+        }
+
+        /// <summary>
+        /// Strategy: Replace one of the existing children with the new subtree
+        /// </summary>
+        protected virtual void HandleReplaceExistingChild(ISymbolicExpressionTreeNode newTree)
+        {
+            if (subtrees != null && subtrees.Count > 0)
+            {
+                // Choose a random child to replace
+                var random = new Random();
+                var indexToReplace = random.Next(0, subtrees.Count);
+                
+                // Remove old child
+                subtrees[indexToReplace].Parent = null;
+                
+                // Replace with new tree
+                subtrees[indexToReplace] = newTree;
+                newTree.Parent = this;
+                
+                ResetCachedValues();
+                
+                System.Diagnostics.Debug.WriteLine($"Replaced child at index {indexToReplace} in {Symbol.SymbolName}");
+            }
+        }
+
+        /// <summary>
+        /// Strategy: Skip adding the subtree and continue
+        /// </summary>
+        protected virtual void HandleSkipAndContinue(MaximumArityExceededException ex)
+        {
+            // Log the issue but continue without adding this child
+            System.Diagnostics.Debug.WriteLine($"Skipped adding child to {ex.SymbolName}: {ex.Message}");
             
-            subtrees.Add(tree);
-            tree.Parent = this;
+            // Ensure we meet minimum arity by adding terminals if needed
+            while (subtrees != null && subtrees.Count < Symbol.MinimumArity)
+            {
+                try
+                {
+                    var terminal = CreateReplacementTerminal();
+                    subtrees.Add(terminal);
+                    terminal.Parent = this;
+                }
+                catch (InvalidOperationException)
+                {
+                    break; // No terminals available
+                }
+            }
+            
             ResetCachedValues();
+        }
+
+        /// <summary>
+        /// Strategy: Replace current node with a terminal (this would need to be handled at parent level)
+        /// </summary>
+        protected virtual void HandleReplaceWithTerminal(MaximumArityExceededException ex, ISymbolicExpressionTreeNode newTree)
+        {
+            // This strategy would typically be handled at a higher level (tree creator)
+            // For now, we'll log and fall back to skip
+            System.Diagnostics.Debug.WriteLine($"ReplaceWithTerminal strategy requested for {ex.SymbolName}, falling back to skip");
+            HandleSkipAndContinue(ex);
         }
 
         public virtual void InsertSubtree(int index, ISymbolicExpressionTreeNode tree)
@@ -382,6 +534,15 @@ namespace GeneticProgramming.Expressions
         private ISymbol<T> genericSymbol;
 
         /// <summary>
+        /// Strategy to use when arity violations occur (inherits from base class but can be overridden)
+        /// </summary>
+        public new ArityViolationStrategy ArityStrategy 
+        { 
+            get => base.ArityStrategy; 
+            set => base.ArityStrategy = value; 
+        }
+
+        /// <summary>
         /// Gets the generic symbol this node represents
         /// </summary>
         public new ISymbol<T> Symbol
@@ -445,9 +606,12 @@ namespace GeneticProgramming.Expressions
                 genericSubtrees = new List<ISymbolicExpressionTreeNode<T>>(original.genericSubtrees.Count);
                 foreach (var subtree in original.genericSubtrees)
                 {
-                    var clonedSubtree = (ISymbolicExpressionTreeNode<T>)cloner.Clone(subtree);
-                    genericSubtrees.Add(clonedSubtree);
-                    clonedSubtree.Parent = this;
+                    var clonedSubtree = cloner.Clone(subtree) as ISymbolicExpressionTreeNode<T>;
+                    if (clonedSubtree != null)
+                    {
+                        genericSubtrees.Add(clonedSubtree);
+                        clonedSubtree.Parent = this;
+                    }
                 }
             }
         }
@@ -476,7 +640,7 @@ namespace GeneticProgramming.Expressions
         }
 
         /// <summary>
-        /// Adds a generic subtree with type validation
+        /// Adds a generic subtree with type validation and arity handling
         /// </summary>
         public void AddSubtree(ISymbolicExpressionTreeNode<T> tree)
         {
@@ -487,11 +651,120 @@ namespace GeneticProgramming.Expressions
                 throw new ArgumentException($"Child node output type {tree.OutputType} is not compatible with expected input type at position {SubtreeCount}");
 
             genericSubtrees ??= new List<ISymbolicExpressionTreeNode<T>>(3);
-            genericSubtrees.Add(tree);
-            tree.Parent = this;
+            
+            try
+            {
+                // Validate arity constraints
+                ValidateSubtreeArity(genericSubtrees.Count, 1);
+                
+                genericSubtrees.Add(tree);
+                tree.Parent = this;
 
-            // Also add to base subtrees for compatibility
-            base.AddSubtree(tree);
+                // Also add to base subtrees for compatibility
+                base.AddSubtree(tree);
+            }
+            catch (MaximumArityExceededException ex)
+            {
+                HandleGenericArityViolation(ex, tree);
+            }
+        }
+
+        /// <summary>
+        /// Handles arity violations for generic nodes
+        /// </summary>
+        protected virtual void HandleGenericArityViolation(MaximumArityExceededException ex, ISymbolicExpressionTreeNode<T> newTree)
+        {
+            switch (ArityStrategy)
+            {
+                case ArityViolationStrategy.ThrowException:
+                    throw ex;
+                    
+                case ArityViolationStrategy.ReplaceExistingChild:
+                    HandleGenericReplaceExistingChild(newTree);
+                    break;
+                    
+                case ArityViolationStrategy.SkipAndContinue:
+                    HandleGenericSkipAndContinue(ex);
+                    break;
+                    
+                case ArityViolationStrategy.ReplaceWithTerminal:
+                    HandleGenericReplaceWithTerminal(ex, newTree);
+                    break;
+                    
+                default:
+                    throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Generic version: Replace one of the existing children with the new subtree
+        /// </summary>
+        protected virtual void HandleGenericReplaceExistingChild(ISymbolicExpressionTreeNode<T> newTree)
+        {
+            if (genericSubtrees != null && genericSubtrees.Count > 0)
+            {
+                var random = new Random();
+                var indexToReplace = random.Next(0, genericSubtrees.Count);
+                
+                // Remove old child
+                var oldChild = genericSubtrees[indexToReplace];
+                oldChild.Parent = null;
+                
+                // Replace with new tree
+                genericSubtrees[indexToReplace] = newTree;
+                newTree.Parent = this;
+                
+                // Also update base subtrees
+                base.ReplaceSubtree(indexToReplace, newTree);
+                
+                System.Diagnostics.Debug.WriteLine($"Replaced generic child at index {indexToReplace} in {Symbol.SymbolName}");
+            }
+        }
+
+        /// <summary>
+        /// Generic version: Skip adding the subtree and continue
+        /// </summary>
+        protected virtual void HandleGenericSkipAndContinue(MaximumArityExceededException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Skipped adding generic child to {ex.SymbolName}: {ex.Message}");
+            
+            // Ensure minimum arity with terminals if needed
+            while (genericSubtrees != null && genericSubtrees.Count < Symbol.MinimumArity)
+            {
+                try
+                {
+                    var terminalSymbols = Grammar?.Symbols.Where(s => s.MaximumArity == 0).ToList();
+                    if (terminalSymbols != null && terminalSymbols.Any())
+                    {
+                        var random = new Random();
+                        var randomTerminal = terminalSymbols[random.Next(terminalSymbols.Count)];
+                        var terminal = randomTerminal.CreateTreeNode() as ISymbolicExpressionTreeNode<T>;
+                        if (terminal != null)
+                        {
+                            genericSubtrees.Add(terminal);
+                            terminal.Parent = this;
+                            base.AddSubtree(terminal);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generic version: Replace with terminal strategy
+        /// </summary>
+        protected virtual void HandleGenericReplaceWithTerminal(MaximumArityExceededException ex, ISymbolicExpressionTreeNode<T> newTree)
+        {
+            System.Diagnostics.Debug.WriteLine($"ReplaceWithTerminal strategy requested for generic {ex.SymbolName}, falling back to skip");
+            HandleGenericSkipAndContinue(ex);
         }
 
         /// <summary>
