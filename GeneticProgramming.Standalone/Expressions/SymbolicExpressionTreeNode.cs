@@ -178,6 +178,17 @@ namespace GeneticProgramming.Expressions
 
         #region Subtree Management
 
+        protected virtual void ValidateSubtreeArity(int currentCount, int operationDelta = 0)
+        {
+            var futureCount = currentCount + operationDelta;
+            
+            if (futureCount > Symbol.MaximumArity)
+                throw new InvalidOperationException($"Cannot add more subtrees. Symbol '{Symbol.SymbolName}' allows maximum {Symbol.MaximumArity} subtrees, but would have {futureCount}.");
+                
+            if (futureCount < Symbol.MinimumArity)
+                throw new InvalidOperationException($"Cannot remove subtrees. Symbol '{Symbol.SymbolName}' requires minimum {Symbol.MinimumArity} subtrees, but would have {futureCount}.");
+        }
+
         public virtual ISymbolicExpressionTreeNode GetSubtree(int index)
         {
             if (subtrees == null)
@@ -200,6 +211,9 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null)
                 subtrees = new List<ISymbolicExpressionTreeNode>(3);
             
+            // Validate arity constraints
+            ValidateSubtreeArity(subtrees.Count, 1);
+            
             subtrees.Add(tree);
             tree.Parent = this;
             ResetCachedValues();
@@ -213,6 +227,9 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null)
                 subtrees = new List<ISymbolicExpressionTreeNode>(3);
             
+            // Validate arity constraints
+            ValidateSubtreeArity(subtrees.Count, 1);
+            
             subtrees.Insert(index, tree);
             tree.Parent = this;
             ResetCachedValues();
@@ -222,6 +239,9 @@ namespace GeneticProgramming.Expressions
         {
             if (subtrees == null || index < 0 || index >= subtrees.Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
+            
+            // Validate arity constraints
+            ValidateSubtreeArity(subtrees.Count, -1);
             
             subtrees[index].Parent = null;
             subtrees.RemoveAt(index);
