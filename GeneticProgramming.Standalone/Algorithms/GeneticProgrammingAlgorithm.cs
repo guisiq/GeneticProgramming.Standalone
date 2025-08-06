@@ -379,10 +379,14 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         public virtual void Run()
         {
+            Run(null, null);
+        }
+        public virtual void Run(Predicate<bool>? stopCondition = null, Action onIterationCompleted = null)
+        {
             ValidateParameters();
             Initialize();
 
-            while (_generation < _maxGenerations && !_stopRequested)
+            while (_generation < _maxGenerations && !_stopRequested && (stopCondition == null || !stopCondition(false)))
             {
                 EvaluatePopulation();
                 UpdateBestIndividual();

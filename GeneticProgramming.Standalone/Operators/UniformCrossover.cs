@@ -80,9 +80,29 @@ namespace GeneticProgramming.Operators
                 else
                 {
                     var parent = node.Parent;
+                    if (parent == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Node parent is null during crossover iteration");
+                        continue;
+                    }
+                    
                     int index = parent.IndexOfSubtree(node);
+                    if (index == -1 || index >= parent.SubtreeCount)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Invalid index {index} for node in parent with {parent.SubtreeCount} subtrees");
+                        continue;
+                    }
+                    
+                    // Double-check: verify the node at the found index is actually our node
+                    if (parent.GetSubtree(index) != node)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Node mismatch at index {index}: expected {node}, found {parent.GetSubtree(index)}");
+                        continue;
+                    }
+                    
                     var donor = SelectCompatibleDonor(random, donorNodes, parent.Symbol, index);
                     if (donor == null) continue;
+                    
                     parent.RemoveSubtree(index);
                     parent.InsertSubtree(index, (ISymbolicExpressionTreeNode<T>)donor.Clone(new Cloner()));
                 }

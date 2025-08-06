@@ -400,19 +400,23 @@ namespace GeneticProgramming.Expressions
         public virtual void RemoveSubtree(int index)
         {
             if (subtrees == null || index < 0 || index >= subtrees.Count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-            
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid index {index} for RemoveSubtree. Subtrees count: {subtrees?.Count ?? 0}");
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of range.");
+            }
+
             try
             {
                 // Validate arity constraints
                 ValidateSubtreeArity(subtrees.Count, -1);
-                
+
                 subtrees[index].Parent = null;
                 subtrees.RemoveAt(index);
                 ResetCachedValues();
             }
             catch (MinimumArityViolatedException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Minimum arity violation when removing subtree at index {index}: {ex.Message}");
                 HandleMinimumArityViolation(ex, index);
             }
         }
