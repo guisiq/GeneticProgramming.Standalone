@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Factory for creating reusable functional symbols of type T.
     /// </summary>
-    public static class SymbolFactory<T>
+    public static class SymbolFactory<T> where T : struct
     {
         private static readonly Dictionary<string, FunctionalSymbol<T>> _cache = new();
 
@@ -44,7 +44,15 @@ namespace GeneticProgramming.Expressions
             T Wrapper(T[] args)
             {
                 if (args.Length != 2)
-                    throw new ArgumentException("Binary operator requires 2 arguments");
+                {
+                    // Be more defensive - return default value instead of throwing
+                    if (args.Length == 0)
+                        return default(T);
+                    if (args.Length == 1)
+                        return args[0];
+                    // If more than 2 args, use first two
+                    return op(args[0], args[1]);
+                }
                 return op(args[0], args[1]);
             }
 
@@ -75,7 +83,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="operation">Operation to execute when evaluating.</param>
         /// <returns>A composite symbol that generates subtrees.</returns>
         public static CompositeSymbol<T> CreateComposite(string name, string description, int arity,
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder)
+            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode<T>> subtreeBuilder)
         {
             return new CompositeSymbol<T>(name, description, subtreeBuilder, arity);
         }
@@ -90,7 +98,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="subtreeBuilder">Delegate that builds the subtree structure.</param>
         /// <returns>A composite symbol that generates subtrees.</returns>
         public static CompositeSymbol<T> CreateComposite(string name, string description, int minarity, int? maxarity,
-            Func<ISymbolicExpressionTreeNode[], ISymbolicExpressionTreeNode> subtreeBuilder)
+            Func<ISymbolicExpressionTreeNode<T>[], ISymbolicExpressionTreeNode<T>> subtreeBuilder)
         {
             return new CompositeSymbol<T>(name, description, subtreeBuilder, minarity, maxarity);
         }

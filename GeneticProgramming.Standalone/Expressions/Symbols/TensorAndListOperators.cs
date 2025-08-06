@@ -62,50 +62,50 @@ namespace GeneticProgramming.Expressions.Symbols
     }
 
     // Símbolos para operações em matrizes
-    public static class MatrixSymbols
-    {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Add,
-            Dot,
-            Subtract,
-            Transpose,
-            Inverse
-        };
-        public static readonly FunctionalSymbol<Matrix<double>> Add =
-            SymbolFactory<Matrix<double>>.CreateBinary(
-                "MatrixAdd", "Soma de duas matrizes",
-                (a, b) => (a.RowCount == b.RowCount && a.ColumnCount == b.ColumnCount)
-                    ? a + b
-                    : throw new ArgumentException("Matrizes de tamanhos diferentes."));
+    // public static class MatrixSymbols
+    // {
+    //     public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+    //     {
+    //         Add,
+    //         Dot,
+    //         Subtract,
+    //         Transpose,
+    //         Inverse
+    //     };
+    //     public static readonly FunctionalSymbol<Matrix<double>> Add =
+    //         SymbolFactory<Matrix<double>>.CreateBinary(
+    //             "MatrixAdd", "Soma de duas matrizes",
+    //             (a, b) => (a.RowCount == b.RowCount && a.ColumnCount == b.ColumnCount)
+    //                 ? a + b
+    //                 : throw new ArgumentException("Matrizes de tamanhos diferentes."));
 
-        public static readonly FunctionalSymbol<Matrix<double>> Dot =
-            SymbolFactory<Matrix<double>>.CreateBinary(
-                "MatrixDot", "Produto escalar de matrizes",
-                (a, b) => (a.ColumnCount == b.RowCount)
-                    ? a * b
-                    : throw new ArgumentException("Dimensões incompatíveis."));
+    //     public static readonly FunctionalSymbol<Matrix<double>> Dot =
+    //         SymbolFactory<Matrix<double>>.CreateBinary(
+    //             "MatrixDot", "Produto escalar de matrizes",
+    //             (a, b) => (a.ColumnCount == b.RowCount)
+    //                 ? a * b
+    //                 : throw new ArgumentException("Dimensões incompatíveis."));
 
-        public static readonly FunctionalSymbol<Matrix<double>> Subtract =
-            SymbolFactory<Matrix<double>>.CreateBinary(
-                "MatrixSubtract", "Subtração de matrizes",
-                (a, b) => (a.RowCount == b.RowCount && a.ColumnCount == b.ColumnCount)
-                    ? a - b
-                    : throw new ArgumentException("Matrizes de tamanhos diferentes."));
+    //     public static readonly FunctionalSymbol<Matrix<double>> Subtract =
+    //         SymbolFactory<Matrix<double>>.CreateBinary(
+    //             "MatrixSubtract", "Subtração de matrizes",
+    //             (a, b) => (a.RowCount == b.RowCount && a.ColumnCount == b.ColumnCount)
+    //                 ? a - b
+    //                 : throw new ArgumentException("Matrizes de tamanhos diferentes."));
 
-        public static readonly FunctionalSymbol<Matrix<double>> Transpose =
-            SymbolFactory<Matrix<double>>.CreateUnary(
-                "MatrixTranspose", "Transposta de matriz",
-                m => m.Transpose());
+    //     public static readonly FunctionalSymbol<Matrix<double>> Transpose =
+    //         SymbolFactory<Matrix<double>>.CreateUnary(
+    //             "MatrixTranspose", "Transposta de matriz",
+    //             m => m.Transpose());
 
-        public static readonly FunctionalSymbol<Matrix<double>> Inverse =
-            SymbolFactory<Matrix<double>>.CreateUnary(
-                "MatrixInverse", "Inversa de matriz",
-                m => (Math.Abs(m.Determinant()) > 1e-15)
-                    ? m.Inverse()
-                    : throw new InvalidOperationException("Matriz singular sem inversa."));
-    }
-    #endregion
+    //     public static readonly FunctionalSymbol<Matrix<double>> Inverse =
+    //         SymbolFactory<Matrix<double>>.CreateUnary(
+    //             "MatrixInverse", "Inversa de matriz",
+    //             m => (Math.Abs(m.Determinant()) > 1e-15)
+    //                 ? m.Inverse()
+    //                 : throw new InvalidOperationException("Matriz singular sem inversa."));
+    // }
+     #endregion
 
     
 }

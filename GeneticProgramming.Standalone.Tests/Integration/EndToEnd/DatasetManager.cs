@@ -14,7 +14,31 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
     public static class DatasetManager
     {
         private static readonly HttpClient _httpClient = new HttpClient();
-        private static readonly string _datasetPath = "D:\\repos\\GeneticProgramming.Standalone\\datasets";
+        private static readonly string _datasetPath = FindDatasetsDirectory();
+
+        /// <summary>
+        /// Finds the datasets directory by searching up the directory hierarchy
+        /// </summary>
+        private static string FindDatasetsDirectory()
+        {
+            var currentDir = Directory.GetCurrentDirectory();
+            var directory = new DirectoryInfo(currentDir);
+
+            // Search up the directory hierarchy for the datasets folder
+            while (directory != null)
+            {
+                var datasetsPath = Path.Combine(directory.FullName, "datasets");
+                if (Directory.Exists(datasetsPath))
+                {
+                    return datasetsPath;
+                }
+                directory = directory.Parent;
+            }
+
+            // Fallback to creating datasets in current directory if not found
+            var fallbackPath = Path.Combine(currentDir, "datasets");
+            return fallbackPath;
+        }
 
         /// <summary>
         /// Ensures dataset directory exists

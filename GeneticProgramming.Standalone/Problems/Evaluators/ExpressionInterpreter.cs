@@ -13,38 +13,35 @@ namespace GeneticProgramming.Problems.Evaluators
     /// </summary>
     public class ExpressionInterpreter
     {
-        public double Evaluate(ISymbolicExpressionTree tree, IDictionary<string, double> variables)
+        public T Evaluate<T>(ISymbolicExpressionTree<T> tree, IDictionary<string, T> variables) where T : struct, IConvertible
         {
             if (tree == null) throw new ArgumentNullException(nameof(tree));
             if (variables == null) throw new ArgumentNullException(nameof(variables));
             return EvaluateNode(tree.Root, variables);
         }
 
-        private double EvaluateNode(ISymbolicExpressionTreeNode node, IDictionary<string, double> vars)
+        private T EvaluateNode<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> vars) where T : struct, IConvertible
         {
             switch (node)
             {
-                case ConstantTreeNode c:
+                case ConstantTreeNode<T> c:
                     return c.Value;
-                case VariableTreeNode v:
-                    if (vars.TryGetValue(v.Symbol.Name, out double valBySymbol))
+                case VariableTreeNode<T> v:
+                    if (vars.TryGetValue(v.Symbol.Name, out T valBySymbol))
                         return valBySymbol;
-                    if (vars.TryGetValue(v.VariableName, out double valByName))
+                    if (vars.TryGetValue(v.VariableName, out T valByName))
                         return valByName;
                     throw new ArgumentException($"Variable '{v.Symbol.Name}' not provided.");
-                case SymbolicExpressionTreeNode internalNode:
-                    // Use the new IEvaluable interface if the symbol implements it
-                    if (internalNode.Symbol is IEvaluable<double> evaluableSymbol)
+                case SymbolicExpressionTreeNode<T> internalNode:
+                    if (internalNode.Symbol is IEvaluable<T> evaluableSymbol)
                     {
-                        // Evaluate all children and collect their values
                         var childValues = internalNode.Subtrees
                             .Select(child => EvaluateNode(child, vars))
                             .ToArray();
-                        
-                        // Use the symbol's own evaluation method
+
                         return evaluableSymbol.Evaluate(childValues, vars);
                     }
- 
+
                     break;
             }
             throw new NotSupportedException($"Symbol '{node.Symbol.SymbolName}' not supported in interpreter.");

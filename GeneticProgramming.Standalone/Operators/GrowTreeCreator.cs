@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Creates random symbolic expression trees using the grow method
     /// </summary>
-    public class GrowTreeCreator : SymbolicExpressionTreeOperator, ISymbolicExpressionTreeCreator
+    public class GrowTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : struct
     {
         /// <summary>
         /// Initializes a new instance of the GrowTreeCreator class
@@ -23,7 +23,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original creator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected GrowTreeCreator(GrowTreeCreator original, Cloner cloner) : base(original, cloner)
+        protected GrowTreeCreator(GrowTreeCreator<T> original, Cloner cloner) : base(original, cloner)
         {
         }
 
@@ -34,7 +34,7 @@ namespace GeneticProgramming.Operators
         /// <returns>A deep clone of this creator</returns>
         protected override Item CreateCloneInstance(Cloner cloner)
         {
-            return new GrowTreeCreator(this, cloner);
+            return new GrowTreeCreator<T>(this, cloner);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace GeneticProgramming.Operators
         /// <param name="maxTreeLength">Maximum length of the created tree</param>
         /// <param name="maxTreeDepth">Maximum depth of the created tree</param>
         /// <returns>A new symbolic expression tree</returns>
-        public ISymbolicExpressionTree CreateTree(IRandom random, ISymbolicExpressionTreeGrammar grammar, int maxTreeLength, int maxTreeDepth)
+        public ISymbolicExpressionTree<T> CreateTree(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar, int maxTreeLength, int maxTreeDepth)
         {
             // Validate parameters
             if (random == null) throw new ArgumentNullException(nameof(random));
@@ -56,18 +56,18 @@ namespace GeneticProgramming.Operators
             // If max length or depth is 0, or max length is 1, must create terminal
             if (maxTreeLength <= 1 || maxTreeDepth <= 1)
             {
-                var tree = new SymbolicExpressionTree();
+                var tree = new SymbolicExpressionTree<T>();
                 tree.Root = CreateTerminalNode(random, grammar);
                 return tree;
             }
-            
-            var resultTree = new SymbolicExpressionTree();
+
+            var resultTree = new SymbolicExpressionTree<T>();
             var rootNode = CreateNode(random, grammar, maxTreeDepth, maxTreeLength);
             resultTree.Root = rootNode;
             return resultTree;
         }
 
-        private ISymbolicExpressionTreeNode CreateNode(IRandom random, ISymbolicExpressionTreeGrammar grammar, int maxDepth, int maxLength)
+        private ISymbolicExpressionTreeNode<T> CreateNode(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar, int maxDepth, int maxLength)
         {
             if (maxDepth <= 1 || maxLength <= 1)
             {
@@ -100,27 +100,22 @@ namespace GeneticProgramming.Operators
 
             // Add children for non-terminals
             var remainingLength = maxLength - 1; // Account for current node
-            var maxArity = selectedSymbol.MaximumArity == int.MaxValue ? 
-                Math.Min(5, remainingLength) : selectedSymbol.MaximumArity; // Limit variadic symbols to reasonable size
             
-            var minArity = selectedSymbol.MinimumArity;
+            // For binary operators, always use exactly 2 children
+            var arity = selectedSymbol.MinimumArity == selectedSymbol.MaximumArity ? 
+                selectedSymbol.MinimumArity : 
+                random.Next(selectedSymbol.MinimumArity, Math.Min(selectedSymbol.MaximumArity, Math.Min(5, remainingLength)) + 1);
             
-            // Ensure we don't exceed available length
-            maxArity = Math.Min(maxArity, remainingLength);
-            
-            // Ensure min is not greater than max
-            if (minArity > maxArity)
+            // Ensure we don't violate minimum arity constraints
+            if (arity < selectedSymbol.MinimumArity)
             {
-                // If we can't satisfy minimum arity, fall back to terminal
-                return CreateTerminalNode(random, grammar);
+                arity = selectedSymbol.MinimumArity;
             }
             
-            var arity = random.Next(minArity, maxArity + 1);
-            
-            // Check if we have enough remaining length to satisfy minimum arity
-            if (remainingLength < selectedSymbol.MinimumArity)
+            // Check if we have enough remaining length to satisfy arity
+            if (remainingLength < arity)
             {
-                // If we can't satisfy minimum arity, fall back to terminal
+                // If we can't satisfy arity requirements, fall back to terminal
                 return CreateTerminalNode(random, grammar);
             }
             
@@ -138,7 +133,7 @@ namespace GeneticProgramming.Operators
             return node;
         }
 
-        private ISymbolicExpressionTreeNode CreateTerminalNode(IRandom random, ISymbolicExpressionTreeGrammar grammar)
+        private ISymbolicExpressionTreeNode<T> CreateTerminalNode(IRandom random, ISymbolicExpressionTreeGrammar<T> grammar)
         {
             var terminals = grammar.Symbols.Where(s => s.Enabled && s.MaximumArity == 0).ToList();
             if (!terminals.Any())
@@ -150,7 +145,7 @@ namespace GeneticProgramming.Operators
             return selectedTerminal.CreateTreeNode();
         }
 
-        private ISymbol SelectSymbolByFrequency(IRandom random, IList<ISymbol> symbols)
+        private ISymbol<T> SelectSymbolByFrequency(IRandom random, IList<ISymbol<T>> symbols)
         {
             if (!symbols.Any())
             {

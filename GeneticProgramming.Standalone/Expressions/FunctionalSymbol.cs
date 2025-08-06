@@ -4,18 +4,15 @@ using GeneticProgramming.Core;
 namespace GeneticProgramming.Expressions
 {
     /// <summary>
-    /// Symbol that executes a provided delegate when evaluated.
+    /// Symbol that executes a provided delegate when evaluated, operating on generic type T.
     /// </summary>
-/// <summary>
-/// Symbol that executes a provided delegate when evaluated, operating on generic type T.
-/// </summary>
-public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
+    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T> where T : struct
     {
-    /// <summary>
-    /// Delegate representing the operation of this symbol.
-    /// The array of T are the evaluated child node values.
-    /// </summary>
-    public Func<T[], T> Operation { get; }
+        /// <summary>
+        /// Delegate representing the operation of this symbol.
+        /// The array of T are the evaluated child node values.
+        /// </summary>
+        public Func<T[], T> Operation { get; }
 
         /// <summary>
         /// Minimum number of child nodes required.
@@ -31,6 +28,18 @@ public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
         public override int MaximumArity => MaxArity;
 
         /// <summary>
+        /// Gets the types that this symbol accepts as input
+        /// </summary>
+        /// 
+        public Type[] _inputTypes;
+        public override Type[] InputTypes => _inputTypes;
+
+        /// <summary>
+        /// Gets the type that this symbol produces as output
+        /// </summary>
+        public override Type OutputType => typeof(T);
+
+        /// <summary>
         /// Creates a new functional symbol with generic operation.
         /// </summary>
         /// <param name="name">Symbol name.</param>
@@ -38,13 +47,34 @@ public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
         /// <param name="operation">Delegate implementing the operation.</param>
         /// <param name="minArity">Minimum number of arguments.</param>
         /// <param name="maxArity">Maximum number of arguments.</param>
+        /// <param name="inputTypes">The types accepted as input (optional, defaults to all T)</param>
         public FunctionalSymbol(string name, string description,
-            Func<T[], T> operation, int minArity, int maxArity)
+            Func<T[], T> operation, int minArity, int maxArity, Type[]? inputTypes = null)
             : base(name, description)
         {
             Operation = operation ?? throw new ArgumentNullException(nameof(operation));
             MinArity = minArity;
             MaxArity = maxArity;
+            
+            // Default input types to T for all arguments
+            if (inputTypes == null)
+            {
+                _inputTypes = new Type[maxArity];
+                for (int i = 0; i < maxArity; i++)
+                {
+                    _inputTypes[i] = typeof(T);
+                }
+            }
+            else
+            {
+                _inputTypes = inputTypes;
+            }
+            
+            // Validate input types array length
+            if (_inputTypes.Length < maxArity)
+            {
+                throw new ArgumentException($"InputTypes array must have at least {maxArity} elements");
+            }
         }
 
         /// <summary>
@@ -56,6 +86,7 @@ public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
             Operation = original.Operation;
             MinArity = original.MinArity;
             MaxArity = original.MaxArity;
+            _inputTypes = (Type[])original.InputTypes.Clone();
         }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
@@ -68,9 +99,24 @@ public class FunctionalSymbol<T> : Symbol, IEvaluable<T>
             return Name;
         }
 
-        public override ISymbolicExpressionTreeNode CreateTreeNode()
+        public override ISymbolicExpressionTreeNode<T> CreateTreeNode()
         {
-            return new SymbolicExpressionTreeNode(this);
+            return new SymbolicExpressionTreeNode<T>(this);
+        }
+
+
+        /// <summary>
+        /// Validates if a child symbol type is compatible with this symbol at the given position
+        /// </summary>
+        /// <param name="childOutputType">The output type of the child symbol</param>
+        /// <param name="argumentIndex">The position where the child would be placed</param>
+        /// <returns>True if compatible, false otherwise</returns>
+        public override bool IsCompatibleChildType(Type childOutputType, int argumentIndex)
+        {
+            if (argumentIndex < 0 || argumentIndex >= InputTypes.Length)
+                return false;
+
+            return InputTypes[argumentIndex] == childOutputType;
         }
 
         /// <summary>

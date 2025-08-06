@@ -18,15 +18,15 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
         public void TournamentSelector_ReturnsMemberOfPopulation()
         {
             var grammar = new SymbolicRegressionGrammar();
-            var creator = new GrowTreeCreator { SymbolicExpressionTreeGrammar = grammar };
+            var creator = new GrowTreeCreator<double> { SymbolicExpressionTreeGrammar = grammar };
             var random = new MersenneTwister(7);
 
-            var population = new List<ISymbolicExpressionTree>();
+            var population = new List<ISymbolicExpressionTree<double>>();
             for (int i = 0; i < 4; i++)
                 population.Add(creator.CreateTree(random, grammar, 5, 3));
 
             var selector = new TournamentSelector { TournamentSize = 2 };
-            var selected = selector.Select(random, population, t => -t.Length);
+            var selected = selector.Select<double>(random, population, t => -(double)t.Length);
 
             Assert.Contains(population, t => t.Root.Symbol.GetType() == selected.Root.Symbol.GetType());
         }
@@ -35,7 +35,8 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
         {
             public int CallCount { get; private set; }
             public GeneticProgramming.Abstractions.Parameters.IParameterCollection? Parameters => null;
-            public ISymbolicExpressionTree Select(IRandom random, IList<ISymbolicExpressionTree> population, System.Func<ISymbolicExpressionTree, double> fitness)
+            public ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, System.Func<ISymbolicExpressionTree<T>, T> fitness)
+                where T : struct, IComparable<T>, IEquatable<T>
             {
                 CallCount++;
                 return population[0];
@@ -46,12 +47,12 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
         public void Algorithm_UsesProvidedSelector()
         {
             var selector = new CountingSelector();
-            var algorithm = new GeneticProgrammingAlgorithm
+            var algorithm = new GeneticProgrammingAlgorithm<double>
             {
                 Grammar = new SymbolicRegressionGrammar(),
-                TreeCreator = new GrowTreeCreator(),
-                Crossover = new SubtreeCrossover(),
-                Mutator = new SubtreeMutator(),
+                TreeCreator = new GrowTreeCreator<double>(),
+                Crossover = new SubtreeCrossover<double>(),
+                Mutator = new SubtreeMutator<double>(),
                 Selector = selector,
                 Random = new MersenneTwister(5),
                 PopulationSize = 5,

@@ -8,33 +8,33 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Base class for terminal tree nodes (nodes with no children)
     /// </summary>
-    public abstract class TerminalTreeNode : Item, ISymbolicExpressionTreeNode
+    public abstract class TerminalTreeNode<T> : Item, ISymbolicExpressionTreeNode<T> where T : struct
     {
-        private ISymbol symbol;
-        private ISymbolicExpressionTreeNode? parent;
+        private ISymbol<T> symbol;
+        private ISymbolicExpressionTreeNode<T>? parent;
 
-        public ISymbol Symbol
+        public ISymbol<T> Symbol
         {
             get { return symbol; }
             protected set { symbol = value; }
         }
 
-        public ISymbolicExpressionTreeNode? Parent
+        public ISymbolicExpressionTreeNode<T>? Parent
         {
             get { return parent; }
             set { parent = value; }
         }
 
-        public virtual ISymbolicExpressionTreeGrammar? Grammar
+        public virtual ISymbolicExpressionTreeGrammar<T>? Grammar
         {
             get { return parent?.Grammar; }
         }
 
         public virtual bool HasLocalParameters => false;
 
-        public IEnumerable<ISymbolicExpressionTreeNode> Subtrees
+        public IEnumerable<ISymbolicExpressionTreeNode<T>> Subtrees
         {
-            get { return Enumerable.Empty<ISymbolicExpressionTreeNode>(); }
+            get { return Enumerable.Empty<ISymbolicExpressionTreeNode<T>>(); }
         }
 
         public int SubtreeCount => 0;
@@ -43,14 +43,23 @@ namespace GeneticProgramming.Expressions
         {
         }
 
-        protected TerminalTreeNode(ISymbol symbol) : base()
+        protected TerminalTreeNode(ISymbol<T> symbol) : base()
         {
             this.symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
         }
 
-        protected TerminalTreeNode(TerminalTreeNode original, Cloner cloner) : base(original, cloner)
+        protected TerminalTreeNode(TerminalTreeNode<T> original, Cloner cloner) : base(original, cloner)
         {
             symbol = original.symbol; // Symbols are reused
+        }
+
+        // Implementação adicional necessária para a interface ISymbolicExpressionTreeNode<T>
+        public Type OutputType => typeof(T);
+
+        public bool IsCompatibleChild(ISymbolicExpressionTreeNode<T> child)
+        {
+            // Terminal nodes não podem ter filhos
+            return false;
         }
 
         #region Tree Structure Operations
@@ -64,19 +73,19 @@ namespace GeneticProgramming.Expressions
 
         #region Subtree Management (Not Supported)
 
-        public int IndexOfSubtree(ISymbolicExpressionTreeNode tree) => -1;
+        public int IndexOfSubtree(ISymbolicExpressionTreeNode<T> tree) => -1;
 
-        public ISymbolicExpressionTreeNode GetSubtree(int index)
+        public ISymbolicExpressionTreeNode<T> GetSubtree(int index)
         {
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
 
-        public void AddSubtree(ISymbolicExpressionTreeNode tree)
+        public void AddSubtree(ISymbolicExpressionTreeNode<T> tree)
         {
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
 
-        public void InsertSubtree(int index, ISymbolicExpressionTreeNode tree)
+        public void InsertSubtree(int index, ISymbolicExpressionTreeNode<T> tree)
         {
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
@@ -86,12 +95,12 @@ namespace GeneticProgramming.Expressions
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
 
-        public void ReplaceSubtree(int index, ISymbolicExpressionTreeNode tree)
+        public void ReplaceSubtree(int index, ISymbolicExpressionTreeNode<T> tree)
         {
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
 
-        public void ReplaceSubtree(ISymbolicExpressionTreeNode old, ISymbolicExpressionTreeNode tree)
+        public void ReplaceSubtree(ISymbolicExpressionTreeNode<T> old, ISymbolicExpressionTreeNode<T> tree)
         {
             throw new NotSupportedException("Terminal nodes cannot have subtrees");
         }
@@ -100,29 +109,29 @@ namespace GeneticProgramming.Expressions
 
         #region Tree Iteration
 
-        public IEnumerable<ISymbolicExpressionTreeNode> IterateNodesBreadth()
+        public IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesBreadth()
         {
             yield return this;
         }
 
-        public IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPrefix()
+        public IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPrefix()
         {
             yield return this;
         }
 
-        public void ForEachNodePrefix(Action<ISymbolicExpressionTreeNode> action)
+        public void ForEachNodePrefix(Action<ISymbolicExpressionTreeNode<T>> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
             action(this);
         }
 
-        public IEnumerable<ISymbolicExpressionTreeNode> IterateNodesPostfix()
+        public IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix()
         {
             yield return this;
         }
 
-        public void ForEachNodePostfix(Action<ISymbolicExpressionTreeNode> action)
+        public void ForEachNodePostfix(Action<ISymbolicExpressionTreeNode<T>> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
@@ -154,11 +163,11 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Tree node for constant values with a numeric value
     /// </summary>
-    public class ConstantTreeNode : TerminalTreeNode
+    public class ConstantTreeNode<T> : TerminalTreeNode<T> where T : struct
     {
-        private double value;
+        private T value;
 
-        public double Value
+        public T Value
         {
             get { return value; }
             set
@@ -174,55 +183,52 @@ namespace GeneticProgramming.Expressions
         {
         }
 
-        public ConstantTreeNode(ISymbol symbol) : base(symbol)
+        public ConstantTreeNode(ISymbol<T> symbol) : base(symbol)
         {
-            value = 1.0; // Default value
+            value = default(T); 
         }
 
-        public ConstantTreeNode(ISymbol symbol, double value) : base(symbol)
+        public ConstantTreeNode(ISymbol<T> symbol, T value) : base(symbol)
         {
             this.value = value;
         }
 
-        private ConstantTreeNode(ConstantTreeNode original, Cloner cloner) : base(original, cloner)
+        private ConstantTreeNode(ConstantTreeNode<T> original, Cloner cloner) : base(original, cloner)
         {
             value = original.value;
         }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
-            return new ConstantTreeNode(this, cloner);
+            return new ConstantTreeNode<T>(this, cloner);
         }
 
         public override void ResetLocalParameters(IRandom random)
         {
             if (random == null)
                 throw new ArgumentNullException(nameof(random));
-            
+
             // Generate random value between -10 and 10
-            Value = random.NextDouble() * 20.0 - 10.0;
+            Value = default(T);//ToDo: Implement random value generation logic based on T
         }
+        //Todo: Implement shaking logic based on T
 
         public override void ShakeLocalParameters(IRandom random, double shakingFactor)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-            
-            // Add noise to the current value
-            double noise = (random.NextDouble() * 2.0 - 1.0) * shakingFactor;
-            Value += noise;
+            //Todo implementar
+            throw new NotImplementedException();
         }
 
         public override string ToString()
         {
-            return value.ToString("F3");
+            return value.ToString() ?? "0";
         }
     }
 
     /// <summary>
     /// Tree node for variable references
     /// </summary>
-    public class VariableTreeNode : TerminalTreeNode
+    public class VariableTreeNode<T> : TerminalTreeNode<T> where T : struct
     {
         private string variableName;
 
@@ -241,24 +247,24 @@ namespace GeneticProgramming.Expressions
             variableName = "X0";
         }
 
-        public VariableTreeNode(ISymbol symbol) : base(symbol)
+        public VariableTreeNode(ISymbol<T> symbol) : base(symbol)
         {
             variableName = "X0";
         }
 
-        public VariableTreeNode(ISymbol symbol, string variableName) : base(symbol)
+        public VariableTreeNode(ISymbol<T> symbol, string variableName) : base(symbol)
         {
             this.variableName = variableName ?? throw new ArgumentNullException(nameof(variableName));
         }
 
-        private VariableTreeNode(VariableTreeNode original, Cloner cloner) : base(original, cloner)
+        private VariableTreeNode(VariableTreeNode<T> original, Cloner cloner) : base(original, cloner)
         {
             variableName = original.variableName;
         }
 
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
-            return new VariableTreeNode(this, cloner);
+            return new VariableTreeNode<T>(this, cloner);
         }
 
         public override string ToString()

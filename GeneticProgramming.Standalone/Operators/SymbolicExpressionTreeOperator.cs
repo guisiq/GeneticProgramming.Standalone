@@ -8,14 +8,14 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Base class for all symbolic expression tree operators
     /// </summary>
-    public abstract class SymbolicExpressionTreeOperator : Item, ISymbolicExpressionTreeOperator // Item already implements IOperator, IDeepCloneable, INotifyPropertyChanged via IItem
+    public abstract class SymbolicExpressionTreeOperator<T> : Item, ISymbolicExpressionTreeOperator<T> where T : struct
     {
-        private ISymbolicExpressionTreeGrammar? _symbolicExpressionTreeGrammar;
+        private ISymbolicExpressionTreeGrammar<T>? _symbolicExpressionTreeGrammar;
 
         /// <summary>
         /// Gets or sets the symbolic expression tree grammar used by this operator
         /// </summary>
-        public ISymbolicExpressionTreeGrammar? SymbolicExpressionTreeGrammar
+        public ISymbolicExpressionTreeGrammar<T>? SymbolicExpressionTreeGrammar
         {
             get => _symbolicExpressionTreeGrammar;
             set
@@ -40,7 +40,7 @@ namespace GeneticProgramming.Operators
         /// </summary>
         /// <param name="original">The original operator to copy from</param>
         /// <param name="cloner">The cloner to use for deep copying</param>
-        protected SymbolicExpressionTreeOperator(SymbolicExpressionTreeOperator original, Cloner cloner) : base(original, cloner)
+        protected SymbolicExpressionTreeOperator(SymbolicExpressionTreeOperator<T> original, Cloner cloner) : base(original, cloner)
         {
             _symbolicExpressionTreeGrammar = cloner.Clone(original._symbolicExpressionTreeGrammar);
         }

@@ -9,7 +9,7 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Interface for genetic programming algorithms
     /// </summary>
-    public interface IGeneticProgrammingAlgorithm : IItem
+    public interface IGeneticProgrammingAlgorithm<T> : IItem where T : struct
     {
         /// <summary>
         /// Gets or sets the population size
@@ -44,22 +44,22 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets or sets the grammar used for tree creation
         /// </summary>
-        ISymbolicExpressionTreeGrammar? Grammar { get; set; }
+        ISymbolicExpressionTreeGrammar<T>? Grammar { get; set; }
 
         /// <summary>
         /// Gets or sets the tree creator
         /// </summary>
-        ISymbolicExpressionTreeCreator? TreeCreator { get; set; }
+        ISymbolicExpressionTreeCreator<T>? TreeCreator { get; set; }
 
         /// <summary>
         /// Gets or sets the crossover operator
         /// </summary>
-        ISymbolicExpressionTreeCrossover? Crossover { get; set; }
+        ISymbolicExpressionTreeCrossover<T>? Crossover { get; set; }
 
         /// <summary>
         /// Gets or sets the mutator
         /// </summary>
-        ISymbolicExpressionTreeMutator? Mutator { get; set; }
+        ISymbolicExpressionTreeMutator<T>? Mutator { get; set; }
 
         /// <summary>
         /// Gets or sets the random number generator
@@ -74,22 +74,22 @@ namespace GeneticProgramming.Algorithms
         /// <summary>
         /// Gets the current population
         /// </summary>
-        IList<ISymbolicExpressionTree> Population { get; }
+        IList<ISymbolicExpressionTree<T>> Population { get; }
 
         /// <summary>
         /// Gets the best individual found so far
         /// </summary>
-        ISymbolicExpressionTree? BestIndividual { get; }
+        ISymbolicExpressionTree<T>? BestIndividual { get; }
 
         /// <summary>
         /// Gets the fitness of the best individual
         /// </summary>
-        double BestFitness { get; }
+        T BestFitness { get; }
 
         /// <summary>
         /// Event raised when a generation is completed
         /// </summary>
-        event EventHandler<GenerationEventArgs>? GenerationCompleted;
+        event EventHandler<GenerationEventArgs<T>>? GenerationCompleted;
 
         /// <summary>
         /// Runs the genetic programming algorithm
@@ -104,6 +104,6 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
         /// <returns>The fitness value (higher is better)</returns>
-        double EvaluateFitness(ISymbolicExpressionTree individual);
+        T EvaluateFitness(ISymbolicExpressionTree<T> individual);
     }
 }

@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions.Grammars
     /// A default grammar for symbolic regression problems with basic mathematical operations.
     /// </summary>
     [Serializable]
-    public class DefaultSymbolicExpressionTreeGrammar : SymbolicExpressionTreeGrammar
+    public class DefaultSymbolicExpressionTreeGrammar : SymbolicExpressionTreeGrammar<double>
     {
         /// <summary>
         /// Initializes a new instance of the DefaultSymbolicExpressionTreeGrammar class.
@@ -52,8 +52,8 @@ namespace GeneticProgramming.Expressions.Grammars
             }
 
             // Add terminal symbols
-            var variable = new Variable();
-            var constant = new Constant();
+            var variable = new Variable<double>();
+            var constant = new Constant<double>();
 
             AddSymbol(variable);
             AddSymbol(constant);
@@ -112,7 +112,7 @@ namespace GeneticProgramming.Expressions.Grammars
             // Add specific variables
             foreach (var variableName in variableNames)
             {
-                var variable = new Symbols.Variable { Name = variableName };
+                var variable = new Symbols.Variable<double> { Name = variableName };
                 grammar.AddSymbol(variable);
                 grammar.AddStartSymbol(variable);
             }

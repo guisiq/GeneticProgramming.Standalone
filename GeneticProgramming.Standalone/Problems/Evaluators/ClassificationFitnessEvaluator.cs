@@ -8,12 +8,13 @@ namespace GeneticProgramming.Problems.Evaluators
     /// Evaluates trees for simple classification problems using accuracy.
     /// Predictions greater than 0.5 are treated as class 1.
     /// </summary>
-    public class ClassificationFitnessEvaluator : IFitnessEvaluator
+    public class ClassificationFitnessEvaluator : IFitnessEvaluator<double>
     {
         private readonly double[][] _inputs;
         private readonly int[] _targets;
         private readonly string[] _variableNames;
         private readonly ExpressionInterpreter _interpreter = new();
+        
 
         public ClassificationFitnessEvaluator(double[][] inputs, int[] targets, string[] variableNames)
         {
@@ -24,7 +25,8 @@ namespace GeneticProgramming.Problems.Evaluators
                 throw new ArgumentException("Inputs and targets must have same length");
         }
 
-        public double Evaluate(ISymbolicExpressionTree tree)
+
+        public double Evaluate(ISymbolicExpressionTree<double> tree)
         {
             int correct = 0;
             var vars = new Dictionary<string, double>();

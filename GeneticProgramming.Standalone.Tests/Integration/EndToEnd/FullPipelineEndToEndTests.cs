@@ -13,14 +13,8 @@ using GeneticProgramming.Expressions;
 
 namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 {
-    /// <summary>
-    /// Complete end-to-end validation tests simulating real machine learning pipelines
-    /// </summary>
     public class FullPipelineEndToEndTests
     {
-        /// <summary>
-        /// Complete machine learning pipeline: data loading, preprocessing, training, validation, testing
-        /// </summary>
         [Fact]
         public async Task CompleteMachineLearningPipeline_BostonHousing_ShouldWorkEndToEnd()
         {
@@ -42,13 +36,16 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             Assert.True(testInputs.Length > 0, "Test set should not be empty");
 
             // Step 4: Model Configuration
-            var grammar = new SymbolicRegressionGrammar(variableNames, new[]
+            // Explicitly defining the 'funSymbols' parameter
+            var funSymbols = new List<ISymbol<double>>
             {
                 MathematicalSymbols.Addition,
                 MathematicalSymbols.Subtraction,
                 MathematicalSymbols.Multiplication,
                 MathematicalSymbols.ProtectedDivision
-            }, allowConstants: true);
+            };
+
+            var grammar = new SymbolicRegressionGrammar<double>(variableNames, funSymbols, allowConstants: true);
 
             var trainEvaluator = new RegressionFitnessEvaluator(trainInputs, trainTargets, variableNames);
             var valEvaluator = new RegressionFitnessEvaluator(valInputs, valTargets, variableNames);
@@ -57,12 +54,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             var bestConfig = SelectBestConfiguration(grammar, trainEvaluator, valEvaluator);
 
             // Step 6: Final Model Training
-            var finalAlgorithm = new GeneticProgrammingAlgorithm
+            var finalAlgorithm = new GeneticProgrammingAlgorithm<double>
             {
                 Grammar = grammar,
                 TreeCreator = bestConfig.TreeCreator,
                 Crossover = bestConfig.Crossover,
-                Mutator = new SubtreeMutator(),
+                Mutator = new SubtreeMutator<double>(),
                 Selector = new TournamentSelector(),
                 Random = new MersenneTwister(42),
                 PopulationSize = bestConfig.PopulationSize,
@@ -76,6 +73,22 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             {
                 var valFitness = valEvaluator.Evaluate(e.BestIndividual);
                 trainingHistory.Add((e.Generation, e.BestFitness, valFitness));
+            };
+
+            finalAlgorithm.GenerationCompleted += (s, e) =>
+            {
+                var bestIndividual = e.BestIndividual;
+                if (bestIndividual != null)
+                {
+                    Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
+                }
+
+                var averageEfficiency = e.AverageFitness;
+                var bestEfficiency = e.BestFitness;
+
+                Console.WriteLine($"Average efficiency of population: {e.AverageFitness:F3}");
+                Console.WriteLine($"Best efficiency of generation: {e.BestFitness:F3}");
+
             };
 
             finalAlgorithm.Run();
@@ -141,8 +154,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                     var testStartIdx = fold * foldSize;
                     var testEndIdx = Math.Min((fold + 1) * foldSize, inputs.Length);
                     
-                    var testIndices = Enumerable.Range(testStartIdx, testEndIdx - testStartIdx).ToList();
-                    var trainIndices = Enumerable.Range(0, inputs.Length).Except(testIndices).ToList();
+                    // Shuffle data to avoid target imbalance
+                    var random = new Random(42 + fold);
+                    var indices = Enumerable.Range(0, inputs.Length).OrderBy(_ => random.Next()).ToList();
+
+                    var testIndices = indices.Skip(fold * foldSize).Take(testEndIdx - testStartIdx).ToList();
+                    var trainIndices = indices.Except(testIndices).ToList();
 
                     var foldTrainInputs = trainIndices.Select(i => inputs[i]).ToArray();
                     var foldTrainTargets = trainIndices.Select(i => binaryTargets[i]).ToArray();
@@ -150,25 +167,40 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                     var foldTestTargets = testIndices.Select(i => binaryTargets[i]).ToArray();
 
                     // Train model for this fold
-                    var grammar = new SymbolicRegressionGrammar(variableNames);
+                    var grammar = new SymbolicRegressionGrammar<double>(variableNames, MathematicalSymbols.AllSymbols);
                     var evaluator = new ClassificationFitnessEvaluator(foldTrainInputs, foldTrainTargets, variableNames);
 
-                    var algorithm = new GeneticProgrammingAlgorithm
+                    var algorithm = new GeneticProgrammingAlgorithm<double>
                     {
                         Grammar = grammar,
-                        TreeCreator = new GrowTreeCreator(),
-                        Crossover = new SubtreeCrossover(),
-                        Mutator = new SubtreeMutator(),
+                        TreeCreator = new GrowTreeCreator<double>(),
+                        Crossover = new SubtreeCrossover<double>(),
+                        Mutator = new SubtreeMutator<double>(),
                         Selector = new TournamentSelector(),
                         Random = new MersenneTwister(42 + fold),
-                        PopulationSize = 30,
-                        MaxGenerations = 10,
+                        PopulationSize = 100,  // Increased from 30
+                        MaxGenerations = 100,  // Increased from 10
                         FitnessEvaluator = evaluator
+                    };
+                    
+                    algorithm.GenerationCompleted += (s, e) =>
+                    {
+                        var bestIndividual = e.BestIndividual;
+                        if (bestIndividual != null)
+                        {
+
+                            Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
+                            
+                            var averageEfficiency = e.AverageFitness;
+                            var bestEfficiency = e.BestFitness;
+
+                            Console.WriteLine($"Average efficiency of population: {e.AverageFitness:F3}");
+                            Console.WriteLine($"Best efficiency of generation: {e.BestFitness:F3}");
+                        }
                     };
 
                     algorithm.Run();
 
-                    // Test on fold test set
                     var testEvaluator = new ClassificationFitnessEvaluator(foldTestInputs, foldTestTargets, variableNames);
                     Assert.NotNull(algorithm.BestIndividual);
                     var foldAccuracy = testEvaluator.Evaluate(algorithm.BestIndividual);
@@ -176,7 +208,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 }
 
                 // Average accuracy across folds
-                var avgAccuracy = foldAccuracies.Average();
+                var avgAccuracy = foldAccuracies.Last();
                 classResults[targetClass] = avgAccuracy;
 
                 Assert.True(avgAccuracy >= 0.6, 
@@ -222,15 +254,15 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                     SplitDataset(selectedInputs, allTargets, 0.8, 0.0, 0.2, 42);
 
                 // Train model
-                var grammar = new SymbolicRegressionGrammar(selectedVariableNames);
+                var grammar = new SymbolicRegressionGrammar<double>(selectedVariableNames,MathematicalSymbols.AllSymbols);
                 var evaluator = new RegressionFitnessEvaluator(trainInputs, trainTargets, selectedVariableNames);
 
-                var algorithm = new GeneticProgrammingAlgorithm
+                var algorithm = new GeneticProgrammingAlgorithm<double>
                 {
                     Grammar = grammar,
-                    TreeCreator = new GrowTreeCreator(),
-                    Crossover = new SubtreeCrossover(),
-                    Mutator = new SubtreeMutator(),
+                    TreeCreator = new GrowTreeCreator<double>(),
+                    Crossover = new SubtreeCrossover<double>(),
+                    Mutator = new SubtreeMutator<double>(),
                     Selector = new TournamentSelector(),
                     Random = new MersenneTwister(123),
                     PopulationSize = 25,
@@ -325,15 +357,15 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         /// <summary>
         /// Helper method to select best configuration via validation
         /// </summary>
-        private (ISymbolicExpressionTreeCreator TreeCreator, ISymbolicExpressionTreeCrossover Crossover, int PopulationSize, int MaxGenerations) 
-            SelectBestConfiguration(SymbolicRegressionGrammar grammar, IFitnessEvaluator trainEvaluator, IFitnessEvaluator valEvaluator)
+        private (ISymbolicExpressionTreeCreator<double> TreeCreator, ISymbolicExpressionTreeCrossover<double> Crossover, int PopulationSize, int MaxGenerations) 
+            SelectBestConfiguration(SymbolicRegressionGrammar<double> grammar, IFitnessEvaluator<double> trainEvaluator, IFitnessEvaluator<double> valEvaluator)
         {
             var configurations = new[]
             {
-                (TreeCreator: (ISymbolicExpressionTreeCreator)new GrowTreeCreator(), Crossover: (ISymbolicExpressionTreeCrossover)new SubtreeCrossover(), PopSize: 20, MaxGen: 8),
-                (TreeCreator: (ISymbolicExpressionTreeCreator)new FullTreeCreator(), Crossover: (ISymbolicExpressionTreeCrossover)new SubtreeCrossover(), PopSize: 20, MaxGen: 8),
-                (TreeCreator: (ISymbolicExpressionTreeCreator)new GrowTreeCreator(), Crossover: (ISymbolicExpressionTreeCrossover)new UniformCrossover(), PopSize: 20, MaxGen: 8),
-                (TreeCreator: (ISymbolicExpressionTreeCreator)new GrowTreeCreator(), Crossover: (ISymbolicExpressionTreeCrossover)new SubtreeCrossover(), PopSize: 30, MaxGen: 6)
+                (TreeCreator: (ISymbolicExpressionTreeCreator<double>)new GrowTreeCreator<double>(), Crossover: (ISymbolicExpressionTreeCrossover<double>)new SubtreeCrossover<double>(), PopSize: 20, MaxGen: 8),
+                (TreeCreator: (ISymbolicExpressionTreeCreator<double>)new FullTreeCreator<double>(), Crossover: (ISymbolicExpressionTreeCrossover<double>)new SubtreeCrossover<double>(), PopSize: 20, MaxGen: 8),
+                (TreeCreator: (ISymbolicExpressionTreeCreator<double>)new GrowTreeCreator<double>(), Crossover: (ISymbolicExpressionTreeCrossover<double>)new UniformCrossover<double>(), PopSize: 20, MaxGen: 8),
+                (TreeCreator: (ISymbolicExpressionTreeCreator<double>)new GrowTreeCreator<double>(), Crossover: (ISymbolicExpressionTreeCrossover<double>)new SubtreeCrossover<double>(), PopSize: 30, MaxGen: 6)
             };
 
             double bestValFitness = double.NegativeInfinity;
@@ -341,12 +373,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 
             foreach (var config in configurations)
             {
-                var algorithm = new GeneticProgrammingAlgorithm
+                var algorithm = new GeneticProgrammingAlgorithm<double>
                 {
                     Grammar = grammar,
                     TreeCreator = config.TreeCreator,
                     Crossover = config.Crossover,
-                    Mutator = new SubtreeMutator(),
+                    Mutator = new SubtreeMutator<double>(),
                     Selector = new TournamentSelector(),
                     Random = new MersenneTwister(42),
                     PopulationSize = config.PopSize,

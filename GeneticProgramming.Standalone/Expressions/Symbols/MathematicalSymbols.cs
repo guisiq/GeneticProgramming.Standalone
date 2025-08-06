@@ -39,7 +39,7 @@ namespace GeneticProgramming.Expressions.Symbols
         public static readonly FunctionalSymbol<double> SafeDivision = SymbolFactory<double>.CreateBinary(
             "SafeDivision", "sdiv", 
             (a, b) => Math.Abs(b) < double.Epsilon ? double.MaxValue : a / b);
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             Addition,
             Subtraction,
@@ -72,7 +72,7 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "Exponential", "Exponential operation (exp)",
                 Math.Exp);
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             Logarithm,
             Exponential
@@ -95,7 +95,7 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "Tangent", "Tangent operation (tan)",
                 Math.Tan);
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             Sine,
             Cosine,
@@ -119,7 +119,7 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "HyperbolicTangent", "Hyperbolic tangent operation (tanh)",
                 Math.Tanh);
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             HyperbolicSine,
             HyperbolicCosine,
@@ -144,16 +144,16 @@ namespace GeneticProgramming.Expressions.Symbols
                 placeholders =>
                 {
                     // Create P(n,r) node
-                    var permutationNode = new SymbolicExpressionTreeNode(Factorial);
+                    var permutationNode = new SymbolicExpressionTreeNode<int>(Factorial);
                     permutationNode.AddSubtree(placeholders[0]); // n
                     permutationNode.AddSubtree(placeholders[1]); // r
 
                     // Create r! node
-                    var factorialNode = new SymbolicExpressionTreeNode(Factorial);
+                    var factorialNode = new SymbolicExpressionTreeNode<int>(Factorial);
                     factorialNode.AddSubtree(placeholders[1]); // r
 
                     // Create division node: P(n,r) / r!
-                    var divisionNode = new SymbolicExpressionTreeNode(
+                    var divisionNode = new SymbolicExpressionTreeNode<int>(
                         SymbolFactory<int>.CreateBinary("IntDivision", "Integer division", (a, b) => 
                         {
                             if (b == 0) throw new DivideByZeroException("Division by zero.");
@@ -174,16 +174,16 @@ namespace GeneticProgramming.Expressions.Symbols
                 placeholders =>
                 {
                     // Create P(n,r) node
-                    var permutationNode = new SymbolicExpressionTreeNode(Permutation);
+                    var permutationNode = new SymbolicExpressionTreeNode<int>(Permutation);
                     permutationNode.AddSubtree(placeholders[0]); // n
                     permutationNode.AddSubtree(placeholders[1]); // r
 
                     // Create r! node
-                    var factorialNode = new SymbolicExpressionTreeNode(Factorial);
+                    var factorialNode = new SymbolicExpressionTreeNode<int>(Factorial);
                     factorialNode.AddSubtree(placeholders[1]); // r
 
                     // Create division node: P(n,r) / r!
-                    var divisionNode = new SymbolicExpressionTreeNode(
+                    var divisionNode = new SymbolicExpressionTreeNode<int>(
                         SymbolFactory<int>.CreateBinary("IntDivision", "Integer division", (a, b) => 
                         {
                             if (b == 0) throw new DivideByZeroException("Division by zero.");
@@ -195,7 +195,7 @@ namespace GeneticProgramming.Expressions.Symbols
                     return divisionNode;
                 });
 
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
+        public static readonly List<ISymbol<int>> AllSymbols = new List<ISymbol<int>>
         {
             Factorial,
             Permutation,
