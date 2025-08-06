@@ -326,6 +326,11 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Predicate to determine if the algorithm should stop based on GenerationEventArgs.
+        /// </summary>
+        public Predicate<GenerationEventArgs<T>>? StopCondition { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the GeneticProgrammingAlgorithm class
         /// </summary>
         public GeneticProgrammingAlgorithm() : base()
@@ -379,25 +384,31 @@ namespace GeneticProgramming.Algorithms
         /// </summary>
         public virtual void Run()
         {
-            Run(null, null);
-        }
-        public virtual void Run(Predicate<bool>? stopCondition = null, Action onIterationCompleted = null)
-        {
             ValidateParameters();
             Initialize();
 
-            while (_generation < _maxGenerations && !_stopRequested && (stopCondition == null || !stopCondition(false)))
+            while (_generation < _maxGenerations && !_stopRequested)
             {
                 EvaluatePopulation();
                 UpdateBestIndividual();
 
-                // Raise generation completed event with conditional parallel average calculation
-                // Calcula média de fitness usando o AverageCalculator do evaluator
-                var averageCalculator = _fitnessEvaluator?.AverageCalculator ?? _fitnessEvaluator?.AverageCalculator;
-                var averageFitness = _enableParallelEvaluation
-                    ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
-                    : averageCalculator(_fitnessCache.Values);
-                GenerationCompleted?.Invoke(this, new GenerationEventArgs<T>(_generation, _bestFitness, averageFitness, _bestIndividual!));
+                // Raise generation completed event
+                var averageCalculator = _fitnessEvaluator?.AverageCalculator;
+                var averageFitness = averageCalculator != null
+                    ? (_enableParallelEvaluation
+                        ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
+                        : averageCalculator(_fitnessCache.Values))
+                    : default;
+
+                var generationArgs = new GenerationEventArgs<T>(_generation, _bestFitness, averageFitness, _bestIndividual!);
+                GenerationCompleted?.Invoke(this, generationArgs);
+
+                // Check the StopCondition predicate
+                if (StopCondition != null && StopCondition(generationArgs))
+                {
+                    break;
+                }
+
                 IterationCompleted?.Invoke(this, EventArgs.Empty);
 
                 if (_generation < _maxGenerations - 1)
