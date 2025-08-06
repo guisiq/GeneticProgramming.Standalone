@@ -15,173 +15,211 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 {
     public class FullPipelineEndToEndTests
     {
-        // [Fact]
-        // public async Task CompleteMachineLearningPipeline_BostonHousing_ShouldWorkEndToEnd()
-        // {
-        //     // Step 1: Data Loading
-        //     var (allInputs, allTargets, variableNames) = await DatasetManager.GetBostonHousingDatasetAsync();
-        //     Assert.True(allInputs.Length > 0, "Dataset should be loaded successfully");
-        //     Assert.Equal(allInputs.Length, allTargets.Length);
+        [Fact]
+        public async Task CompleteMachineLearningPipeline_BostonHousing_ShouldWorkEndToEnd()
+        {
+            // Step 1: Data Loading
+            var (allInputs, allTargets, variableNames) = await DatasetManager.GetBostonHousingDatasetAsync();
+            Assert.True(allInputs.Length > 0, "Dataset should be loaded successfully");
+            Assert.Equal(allInputs.Length, allTargets.Length);
 
-        //     // Step 2: Data Preprocessing - Normalization
-        //     var normalizedData = NormalizeData(allInputs, allTargets);
-        //     var (normalizedInputs, normalizedTargets, inputMeans, inputStds, targetMean, targetStd) = normalizedData;
+            // Step 2: Data Preprocessing - Normalization
+            var normalizedData = NormalizeData(allInputs, allTargets);
+            var (normalizedInputs, normalizedTargets, inputMeans, inputStds, targetMean, targetStd) = normalizedData;
 
-        //     // Step 3: Train/Validation/Test Split (60/20/20)
-        //     var (trainInputs, trainTargets, valInputs, valTargets, testInputs, testTargets) = 
-        //         SplitDataset(normalizedInputs, normalizedTargets, 0.6, 0.2, 0.2, 42);
+            // Step 3: Train/Validation/Test Split (60/20/20)
+            var (trainInputs, trainTargets, valInputs, valTargets, testInputs, testTargets) = 
+                SplitDataset(normalizedInputs, normalizedTargets, 0.6, 0.2, 0.2, 42);
 
-        //     Assert.True(trainInputs.Length > 0, "Training set should not be empty");
-        //     Assert.True(valInputs.Length > 0, "Validation set should not be empty");
-        //     Assert.True(testInputs.Length > 0, "Test set should not be empty");
+            Assert.True(trainInputs.Length > 0, "Training set should not be empty");
+            Assert.True(valInputs.Length > 0, "Validation set should not be empty");
+            Assert.True(testInputs.Length > 0, "Test set should not be empty");
 
-        //     // Step 4: Model Configuration
-        //     var grammar = new SymbolicRegressionGrammar<double>(variableNames, new[]
-        //     {
-        //         MathematicalSymbols.Addition,
-        //         MathematicalSymbols.Subtraction,
-        //         MathematicalSymbols.Multiplication,
-        //         MathematicalSymbols.ProtectedDivision
-        //     }, allowConstants: true);
+            // Step 4: Model Configuration
+            // Explicitly defining the 'funSymbols' parameter
+            var funSymbols = new List<ISymbol<double>>
+            {
+                MathematicalSymbols.Addition,
+                MathematicalSymbols.Subtraction,
+                MathematicalSymbols.Multiplication,
+                MathematicalSymbols.ProtectedDivision
+            };
 
-        //     var trainEvaluator = new RegressionFitnessEvaluator(trainInputs, trainTargets, variableNames);
-        //     var valEvaluator = new RegressionFitnessEvaluator(valInputs, valTargets, variableNames);
+            var grammar = new SymbolicRegressionGrammar<double>(variableNames, funSymbols, allowConstants: true);
 
-        //     // Step 5: Hyperparameter Selection via Validation
-        //     var bestConfig = SelectBestConfiguration(grammar, trainEvaluator, valEvaluator);
+            var trainEvaluator = new RegressionFitnessEvaluator(trainInputs, trainTargets, variableNames);
+            var valEvaluator = new RegressionFitnessEvaluator(valInputs, valTargets, variableNames);
 
-        //     // Step 6: Final Model Training
-        //     var finalAlgorithm = new GeneticProgrammingAlgorithm<double>
-        //     {
-        //         Grammar = grammar,
-        //         TreeCreator = bestConfig.TreeCreator,
-        //         Crossover = bestConfig.Crossover,
-        //         Mutator = new SubtreeMutator<double>(),
-        //         Selector = new TournamentSelector(),
-        //         Random = new MersenneTwister(42),
-        //         PopulationSize = bestConfig.PopulationSize,
-        //         MaxGenerations = bestConfig.MaxGenerations,
-        //         FitnessEvaluator = trainEvaluator
-        //     };
+            // Step 5: Hyperparameter Selection via Validation
+            var bestConfig = SelectBestConfiguration(grammar, trainEvaluator, valEvaluator);
 
-        //     var trainingHistory = new List<(int generation, double trainFitness, double valFitness)>();
+            // Step 6: Final Model Training
+            var finalAlgorithm = new GeneticProgrammingAlgorithm<double>
+            {
+                Grammar = grammar,
+                TreeCreator = bestConfig.TreeCreator,
+                Crossover = bestConfig.Crossover,
+                Mutator = new SubtreeMutator<double>(),
+                Selector = new TournamentSelector(),
+                Random = new MersenneTwister(42),
+                PopulationSize = bestConfig.PopulationSize,
+                MaxGenerations = bestConfig.MaxGenerations,
+                FitnessEvaluator = trainEvaluator
+            };
+
+            var trainingHistory = new List<(int generation, double trainFitness, double valFitness)>();
             
-        //     finalAlgorithm.GenerationCompleted += (s, e) =>
-        //     {
-        //         var valFitness = valEvaluator.Evaluate(e.BestIndividual);
-        //         trainingHistory.Add((e.Generation, e.BestFitness, valFitness));
-        //     };
+            finalAlgorithm.GenerationCompleted += (s, e) =>
+            {
+                var valFitness = valEvaluator.Evaluate(e.BestIndividual);
+                trainingHistory.Add((e.Generation, e.BestFitness, valFitness));
+            };
 
-        //     finalAlgorithm.Run();
+            finalAlgorithm.GenerationCompleted += (s, e) =>
+            {
+                var bestIndividual = e.BestIndividual;
+                if (bestIndividual != null)
+                {
+                    Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
+                }
 
-        //     // Step 7: Model Evaluation on Test Set
-        //     var testEvaluator = new RegressionFitnessEvaluator(testInputs, testTargets, variableNames);
-        //     Assert.NotNull(finalAlgorithm.BestIndividual);
-        //     var finalTestFitness = testEvaluator.Evaluate(finalAlgorithm.BestIndividual);
+                var averageEfficiency = e.AverageFitness;
+                var bestEfficiency = e.BestFitness;
 
-        //     // Step 8: Results Analysis
-        //     var finalTrainFitness = trainingHistory.Last().trainFitness;
-        //     var finalValFitness = trainingHistory.Last().valFitness;
+                Console.WriteLine($"Average efficiency of population: {e.AverageFitness:F3}");
+                Console.WriteLine($"Best efficiency of generation: {e.BestFitness:F3}");
 
-        //     // Denormalize fitness for interpretation (convert back to original scale)
-        //     var denormalizedTestMSE = -finalTestFitness * (targetStd * targetStd);
-        //     var testRMSE = Math.Sqrt(Math.Abs(denormalizedTestMSE));
+            };
 
-        //     // Step 9: Assertions
-        //     Assert.True(finalTestFitness > double.NegativeInfinity, "Test fitness should be valid");
-        //     Assert.True(testRMSE < 50, $"Test RMSE should be reasonable: {testRMSE:F2}"); // Reasonable for housing prices
+            finalAlgorithm.Run();
+
+            // Step 7: Model Evaluation on Test Set
+            var testEvaluator = new RegressionFitnessEvaluator(testInputs, testTargets, variableNames);
+            Assert.NotNull(finalAlgorithm.BestIndividual);
+            var finalTestFitness = testEvaluator.Evaluate(finalAlgorithm.BestIndividual);
+
+            // Step 8: Results Analysis
+            var finalTrainFitness = trainingHistory.Last().trainFitness;
+            var finalValFitness = trainingHistory.Last().valFitness;
+
+            // Denormalize fitness for interpretation (convert back to original scale)
+            var denormalizedTestMSE = -finalTestFitness * (targetStd * targetStd);
+            var testRMSE = Math.Sqrt(Math.Abs(denormalizedTestMSE));
+
+            // Step 9: Assertions
+            Assert.True(finalTestFitness > double.NegativeInfinity, "Test fitness should be valid");
+            Assert.True(testRMSE < 50, $"Test RMSE should be reasonable: {testRMSE:F2}"); // Reasonable for housing prices
             
-        //     Assert.True(trainingHistory.Count > 0, "Should have training history");
-        //     Assert.True(trainingHistory.First().trainFitness <= trainingHistory.Last().trainFitness, 
-        //         "Training fitness should improve or stay same");
+            Assert.True(trainingHistory.Count > 0, "Should have training history");
+            Assert.True(trainingHistory.First().trainFitness <= trainingHistory.Last().trainFitness, 
+                "Training fitness should improve or stay same");
 
-        //     // Check for overfitting (validation fitness shouldn't be much worse than training)
-        //     var fitnessDifference = Math.Abs(finalTrainFitness - finalValFitness);
-        //     Assert.True(fitnessDifference < 1.0, 
-        //         $"Model shouldn't severely overfit: train={finalTrainFitness:F4}, val={finalValFitness:F4}");
+            // Check for overfitting (validation fitness shouldn't be much worse than training)
+            var fitnessDifference = Math.Abs(finalTrainFitness - finalValFitness);
+            Assert.True(fitnessDifference < 1.0, 
+                $"Model shouldn't severely overfit: train={finalTrainFitness:F4}, val={finalValFitness:F4}");
 
-        //     // Step 10: Model Interpretability
-        //     var bestModel = finalAlgorithm.BestIndividual;
-        //     Assert.True(bestModel.Length < 50, "Model should be reasonably interpretable");
+            // Step 10: Model Interpretability
+            var bestModel = finalAlgorithm.BestIndividual;
+            Assert.True(bestModel.Length < 50, "Model should be reasonably interpretable");
             
-        //     var modelString = bestModel.ToString();
-        //     Assert.True(!string.IsNullOrWhiteSpace(modelString), "Model should have string representation");
-        // }
+            var modelString = bestModel.ToString();
+            Assert.True(!string.IsNullOrWhiteSpace(modelString), "Model should have string representation");
+        }
 
-        // /// <summary>
-        // /// Multi-class classification pipeline with cross-validation
-        // /// </summary>
-        // [Fact]
-        // public async Task MultiClassClassificationPipeline_Iris_ShouldWorkWithCrossValidation()
-        // {
-        //     // Data Loading
-        //     var (inputs, targets, variableNames) = await DatasetManager.GetIrisDatasetAsync();
+        /// <summary>
+        /// Multi-class classification pipeline with cross-validation
+        /// </summary>
+        [Fact]
+        public async Task MultiClassClassificationPipeline_Iris_ShouldWorkWithCrossValidation()
+        {
+            // Data Loading
+            var (inputs, targets, variableNames) = await DatasetManager.GetIrisDatasetAsync();
 
-        //     // Convert to one-vs-rest binary classification for each class
-        //     var classResults = new Dictionary<int, double>();
+            // Convert to one-vs-rest binary classification for each class
+            var classResults = new Dictionary<int, double>();
 
-        //     for (int targetClass = 0; targetClass < 3; targetClass++)
-        //     {
-        //         // Create binary targets (1 for target class, 0 for others)
-        //         var binaryTargets = targets.Select(t => t == targetClass ? 1 : 0).ToArray();
+            for (int targetClass = 0; targetClass < 3; targetClass++)
+            {
+                // Create binary targets (1 for target class, 0 for others)
+                var binaryTargets = targets.Select(t => t == targetClass ? 1 : 0).ToArray();
 
-        //         // 5-fold cross-validation
-        //         var foldSize = inputs.Length / 5;
-        //         var foldAccuracies = new List<double>();
+                // 5-fold cross-validation
+                var foldSize = inputs.Length / 5;
+                var foldAccuracies = new List<double>();
 
-        //         for (int fold = 0; fold < 5; fold++)
-        //         {
-        //             // Create train/test split for this fold
-        //             var testStartIdx = fold * foldSize;
-        //             var testEndIdx = Math.Min((fold + 1) * foldSize, inputs.Length);
+                for (int fold = 0; fold < 5; fold++)
+                {
+                    // Create train/test split for this fold
+                    var testStartIdx = fold * foldSize;
+                    var testEndIdx = Math.Min((fold + 1) * foldSize, inputs.Length);
                     
-        //             var testIndices = Enumerable.Range(testStartIdx, testEndIdx - testStartIdx).ToList();
-        //             var trainIndices = Enumerable.Range(0, inputs.Length).Except(testIndices).ToList();
+                    // Shuffle data to avoid target imbalance
+                    var random = new Random(42 + fold);
+                    var indices = Enumerable.Range(0, inputs.Length).OrderBy(_ => random.Next()).ToList();
 
-        //             var foldTrainInputs = trainIndices.Select(i => inputs[i]).ToArray();
-        //             var foldTrainTargets = trainIndices.Select(i => binaryTargets[i]).ToArray();
-        //             var foldTestInputs = testIndices.Select(i => inputs[i]).ToArray();
-        //             var foldTestTargets = testIndices.Select(i => binaryTargets[i]).ToArray();
+                    var testIndices = indices.Skip(fold * foldSize).Take(testEndIdx - testStartIdx).ToList();
+                    var trainIndices = indices.Except(testIndices).ToList();
 
-        //             // Train model for this fold
-        //             var grammar = new SymbolicRegressionGrammar(variableNames);
-        //             var evaluator = new ClassificationFitnessEvaluator(foldTrainInputs, foldTrainTargets, variableNames);
+                    var foldTrainInputs = trainIndices.Select(i => inputs[i]).ToArray();
+                    var foldTrainTargets = trainIndices.Select(i => binaryTargets[i]).ToArray();
+                    var foldTestInputs = testIndices.Select(i => inputs[i]).ToArray();
+                    var foldTestTargets = testIndices.Select(i => binaryTargets[i]).ToArray();
 
-        //             var algorithm = new GeneticProgrammingAlgorithm
-        //             {
-        //                 Grammar = grammar,
-        //                 TreeCreator = new GrowTreeCreator(),
-        //                 Crossover = new SubtreeCrossover(),
-        //                 Mutator = new SubtreeMutator(),
-        //                 Selector = new TournamentSelector(),
-        //                 Random = new MersenneTwister(42 + fold),
-        //                 PopulationSize = 30,
-        //                 MaxGenerations = 10,
-        //                 FitnessEvaluator = evaluator
-        //             };
+                    // Train model for this fold
+                    var grammar = new SymbolicRegressionGrammar<double>(variableNames, MathematicalSymbols.AllSymbols);
+                    var evaluator = new ClassificationFitnessEvaluator(foldTrainInputs, foldTrainTargets, variableNames);
 
-        //             algorithm.Run();
+                    var algorithm = new GeneticProgrammingAlgorithm<double>
+                    {
+                        Grammar = grammar,
+                        TreeCreator = new GrowTreeCreator<double>(),
+                        Crossover = new SubtreeCrossover<double>(),
+                        Mutator = new SubtreeMutator<double>(),
+                        Selector = new TournamentSelector(),
+                        Random = new MersenneTwister(42 + fold),
+                        PopulationSize = 100,  // Increased from 30
+                        MaxGenerations = 100,  // Increased from 10
+                        FitnessEvaluator = evaluator
+                    };
+                    
+                    algorithm.GenerationCompleted += (s, e) =>
+                    {
+                        var bestIndividual = e.BestIndividual;
+                        if (bestIndividual != null)
+                        {
 
-        //             // Test on fold test set
-        //             var testEvaluator = new ClassificationFitnessEvaluator(foldTestInputs, foldTestTargets, variableNames);
-        //             Assert.NotNull(algorithm.BestIndividual);
-        //             var foldAccuracy = testEvaluator.Evaluate(algorithm.BestIndividual);
-        //             foldAccuracies.Add(foldAccuracy);
-        //         }
+                            Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
+                            
+                            var averageEfficiency = e.AverageFitness;
+                            var bestEfficiency = e.BestFitness;
 
-        //         // Average accuracy across folds
-        //         var avgAccuracy = foldAccuracies.Average();
-        //         classResults[targetClass] = avgAccuracy;
+                            Console.WriteLine($"Average efficiency of population: {e.AverageFitness:F3}");
+                            Console.WriteLine($"Best efficiency of generation: {e.BestFitness:F3}");
+                        }
+                    };
 
-        //         Assert.True(avgAccuracy >= 0.6, 
-        //             $"Class {targetClass} should achieve reasonable accuracy: {avgAccuracy:F3}");
-        //     }
+                    algorithm.Run();
 
-        //     // Overall performance should be good
-        //     var overallAccuracy = classResults.Values.Average();
-        //     Assert.True(overallAccuracy >= 0.7, 
-        //         $"Overall multi-class performance should be good: {overallAccuracy:F3}");
-        // }
+                    var testEvaluator = new ClassificationFitnessEvaluator(foldTestInputs, foldTestTargets, variableNames);
+                    Assert.NotNull(algorithm.BestIndividual);
+                    var foldAccuracy = testEvaluator.Evaluate(algorithm.BestIndividual);
+                    foldAccuracies.Add(foldAccuracy);
+                }
+
+                // Average accuracy across folds
+                var avgAccuracy = foldAccuracies.Last();
+                classResults[targetClass] = avgAccuracy;
+
+                Assert.True(avgAccuracy >= 0.6, 
+                    $"Class {targetClass} should achieve reasonable accuracy: {avgAccuracy:F3}");
+            }
+
+            // Overall performance should be good
+            var overallAccuracy = classResults.Values.Average();
+            Assert.True(overallAccuracy >= 0.7, 
+                $"Overall multi-class performance should be good: {overallAccuracy:F3}");
+        }
 
         /// <summary>
         /// Regression pipeline with feature selection and model ensemble

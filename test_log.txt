@@ -1,0 +1,17 @@
+  Determinando os projetos a serem restaurados...
+  Todos os projetos estão atualizados para restauração.
+  GeneticProgramming.Standalone -> C:\Users\lopes\source\repos\B3TradingBot.Console\external\GeneticProgramming.Standalone\GeneticProgramming.Standalone\bin\Debug\net8.0\GeneticProgramming.Standalone.dll
+  GeneticProgramming.Standalone.Tests -> C:\Users\lopes\source\repos\B3TradingBot.Console\external\GeneticProgramming.Standalone\GeneticProgramming.Standalone.Tests\bin\Debug\net8.0\GeneticProgramming.Standalone.Tests.dll
+Execução de teste para C:\Users\lopes\source\repos\B3TradingBot.Console\external\GeneticProgramming.Standalone\GeneticProgramming.Standalone.Tests\bin\Debug\net8.0\GeneticProgramming.Standalone.Tests.dll (.NETCoreApp,Version=v8.0)
+Versão do VSTest 17.14.0 (x64)
+
+Iniciando execução de teste, espere...
+1 arquivos de teste no total corresponderam ao padrão especificado.
+  Com falha GeneticProgramming.Standalone.Tests.Integration.EndToEnd.FullPipelineEndToEndTests.MultiClassClassificationPipeline_Iris_ShouldWorkWithCrossValidation [1 s]
+  Mensagem de erro:
+   Class 1 should achieve reasonable accuracy: 0,160
+  Rastreamento de pilha:
+     at GeneticProgramming.Standalone.Tests.Integration.EndToEnd.FullPipelineEndToEndTests.MultiClassClassificationPipeline_Iris_ShouldWorkWithCrossValidation() in C:\Users\lopes\source\repos\B3TradingBot.Console\external\GeneticProgramming.Standalone\GeneticProgramming.Standalone.Tests\Integration\EndToEnd\FullPipelineEndToEndTests.cs:line 207
+--- End of stack trace from previous location ---
+
+Com falha! – Com falha:     1, Aprovado:     0, Ignorado:     0, Total:     1, Duração: 1 s - GeneticProgramming.Standalone.Tests.dll (net8.0)
