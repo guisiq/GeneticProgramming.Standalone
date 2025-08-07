@@ -121,7 +121,7 @@ namespace GeneticProgramming.Expressions
     /// Generic interface for symbolic expression tree grammars that define the allowed symbols and their relationships.
     /// </summary>
     /// <typeparam name="T">The value type that the grammar supports (must be a struct)</typeparam>
-    public interface ISymbolicExpressionTreeGrammar<T> : ISymbolicExpressionTreeGrammar where T : struct
+    public interface ISymbolicExpressionTreeGrammar<T> : ISymbolicExpressionTreeGrammar where T : notnull
     {
         /// <summary>
         /// Gets all symbols available in this grammar.

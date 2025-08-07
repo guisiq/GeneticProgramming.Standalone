@@ -13,14 +13,14 @@ namespace GeneticProgramming.Problems.Evaluators
     /// </summary>
     public class ExpressionInterpreter
     {
-        public T Evaluate<T>(ISymbolicExpressionTree<T> tree, IDictionary<string, T> variables) where T : struct, IConvertible
+        public T Evaluate<T>(ISymbolicExpressionTree<T> tree, IDictionary<string, T> variables) where T : notnull, IConvertible
         {
             if (tree == null) throw new ArgumentNullException(nameof(tree));
             if (variables == null) throw new ArgumentNullException(nameof(variables));
             return EvaluateNode(tree.Root, variables);
         }
 
-        private T EvaluateNode<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> vars) where T : struct, IConvertible
+        private T EvaluateNode<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> vars) where T : notnull, IConvertible
         {
             switch (node)
             {

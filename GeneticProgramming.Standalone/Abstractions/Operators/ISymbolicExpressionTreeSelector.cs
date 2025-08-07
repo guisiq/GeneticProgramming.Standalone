@@ -16,6 +16,6 @@ namespace GeneticProgramming.Abstractions.Operators
         /// <param name="population">Available individuals</param>
         /// <param name="fitness">Fitness evaluation function</param>
         /// <returns>Selected individual</returns>
-        ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, Func<ISymbolicExpressionTree<T>, T> fitness) where T : struct, IComparable<T>, IEquatable<T>;
+        ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, Func<ISymbolicExpressionTree<T>, T> fitness) where T : notnull, IComparable<T>, IEquatable<T>;
     }
 }

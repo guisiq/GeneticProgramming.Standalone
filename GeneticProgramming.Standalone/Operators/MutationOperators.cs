@@ -10,7 +10,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates a tree by replacing a randomly selected subtree with a newly generated one
     /// </summary>
-    public class SubtreeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
+    public class SubtreeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull
     {
         private int _maxTreeLength = 25;
         private int _maxTreeDepth = 10;
@@ -139,7 +139,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates a tree by changing the symbol of a randomly selected node
     /// </summary>
-    public class ChangeNodeTypeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
+    public class ChangeNodeTypeMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull
     {
         /// <summary>
         /// Initializes a new instance of the ChangeNodeTypeMutator class
@@ -255,7 +255,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates terminal nodes by changing their values
     /// </summary>
-    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct, IConvertible
+    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull, IConvertible
     {
         private double _constantMutationRange = 1.0;
 

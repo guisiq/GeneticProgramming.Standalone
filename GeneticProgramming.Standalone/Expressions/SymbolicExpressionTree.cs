@@ -141,7 +141,7 @@ namespace GeneticProgramming.Expressions
     /// </summary>
     /// <typeparam name="T">The value type that the tree evaluates to (must be a struct)</typeparam>
     [Item("SymbolicExpressionTree<T>", "Represents a generic symbolic expression tree")]
-    public class SymbolicExpressionTree<T> : SymbolicExpressionTree, ISymbolicExpressionTree<T> where T : struct
+    public class SymbolicExpressionTree<T> : SymbolicExpressionTree, ISymbolicExpressionTree<T> where T : notnull
     {
         private ISymbolicExpressionTreeNode<T>? genericRoot;
 

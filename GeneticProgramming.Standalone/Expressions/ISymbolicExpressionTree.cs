@@ -42,8 +42,8 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Generic interface for symbolic expression tree nodes
     /// </summary>
-    /// <typeparam name="T">The value type that the node evaluates to (must be a struct)</typeparam>
-    public interface ISymbolicExpressionTreeNode<T> : ISymbolicExpressionTreeNode where T : struct
+    /// <typeparam name="T">The value type that the node evaluates to (must be non-null)</typeparam>
+    public interface ISymbolicExpressionTreeNode<T> : ISymbolicExpressionTreeNode where T : notnull
     {
         new ISymbolicExpressionTreeGrammar<T>? Grammar { get; }
         ISymbolicExpressionTreeGrammar? ISymbolicExpressionTreeNode.Grammar
@@ -175,8 +175,8 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Generic interface for symbolic expression trees
     /// </summary>
-    /// <typeparam name="T">The value type that the tree evaluates to (must be a struct)</typeparam>
-    public interface ISymbolicExpressionTree<T> : ISymbolicExpressionTree where T : struct
+    /// <typeparam name="T">The value type that the tree evaluates to (must be non-null)</typeparam>
+    public interface ISymbolicExpressionTree<T> : ISymbolicExpressionTree where T : notnull
     {
         new ISymbolicExpressionTreeNode<T> Root { get; set; }
         ISymbolicExpressionTreeNode ISymbolicExpressionTree.Root

@@ -43,7 +43,7 @@ namespace GeneticProgramming.Operators
 
         /// <inheritdoc />
         public ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, Func<ISymbolicExpressionTree<T>, T> fitness)
-            where T : struct, IComparable<T>, IEquatable<T>
+            where T : notnull, IComparable<T>, IEquatable<T>
         {
             if (population == null || population.Count == 0)
                 throw new ArgumentException("Population cannot be empty", nameof(population));

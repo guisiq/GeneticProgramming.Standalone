@@ -10,7 +10,7 @@ namespace GeneticProgramming.Problems.Evaluators
     /// Generic interface for evaluating the fitness of a symbolic expression tree.
     /// </summary>
     /// <typeparam name="T">The data type used in the expressions</typeparam>
-    public interface IFitnessEvaluator<T> where T : struct
+    public interface IFitnessEvaluator<T> where T : notnull
     {
         /// <summary>
         /// Gets the average calculator function for the specified type.
@@ -53,7 +53,7 @@ namespace GeneticProgramming.Problems.Evaluators
         /// <summary>
         /// Retorna (ou cria por fallback) o calculator para T.
         /// </summary>
-        public static Func<IEnumerable<T>, T> Instance<T>() where T : struct
+        public static Func<IEnumerable<T>, T> Instance<T>() where T : notnull
         {
             var type = typeof(T);
             if (_cache.TryGetValue(type, out var boxed))
@@ -68,7 +68,7 @@ namespace GeneticProgramming.Problems.Evaluators
         /// <summary>
         /// Permite adicionar/override de calculadores para um tipo específico.
         /// </summary>
-        public static void Register<T>(Func<IEnumerable<T>, T> calculator) where T : struct
+        public static void Register<T>(Func<IEnumerable<T>, T> calculator) where T : notnull
         {
             if (calculator == null) throw new ArgumentNullException(nameof(calculator));
             _cache[typeof(T)] = calculator;

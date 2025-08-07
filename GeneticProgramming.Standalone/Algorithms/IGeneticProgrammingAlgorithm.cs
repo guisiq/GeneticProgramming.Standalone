@@ -9,7 +9,7 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Interface for genetic programming algorithms
     /// </summary>
-    public interface IGeneticProgrammingAlgorithm<T> : IItem where T : struct
+    public interface IGeneticProgrammingAlgorithm<T> : IItem where T : notnull
     {
         /// <summary>
         /// Gets or sets the population size

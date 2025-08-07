@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Inserts a new node into a symbolic expression tree by wrapping an existing subtree.
     /// </summary>
-    public class NodeInsertionManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
+    public class NodeInsertionManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull
     {
         private int _maxTreeLength = 25;
         private int _maxTreeDepth = 10;
@@ -119,7 +119,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Removes a node from the tree. Children of the removed node are discarded.
     /// </summary>
-    public class NodeRemovalManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : struct
+    public class NodeRemovalManipulator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull
     {
         public NodeRemovalManipulator() : base() { }
         protected NodeRemovalManipulator(NodeRemovalManipulator<T> original, Cloner cloner) : base(original, cloner) { }

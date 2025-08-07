@@ -8,7 +8,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Base class for all symbolic expression tree operators
     /// </summary>
-    public abstract class SymbolicExpressionTreeOperator<T> : Item, ISymbolicExpressionTreeOperator<T> where T : struct
+    public abstract class SymbolicExpressionTreeOperator<T> : Item, ISymbolicExpressionTreeOperator<T> where T : notnull
     {
         private ISymbolicExpressionTreeGrammar<T>? _symbolicExpressionTreeGrammar;
 

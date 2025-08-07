@@ -10,7 +10,7 @@ namespace GeneticProgramming.Expressions.Grammars
     /// </summary>
     [Serializable]
     /// <typeparam name="T">o tipo dos valores de entrada e saída que devem ser numéricos.</typeparam>
-    public class SymbolicRegressionGrammar<T> : SymbolicExpressionTreeGrammar<T> where T : struct, IComparable<T>, IEquatable<T>, IConvertible
+    public class SymbolicRegressionGrammar<T> : SymbolicExpressionTreeGrammar<T> where T : notnull, IComparable<T>, IEquatable<T>, IConvertible
     {
         private readonly List<string> _variableNames;
         private readonly List<ISymbol<T>> _funSymbols;

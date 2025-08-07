@@ -8,7 +8,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Base class for terminal tree nodes (nodes with no children)
     /// </summary>
-    public abstract class TerminalTreeNode<T> : Item, ISymbolicExpressionTreeNode<T> where T : struct
+    public abstract class TerminalTreeNode<T> : Item, ISymbolicExpressionTreeNode<T> where T : notnull
     {
         private ISymbol<T> symbol;
         private ISymbolicExpressionTreeNode<T>? parent;
@@ -163,7 +163,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Tree node for constant values with a numeric value
     /// </summary>
-    public class ConstantTreeNode<T> : TerminalTreeNode<T> where T : struct
+    public class ConstantTreeNode<T> : TerminalTreeNode<T> where T : notnull
     {
         private T value;
 
@@ -228,7 +228,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Tree node for variable references
     /// </summary>
-    public class VariableTreeNode<T> : TerminalTreeNode<T> where T : struct
+    public class VariableTreeNode<T> : TerminalTreeNode<T> where T : notnull
     {
         private string variableName;
 

@@ -16,7 +16,7 @@ namespace GeneticProgramming.Algorithms
     public class GeneticProgrammingAlgorithm<T> : Item,
         IGeneticProgrammingAlgorithm<T>,
         Abstractions.Optimization.IGeneticProgrammingAlgorithm<T> 
-        where T : struct, IComparable<T>, IEquatable<T>
+        where T : notnull, IComparable<T>, IEquatable<T>
     {
         private int _populationSize = 100;
         private int _maxGenerations = 50;

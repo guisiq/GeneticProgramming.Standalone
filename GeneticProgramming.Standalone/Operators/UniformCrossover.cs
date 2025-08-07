@@ -11,7 +11,7 @@ namespace GeneticProgramming.Operators
     /// of the first parent has a chance to be replaced by a compatible node from
     /// the second parent.
     /// </summary>
-    public class UniformCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
+    public class UniformCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : notnull
     {
         private double _swapProbability = 0.5;
 
