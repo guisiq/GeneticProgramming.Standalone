@@ -94,7 +94,16 @@ public class MultiSymbolicExpressionTree<T> : SymbolicExpressionTree<IReadOnlyLi
     /// </exception>
     public IReadOnlyList<T> EvaluateAll(IDictionary<string, T> variables)
     {
-        return _multiRoot.Evaluate(variables);
+        if (variables == null)
+            throw new ArgumentNullException(nameof(variables));
+
+        // Convert single-value variables to IReadOnlyList<T>
+        var convertedVars = variables.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (IReadOnlyList<T>)new List<T> { kvp.Value }
+        );
+
+        return _multiRoot.Evaluate(convertedVars);
     }
 
     /// <summary>

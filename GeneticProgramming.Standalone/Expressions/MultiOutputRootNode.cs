@@ -18,6 +18,50 @@ namespace GeneticProgramming.Standalone.Expressions;
 public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTreeNode<IReadOnlyList<T>>
     where T : notnull
 {
+    /// <summary>
+    /// Implementa ISymbolicExpressionTreeNode<IReadOnlyList<T>>.Evaluate.
+    /// Avalia usando variáveis multi-output, convertendo para variáveis simples quando necessário.
+    /// </summary>
+    /// <param name="arguments">Argumentos de entrada (não utilizado nesta implementação)</param>
+    /// <param name="variables">Dicionário de variáveis multi-output</param>
+    public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
+    {
+        // Converte variáveis multi-output para variáveis simples
+        var convertedVars = new Dictionary<string, T>();
+        if (variables != null)
+        {
+            foreach (var kvp in variables)
+            {
+                if (kvp.Value != null && kvp.Value.Count > 0)
+                    convertedVars[kvp.Key] = kvp.Value[0];
+            }
+        }
+
+        var results = new T[_outputCount];
+        for (int i = 0; i < _outputCount; i++)
+        {
+            var outputNode = _outputNodes[i];
+            if (outputNode != null)
+            {
+                results[i] = EvaluateNode(outputNode, convertedVars);
+            }
+            else
+            {
+                results[i] = default(T)!;
+            }
+        }
+        return results;
+    }
+    /// <summary>
+    /// Evaluates all outputs with the given variables using a simple interpreter.
+    /// </summary>
+    /// <param name="variables">Variable assignments for evaluation</param>
+    /// <returns>List of evaluated values for each output</returns>
+    /// <exception cref="ArgumentNullException">Thrown when variables is null</exception>
+    public IReadOnlyList<T> Evaluate(IDictionary<string, IReadOnlyList<T>> variables)
+    {
+        return Evaluate(new IReadOnlyList<T>[0], variables);
+    }
     private readonly int _outputCount;
     private readonly ISymbolicExpressionTreeNode<T>[] _outputNodes;
     private ISymbolicExpressionTreeNode<IReadOnlyList<T>>? _parent;
@@ -94,36 +138,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
         // Note: Cannot set parent due to type mismatch - this is a simplified implementation
     }
 
-    /// <summary>
-    /// Evaluates all outputs with the given variables using a simple interpreter.
-    /// </summary>
-    /// <param name="variables">Variable assignments for evaluation</param>
-    /// <returns>List of evaluated values for each output</returns>
-    /// <exception cref="ArgumentNullException">Thrown when variables is null</exception>
-    public IReadOnlyList<T> Evaluate(IDictionary<string, T> variables)
-    {
-        if (variables == null)
-            throw new ArgumentNullException(nameof(variables));
-
-        var results = new T[_outputCount];
-        
-        for (int i = 0; i < _outputCount; i++)
-        {
-            var outputNode = _outputNodes[i];
-            if (outputNode != null)
-            {
-                // Use a simple interpreter to evaluate the node
-                results[i] = EvaluateNode(outputNode, variables);
-            }
-            else
-            {
-                // Use default value for unset outputs
-                results[i] = default(T);
-            }
-        }
-
-        return results;
-    }
+    
 
     /// <summary>
     /// Gets nodes that are shared between multiple outputs.

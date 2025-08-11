@@ -13,6 +13,8 @@ namespace GeneticProgramming.Expressions
         private ISymbol<T> symbol;
         private ISymbolicExpressionTreeNode<T>? parent;
 
+        public abstract T Evaluate(T[] arguments, IDictionary<string, T> variables);
+
         public ISymbol<T> Symbol
         {
             get { return symbol; }
@@ -223,6 +225,11 @@ namespace GeneticProgramming.Expressions
         {
             return value.ToString() ?? "0";
         }
+
+        public override T Evaluate(T[] arguments, IDictionary<string, T> variables)
+        {
+            return value;
+        }
     }
 
     /// <summary>
@@ -270,6 +277,15 @@ namespace GeneticProgramming.Expressions
         public override string ToString()
         {
             return variableName;
+        }
+
+        public override T Evaluate(T[] arguments, IDictionary<string, T> variables)
+        {
+            if (variables == null)
+                throw new ArgumentNullException(nameof(variables));
+            if (!variables.TryGetValue(variableName, out T value))
+                throw new KeyNotFoundException($"Variable '{variableName}' not found.");
+            return value;
         }
     }
 }

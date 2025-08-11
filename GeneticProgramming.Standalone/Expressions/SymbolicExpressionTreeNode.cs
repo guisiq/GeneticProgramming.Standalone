@@ -965,5 +965,16 @@ namespace GeneticProgramming.Expressions
             foreach (var child in Subtrees)
                 child.ForEachNodePrefix(action);
         }
+
+        public virtual T Evaluate(T[] childValues, IDictionary<string, T> variables)
+        {
+            // Se o símbolo implementa IEvaluable<T>, delega para ele
+            if (Symbol is IEvaluable<T> evaluableSymbol)
+            {
+                return evaluableSymbol.Evaluate(childValues, variables);
+            }
+
+            throw new NotSupportedException($"O símbolo '{Symbol?.GetType().Name}' não suporta avaliação.");
+        }
     }
 }
