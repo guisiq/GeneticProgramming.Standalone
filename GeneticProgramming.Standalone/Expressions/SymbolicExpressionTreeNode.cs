@@ -570,7 +570,7 @@ namespace GeneticProgramming.Expressions
     /// This is the main implementation for non-terminal nodes in the tree with type safety.
     /// </summary>
     /// <typeparam name="T">The value type that the node evaluates to (must be a struct)</typeparam>
-    public class SymbolicExpressionTreeNode<T> : SymbolicExpressionTreeNode, ISymbolicExpressionTreeNode<T> where T : notnull
+    public class SymbolicExpressionTreeNode<T> : SymbolicExpressionTreeNode, ISymbolicExpressionTreeNode<T>  where T : notnull
     {
         private IList<ISymbolicExpressionTreeNode<T>>? genericSubtrees;
         private ISymbol<T> genericSymbol;

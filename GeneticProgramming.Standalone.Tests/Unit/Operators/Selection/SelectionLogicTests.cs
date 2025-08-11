@@ -36,7 +36,7 @@ namespace GeneticProgramming.Standalone.UnitTests.Algorithms
             public int CallCount { get; private set; }
             public GeneticProgramming.Abstractions.Parameters.IParameterCollection? Parameters => null;
             public ISymbolicExpressionTree<T> Select<T>(IRandom random, IList<ISymbolicExpressionTree<T>> population, System.Func<ISymbolicExpressionTree<T>, T> fitness)
-                where T : struct, IComparable<T>, IEquatable<T>
+                where T : notnull, IComparable<T>, IEquatable<T>
             {
                 CallCount++;
                 return population[0];

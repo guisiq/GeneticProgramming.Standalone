@@ -197,7 +197,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
         }
     }
 
-    private T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
+    protected virtual T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
     {
         if (node.Symbol is Constant<T> constantSymbol && node is ConstantTreeNode<T> constantNode)
         {
