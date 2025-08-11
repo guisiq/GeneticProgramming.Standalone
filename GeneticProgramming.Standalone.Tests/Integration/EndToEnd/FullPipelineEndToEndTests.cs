@@ -73,6 +73,13 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             {
                 var valFitness = valEvaluator.Evaluate(e.BestIndividual);
                 trainingHistory.Add((e.Generation, e.BestFitness, valFitness));
+
+                // Add a breakpoint when efficiency exceeds 0.97
+                if (e.BestFitness > 0.97)
+                {
+                    Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                    finalAlgorithm.Stop();
+                }
             };
 
             finalAlgorithm.GenerationCompleted += (s, e) =>
@@ -188,6 +195,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                         var bestIndividual = e.BestIndividual;
                         if (bestIndividual != null)
                         {
+                            // Add a breakpoint when efficiency exceeds 0.97
+                            if (e.BestFitness > 0.97)
+                            {
+                                Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                                algorithm.Stop();
+                            }
 
                             Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
                             
@@ -271,6 +284,15 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 };
 
                 algorithm.Run();
+                algorithm.GenerationCompleted += (s, e) =>
+                {
+                    // Add a breakpoint when efficiency exceeds 0.97
+                    if (e.BestFitness > 0.97)
+                    {
+                        Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                        algorithm.Stop();
+                    }
+                };
 
                 // Evaluate on test set
                 var testEvaluator = new RegressionFitnessEvaluator(testInputs, testTargets, selectedVariableNames);
