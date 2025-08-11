@@ -14,7 +14,7 @@ namespace GeneticProgramming.Standalone.Expressions;
 /// </summary>
 /// <typeparam name="T">The base value type for each output (must be a struct)</typeparam>
 public class MultiSymbolicExpressionTree<T> : SymbolicExpressionTree<IReadOnlyList<T>>, IMultiSymbolicExpressionTree<T>
-    where T : struct
+    where T : notnull
 {
     private readonly int _outputCount;
     private readonly MultiOutputRootNode<T> _multiRoot;

@@ -6,6 +6,7 @@ using GeneticProgramming.Standalone.Abstractions;
 using GeneticProgramming.Standalone.Core;
 using GeneticProgramming.Standalone.Expressions.Symbols;
 using GeneticProgramming.Core;
+using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Standalone.Expressions;
 
@@ -15,7 +16,7 @@ namespace GeneticProgramming.Standalone.Expressions;
 /// </summary>
 /// <typeparam name="T">The base value type for each output (must be a struct)</typeparam>
 public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTreeNode<IReadOnlyList<T>>
-    where T : struct
+    where T : notnull
 {
     private readonly int _outputCount;
     private readonly ISymbolicExpressionTreeNode<T>[] _outputNodes;
@@ -198,14 +199,29 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
 
     private T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
     {
-        // Simple evaluation - this would need a proper interpreter in production
-        // For now, just return default value
-        return default(T);
+        if (node.Symbol is Constant<T> constantSymbol && node is ConstantTreeNode<T> constantNode)
+        {
+            return constantNode.Value;
+        }
+
+        throw new NotSupportedException($"Unsupported node type: {node.Symbol.GetType().Name}");
     }
 
     private IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix(ISymbolicExpressionTreeNode<T> node)
     {
-        // Simple iteration - in production this would be more sophisticated
+        // Recursively iterate through all subtrees first (postfix order)
+        foreach (var child in node.Subtrees)
+        {
+            if (child is ISymbolicExpressionTreeNode<T> typedChild)
+            {
+                foreach (var descendant in IterateNodesPostfix(typedChild))
+                {
+                    yield return descendant;
+                }
+            }
+        }
+        
+        // Return the node itself last (postfix)
         yield return node;
     }
 

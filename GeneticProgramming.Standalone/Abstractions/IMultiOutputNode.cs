@@ -10,7 +10,7 @@ namespace GeneticProgramming.Standalone.Abstractions;
 /// </summary>
 /// <typeparam name="T">The base value type for each output (must be a struct)</typeparam>
 public interface IMultiOutputNode<T> : ISymbolicExpressionTreeNode<IReadOnlyList<T>>
-    where T : struct
+    where T : notnull
 {
     /// <summary>
     /// Gets the number of outputs this node manages.

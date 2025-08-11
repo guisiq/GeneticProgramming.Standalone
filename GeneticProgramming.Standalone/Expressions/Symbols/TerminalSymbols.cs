@@ -7,7 +7,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Base class for terminal symbols (symbols with no children)
     /// </summary>
-    public abstract class TerminalSymbol<T> : Symbol<T> where T : notnull, IConvertible
+    public abstract class TerminalSymbol<T> : Symbol<T> where T : notnull
     {
         public override int MinimumArity => 0;
         public override int MaximumArity => 0;
@@ -42,7 +42,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a variable in the expression
     /// </summary>
-    public sealed class Variable<T> : TerminalSymbol<T>, IEvaluable<T> where T : notnull , IConvertible
+    public sealed class Variable<T> : TerminalSymbol<T>, IEvaluable<T> where T : notnull 
     {
         public Variable() : base("Variable", "A variable symbol")
         {
@@ -89,7 +89,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a numeric constant in the expression
     /// </summary>
-    public sealed class Constant<T> : TerminalSymbol<T>, IEvaluable<T> where T : notnull, IConvertible 
+    public sealed class Constant<T> : TerminalSymbol<T>, IEvaluable<T> where T : notnull 
     {
         public Constant() : base("Constant", "A numeric constant symbol")
         {

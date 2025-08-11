@@ -11,7 +11,7 @@ namespace GeneticProgramming.Standalone.Expressions.Symbols;
 /// This symbol represents a node that can manage multiple outputs of the same type.
 /// </summary>
 /// <typeparam name="T">The base value type for each output (must be a struct)</typeparam>
-public class MultiOutputRootSymbol<T> : Symbol<IReadOnlyList<T>> where T : struct
+public class MultiOutputRootSymbol<T> : Symbol<IReadOnlyList<T>> where T : notnull
 {
     private readonly int _outputCount;
 

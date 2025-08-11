@@ -255,7 +255,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Mutates terminal nodes by changing their values
     /// </summary>
-    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull, IConvertible
+    public class ChangeTerminalMutator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeMutator<T> where T : notnull
     {
         private double _constantMutationRange = 1.0;
 
