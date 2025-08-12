@@ -153,7 +153,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="childValues">Not used for placeholder nodes.</param>
         /// <param name="variables">Variable context containing parameter values.</param>
         /// <returns>The parameter value from the variables dictionary.</returns>
-        public T Evaluate(T[] childValues, IDictionary<string, T> variables)
+        public override T Evaluate(T[] childValues, IDictionary<string, T> variables)
         {
             var paramKey = $"param_{ParameterIndex}";
             if (variables.TryGetValue(paramKey, out var value))

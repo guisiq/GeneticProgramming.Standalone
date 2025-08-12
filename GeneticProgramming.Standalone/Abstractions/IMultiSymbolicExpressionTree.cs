@@ -21,15 +21,6 @@ namespace GeneticProgramming.Abstractions
         /// <value>The number of output values produced by this tree</value>
         int OutputCount { get; }
         
-        /// <summary>
-        /// Gets the total length (number of nodes) in the tree
-        /// </summary>
-        int Length { get; }
-        
-        /// <summary>
-        /// Gets the depth of the tree
-        /// </summary>
-        int Depth { get; }
         
         /// <summary>
         /// Gets the output node at the specified index.
@@ -81,15 +72,6 @@ namespace GeneticProgramming.Abstractions
         /// </summary>
         /// <returns>A single-output tree that evaluates to IReadOnlyList&lt;T&gt;</returns>
         ISymbolicExpressionTree<T> ToSingleOutputView();
-        
-        /// <summary>
-        /// Gets a string representation of the tree structure for debugging
-        /// </summary>
-        string ToTreeString();
-        
-        /// <summary>
-        /// Gets a mathematical representation of all outputs as a string
-        /// </summary>
-        string ToMathString();
+
     }
 }

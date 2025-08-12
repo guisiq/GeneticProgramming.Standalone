@@ -455,7 +455,7 @@ namespace GeneticProgramming.Algorithms
             }
 
             // Default implementation - just return negative tree size (for parsimony)
-            return default; // Assuming T is a struct, this will return the default value for T
+            return default!; // Assuming T is a struct, this will return the default value for T
         }
 
         T AbstractionOptimization.IGeneticProgrammingAlgorithm<T>.EvaluateFitness(object individual)
@@ -631,7 +631,7 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
         {
             ISymbolicExpressionTree? best = null;
-            T bestFitness = default;
+            T bestFitness = default!;
 
             for (int i = 0; i < tournamentSize; i++)
             {
