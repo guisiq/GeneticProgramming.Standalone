@@ -9,42 +9,36 @@ namespace GeneticProgramming.Problems.Evaluators
 {
     /// <summary>
     /// Simple interpreter for evaluating symbolic expression trees.
-    /// Supports basic arithmetic operations, variables and constants.
+    /// Uses the dynamic Evaluate method implemented in tree nodes.
     /// </summary>
     public class ExpressionInterpreter
     {
+        /// <summary>
+        /// Avalia uma árvore de expressão simbólica usando o método dinâmico do nó raiz.
+        /// </summary>
+        /// <typeparam name="T">Tipo de valor que a árvore retorna</typeparam>
+        /// <param name="tree">Árvore a ser avaliada</param>
+        /// <param name="variables">Variáveis para avaliação</param>
+        /// <returns>Resultado da avaliação</returns>
         public T Evaluate<T>(ISymbolicExpressionTree<T> tree, IDictionary<string, T> variables) where T : notnull
         {
             if (tree == null) throw new ArgumentNullException(nameof(tree));
             if (variables == null) throw new ArgumentNullException(nameof(variables));
-            return EvaluateNode(tree.Root, variables);
+            
+            // Cada nó é responsável por avaliar seus próprios filhos recursivamente
+            // O método Evaluate do nó deve lidar com a avaliação completa da subárvore
+            return EvaluateNodeRecursively(tree.Root, variables);
         }
-
-        private T EvaluateNode<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> vars) where T : notnull
+        
+        private static T EvaluateNodeRecursively<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables) where T : notnull
         {
-            switch (node)
-            {
-                case ConstantTreeNode<T> c:
-                    return c.Value;
-                case VariableTreeNode<T> v:
-                    if (vars.TryGetValue(v.Symbol.Name, out T valBySymbol))
-                        return valBySymbol;
-                    if (vars.TryGetValue(v.VariableName, out T valByName))
-                        return valByName;
-                    throw new ArgumentException($"Variable '{v.Symbol.Name}' not provided.");
-                case SymbolicExpressionTreeNode<T> internalNode:
-                    if (internalNode.Symbol is IEvaluable<T> evaluableSymbol)
-                    {
-                        var childValues = internalNode.Subtrees
-                            .Select(child => EvaluateNode(child, vars))
-                            .ToArray();
-
-                        return evaluableSymbol.Evaluate(childValues, vars);
-                    }
-
-                    break;
-            }
-            throw new NotSupportedException($"Symbol '{node.Symbol.SymbolName}' not supported in interpreter.");
+            // Avalia recursivamente todos os filhos primeiro
+            var childValues = node.Subtrees
+                .Select(child => EvaluateNodeRecursively(child, variables))
+                .ToArray();
+                
+            // Depois avalia o nó atual com os valores dos filhos
+            return node.Evaluate(childValues, variables);
         }
     }
 }

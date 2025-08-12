@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GeneticProgramming.Core;
+using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Expressions
 {
@@ -283,9 +284,16 @@ namespace GeneticProgramming.Expressions
         {
             if (variables == null)
                 throw new ArgumentNullException(nameof(variables));
-            if (!variables.TryGetValue(variableName, out T value))
-                throw new KeyNotFoundException($"Variable '{variableName}' not found.");
-            return value;
+            
+            // Tenta encontrar a variável por diferentes nomes
+            if (variables.TryGetValue(variableName, out T value))
+                return value;
+            
+            // Tenta usar o nome do símbolo como fallback
+            if (Symbol is Variable<T> varSymbol && variables.TryGetValue(varSymbol.Name, out T symbolValue))
+                return symbolValue;
+            
+            throw new KeyNotFoundException($"Variable '{variableName}' not found.");
         }
     }
 }
