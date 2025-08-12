@@ -22,8 +22,25 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     /// Implementa ISymbolicExpressionTreeNode<IReadOnlyList<T>>.Evaluate.
     /// Avalia usando variáveis multi-output, convertendo para variáveis simples quando necessário.
     /// </summary>
-    /// <param name="arguments">Argumentos de entrada (não utilizado nesta implementação)</param>
+    /// <param name="ChildValues">Argumentos de entrada (não utilizado nesta implementação)</param>
     /// <param name="variables">Dicionário de variáveis multi-output</param>
+    public IReadOnlyList<T> Evaluate(T[] ChildValues, IDictionary<string, T> variables)
+    {
+        var results = new T[_outputCount];
+        for (int i = 0; i < _outputCount; i++)
+        {
+            var outputNode = _outputNodes[i];
+            if (outputNode != null)
+            {
+                results[i] = EvaluateNode(outputNode, variables);
+            }
+            else
+            {
+                results[i] = default(T)!;
+            }
+        }
+        return results;
+    }
     public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
     {
         // Converte variáveis multi-output para variáveis simples
@@ -36,21 +53,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
                     convertedVars[kvp.Key] = kvp.Value[0];
             }
         }
-
-        var results = new T[_outputCount];
-        for (int i = 0; i < _outputCount; i++)
-        {
-            var outputNode = _outputNodes[i];
-            if (outputNode != null)
-            {
-                results[i] = EvaluateNode(outputNode, convertedVars);
-            }
-            else
-            {
-                results[i] = default(T)!;
-            }
-        }
-        return results;
+        return Evaluate(Array.Empty<T>(), convertedVars);
     }
     /// <summary>
     /// Evaluates all outputs with the given variables using a simple interpreter.
@@ -211,15 +214,21 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
                 $"Output index must be between 0 and {_outputCount - 1}");
         }
     }
-
+    
     protected virtual T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
     {
-        if (node.Symbol is Constant<T> constantSymbol && node is ConstantTreeNode<T> constantNode)
+        // Avalia recursivamente os filhos do nó
+        var childValues = node.Subtrees
+            .Select(child => EvaluateNode(child, variables))
+            .ToArray();
+
+        // Verifica se o símbolo do nó implementa IEvaluable<T>
+        if (node.Symbol is IEvaluable<T> evaluableSymbol)
         {
-            return constantNode.Value;
+            return evaluableSymbol.Evaluate(childValues, variables);
         }
 
-        throw new NotSupportedException($"Unsupported node type: {node.Symbol.GetType().Name}");
+        throw new NotSupportedException($"Unsupported node type or symbol: {node.Symbol.GetType().Name}");
     }
 
     private IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix(ISymbolicExpressionTreeNode<T> node)

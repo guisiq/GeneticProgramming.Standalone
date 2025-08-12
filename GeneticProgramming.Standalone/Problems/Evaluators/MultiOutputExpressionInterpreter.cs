@@ -25,20 +25,15 @@ public class MultiOutputExpressionInterpreter
     public IReadOnlyList<T> Evaluate<T>(IMultiSymbolicExpressionTree<T> tree, IDictionary<string, T> variables) 
         where T : notnull
     {
-        if (tree == null)
-            throw new ArgumentNullException(nameof(tree));
-        if (variables == null)
-            throw new ArgumentNullException(nameof(variables));
+        if (tree == null && variables == null)
+            throw new ArgumentNullException("Tree and variables cannot be null.");
 
-        // Se a árvore tem um nó raiz que implementa IEvaluable, usa o método dinâmico
-        if (tree.Root is IEvaluable<IReadOnlyList<T>> evaluableRoot)
-        {
-            return evaluableRoot.Evaluate(Array.Empty<IReadOnlyList<T>>(), 
+
+            return tree.Root.Evaluate(Array.Empty<IReadOnlyList<T>>(), 
                 variables.ToDictionary(kvp => kvp.Key, kvp => new List<T> { kvp.Value } as IReadOnlyList<T>));
-        }
 
         // Fallback para avaliação manual (compatibilidade)
-        return EvaluateManually(tree, variables);
+       // return EvaluateManually(tree, variables);
     }
 
     /// <summary>
@@ -54,20 +49,12 @@ public class MultiOutputExpressionInterpreter
             var outputNode = tree.GetOutputNode(i);
             if (outputNode != null)
             {
-                // Tenta usar o método Evaluate do nó se disponível
-                if (outputNode is IEvaluable<T> evaluableNode)
-                {
-                    results[i] = evaluableNode.Evaluate(Array.Empty<T>(), variables);
-                }
-                else
-                {
-                    // Fallback para avaliação legada
-                    results[i] = EvaluateNodeLegacy(outputNode, variables);
-                }
+                results[i] = outputNode.Evaluate(Array.Empty<T>(), variables);
             }
             else
             {
                 results[i] = default(T)!;
+                throw new ArgumentException($"Output node at index {i} is null or not set.");
             }
         }
 

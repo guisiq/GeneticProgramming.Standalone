@@ -55,6 +55,8 @@ namespace GeneticProgramming.Expressions
     /// <typeparam name="T">The value type that the symbol operates on (must be non-null)</typeparam>
     public interface ISymbol<T> : ISymbol where T : notnull
     {
+        public long UniqueId { get; }
+
         /// <summary>
         /// Gets the types that this symbol accepts as input
         /// </summary>
