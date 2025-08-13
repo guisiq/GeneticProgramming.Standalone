@@ -196,7 +196,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                         if (bestIndividual != null)
                         {
                             // Add a breakpoint when efficiency exceeds 0.97
-                            if (e.BestFitness > 0.97)
+                            if (e.BestFitness > 0.80)
                             {
                                 Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
                                 algorithm.Stop();
@@ -221,7 +221,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 }
 
                 // Average accuracy across folds
-                var avgAccuracy = foldAccuracies.Last();
+                var avgAccuracy = foldAccuracies.Average();
                 classResults[targetClass] = avgAccuracy;
 
                 Assert.True(avgAccuracy >= 0.6, 
@@ -233,7 +233,6 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             Assert.True(overallAccuracy >= 0.7, 
                 $"Overall multi-class performance should be good: {overallAccuracy:F3}");
         }
-
         /// <summary>
         /// Regression pipeline with feature selection and model ensemble
         /// </summary>

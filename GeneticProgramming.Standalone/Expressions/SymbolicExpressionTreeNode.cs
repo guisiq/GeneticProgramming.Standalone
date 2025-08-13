@@ -209,18 +209,20 @@ namespace GeneticProgramming.Expressions
 
         #region Subtree Management
 
-        protected virtual void ValidateSubtreeArity(int currentCount, int operationDelta = 0)
+        protected virtual ArityViolationException ValidateSubtreeArity(int currentCount, int operationDelta = 0)
         {
             var futureCount = currentCount + operationDelta;
             
             // Always validate maximum arity to prevent exceeding capacity
             if (futureCount > Symbol.MaximumArity)
-                throw new MaximumArityExceededException(Symbol.SymbolName, currentCount, futureCount, Symbol.MaximumArity);
+                return new MaximumArityExceededException(Symbol.SymbolName, currentCount, futureCount, Symbol.MaximumArity);
                 
             // For minimum arity, only validate removal operations that would violate it
             // During construction (adding children), allow intermediate states below minimum arity
             if (operationDelta < 0 && futureCount < Symbol.MinimumArity)
-                throw new MinimumArityViolatedException(Symbol.SymbolName, currentCount, futureCount, Symbol.MinimumArity);
+                return new MinimumArityViolatedException(Symbol.SymbolName, currentCount, futureCount, Symbol.MinimumArity);
+
+            return null;
         }
 
         /// <summary>
@@ -271,39 +273,36 @@ namespace GeneticProgramming.Expressions
             if (subtrees == null)
                 subtrees = new List<ISymbolicExpressionTreeNode>(3);
             
-            try
-            {
-                // Validate arity constraints
-                ValidateSubtreeArity(subtrees.Count, 1);
-                
-                subtrees.Add(tree);
-                tree.Parent = this;
-                ResetCachedValues();
-            }
-            catch (MaximumArityExceededException ex)
-            {
-                HandleArityViolation(ex, tree);
-            }
+            HandleArityViolation(ValidateSubtreeArity(subtrees.Count, 1),tree);
+
         }
 
         /// <summary>
         /// Handles arity violations based on the configured strategy
         /// </summary>
-        protected virtual void HandleArityViolation(MaximumArityExceededException ex, ISymbolicExpressionTreeNode newTree)
+        protected virtual void HandleArityViolation(ArityViolationException? ex, ISymbolicExpressionTreeNode newTree)
         {
+            if (ex == null)
+            {
+                subtrees.Add(newTree);
+                newTree.Parent = this;
+                ResetCachedValues();
+                return;
+            }
             switch (ArityStrategy)
             {
+                //Todo verificar outros tipos de execao que nao sao o maximo
                 case ArityViolationStrategy.ThrowException:
                     throw ex; // Re-throw the original exception
-                    
+
                 case ArityViolationStrategy.ReplaceExistingChild:
                     HandleReplaceExistingChild(newTree);
                     break;
-                    
+
                 case ArityViolationStrategy.SkipAndContinue:
                     HandleSkipAndContinue(ex);
                     break;
-                    
+
                 case ArityViolationStrategy.ReplaceWithTerminal:
                     HandleReplaceWithTerminal(ex, newTree);
                     break;
@@ -340,7 +339,7 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Strategy: Skip adding the subtree and continue
         /// </summary>
-        protected virtual void HandleSkipAndContinue(MaximumArityExceededException ex)
+        protected virtual void HandleSkipAndContinue(ArityViolationException ex)
         {
             // Log the issue but continue without adding this child
             System.Diagnostics.Debug.WriteLine($"Skipped adding child to {ex.SymbolName}: {ex.Message}");
@@ -366,7 +365,7 @@ namespace GeneticProgramming.Expressions
         /// <summary>
         /// Strategy: Replace current node with a terminal (this would need to be handled at parent level)
         /// </summary>
-        protected virtual void HandleReplaceWithTerminal(MaximumArityExceededException ex, ISymbolicExpressionTreeNode newTree)
+        protected virtual void HandleReplaceWithTerminal(ArityViolationException ex, ISymbolicExpressionTreeNode newTree)
         {
             // This strategy would typically be handled at a higher level (tree creator)
             // For now, we'll log and fall back to skip
