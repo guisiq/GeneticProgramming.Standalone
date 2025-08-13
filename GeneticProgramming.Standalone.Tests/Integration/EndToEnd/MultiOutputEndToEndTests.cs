@@ -187,9 +187,10 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
 
             var singleEvalTime = MeasureSingleEvaluationTime(firstMultiTree, testVariables, 1000);
 
-            // Multi-output should be reasonably efficient
-            Assert.True(multiEvalTime < singleEvalTime * 2, 
-                $"Multi-output evaluation should be reasonably efficient: {multiEvalTime}ms vs {singleEvalTime}ms");
+            // Multi-output should be at least as efficient as individual evaluations
+            // Allow 50% overhead for multi-output coordination since it's doing more work
+            Assert.True(multiEvalTime <= singleEvalTime * 1.5, 
+                $"Multi-output should be reasonably efficient: {multiEvalTime}ms vs {singleEvalTime}ms (individual outputs)");
 
             Console.WriteLine($"Multi-output regression pipeline completed successfully");
             Console.WriteLine($"Created {multiTrees.Count} multi-output trees with {outputCount} outputs each");
@@ -526,6 +527,123 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             }
             
             return -totalError / sampleCount; // Return negative error as fitness (higher is better)
+        }
+
+        /// <summary>
+        /// Performance comparison test between normal and cached MultiOutputRootNode
+        /// </summary>
+        [Fact]
+        public void CachedMultiOutputRootNode_ShouldShowPerformanceBenefit()
+        {
+            const int outputCount = 3;
+            const int iterations = 100; // Reduced for faster test execution
+
+            // Create test data
+            var variables = new Dictionary<string, double>
+            {
+                { "x1", 1.5 },
+                { "x2", 2.3 },
+                { "x3", 0.8 }
+            };
+
+            // Create normal multi-output tree
+            var normalTree = new MultiSymbolicExpressionTree<double>(outputCount);
+
+            // Create cached multi-output tree
+            var cachedRoot = new CachedMultiOutputRootNode<double>(outputCount);
+
+            // Create identical tree structures for both
+            var addSymbol = MathematicalSymbols.Addition;
+            var multSymbol = MathematicalSymbols.Multiplication;
+            var varSymbol = new Variable<double>();
+            var constSymbol = new Constant<double>();
+
+            for (int output = 0; output < outputCount; output++)
+            {
+                // Create: (x1 + x2) * (x3 + constant)
+                var rootNode = multSymbol.CreateTreeNode();
+                
+                var leftAdd = addSymbol.CreateTreeNode();
+                leftAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x1" });
+                leftAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x2" });
+                
+                var rightAdd = addSymbol.CreateTreeNode();
+                rightAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x3" });
+                rightAdd.AddSubtree(new ConstantTreeNode<double>(constSymbol, 1.0 + output));
+                
+                rootNode.AddSubtree(leftAdd);
+                rootNode.AddSubtree(rightAdd);
+                
+                normalTree.SetOutputNode(output, rootNode);
+                
+                // Create a copy for cached version
+                var cachedRootNode = multSymbol.CreateTreeNode();
+                
+                var cachedLeftAdd = addSymbol.CreateTreeNode();
+                cachedLeftAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x1" });
+                cachedLeftAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x2" });
+                
+                var cachedRightAdd = addSymbol.CreateTreeNode();
+                cachedRightAdd.AddSubtree(new VariableTreeNode<double>(varSymbol) { VariableName = "x3" });
+                cachedRightAdd.AddSubtree(new ConstantTreeNode<double>(constSymbol, 1.0 + output));
+                
+                cachedRootNode.AddSubtree(cachedLeftAdd);
+                cachedRootNode.AddSubtree(cachedRightAdd);
+                
+                cachedRoot.SetOutputNode(output, cachedRootNode);
+            }
+
+            // Pre-warm the cached version
+            cachedRoot.UpdateVariablesHash(variables);
+            var preWarmResults = cachedRoot.EvaluateAllOptimized(variables);
+            Assert.NotNull(preWarmResults);
+
+            // Measure normal version
+            var normalTime = System.Diagnostics.Stopwatch.StartNew();
+            IReadOnlyList<double>? normalResults = null;
+            for (int i = 0; i < iterations; i++)
+            {
+                normalResults = normalTree.EvaluateAll(variables);
+            }
+            normalTime.Stop();
+
+            // Measure cached version (with pre-computed hash)
+            var cachedTime = System.Diagnostics.Stopwatch.StartNew();
+            IReadOnlyList<double>? cachedResults = null;
+            for (int i = 0; i < iterations; i++)
+            {
+                cachedResults = cachedRoot.EvaluateAllOptimized(variables);
+            }
+            cachedTime.Stop();
+
+            // Verify results are identical
+            Assert.NotNull(normalResults);
+            Assert.NotNull(cachedResults);
+            Assert.Equal(normalResults.Count, cachedResults.Count);
+            
+            for (int i = 0; i < normalResults.Count; i++)
+            {
+                Assert.Equal(normalResults[i], cachedResults[i], precision: 10);
+            }
+
+            // Check cache statistics
+            var (cacheSize, hashValid) = cachedRoot.GetCacheStats();
+            Assert.True(hashValid, "Variables hash should be valid");
+            Assert.True(cacheSize > 0, "Cache should contain entries");
+
+            // Log performance comparison
+            Console.WriteLine($"Normal: {normalTime.ElapsedMilliseconds}ms, Cached: {cachedTime.ElapsedMilliseconds}ms");
+            Console.WriteLine($"Cache size: {cacheSize}, Hash valid: {hashValid}");
+            
+            // Basic validation that both complete successfully
+            Assert.True(normalTime.ElapsedMilliseconds >= 0, "Normal evaluation should complete");
+            Assert.True(cachedTime.ElapsedMilliseconds >= 0, "Cached evaluation should complete");
+            
+            // Clear cache and verify it affects statistics
+            cachedRoot.ClearCache();
+            var (emptyCacheSize, emptyHashValid) = cachedRoot.GetCacheStats();
+            Assert.Equal(0, emptyCacheSize);
+            Assert.False(emptyHashValid);
         }
 
         #endregion

@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeneticProgramming.Expressions;
 using GeneticProgramming.Standalone.Abstractions;
-using GeneticProgramming.Standalone.Core;
 using GeneticProgramming.Standalone.Expressions.Symbols;
 using GeneticProgramming.Core;
-using GeneticProgramming.Expressions.Symbols;
 
 namespace GeneticProgramming.Standalone.Expressions;
 
@@ -19,73 +16,38 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
 
     where T : notnull
 {
-    // Cache de avaliação: chave = (symbolId, outputIndex, hash das variáveis)
-    private readonly Dictionary<(long, int, int), T> _evalCache = new();
-    /// <summary>
-    /// Implementa ISymbolicExpressionTreeNode<IReadOnlyList<T>>.Evaluate.
-    /// Avalia usando variáveis multi-output, convertendo para variáveis simples quando necessário.
-    /// </summary>
-    /// <param name="ChildValues">Argumentos de entrada (não utilizado nesta implementação)</param>
-    /// <param name="variables">Dicionário de variáveis multi-output</param>
-    public IReadOnlyList<T> Evaluate(T[] ChildValues, IDictionary<string, T> variables)
+    private readonly int _outputCount;
+    private readonly ISymbolicExpressionTreeNode<T>[] _outputNodes;
+    
+    public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
     {
+        // Avalia cada output individualmente
         var results = new T[_outputCount];
+        
         for (int i = 0; i < _outputCount; i++)
         {
-            var outputNode = _outputNodes[i];
-            if (outputNode != null)
+            if (_outputNodes[i] != null)
             {
-                var symbolId = outputNode.Symbol is ISymbol s ? s.GetHashCode() : outputNode.GetHashCode();
-                var varHash = ComputeVariablesHash(variables);
-                var cacheKey = (symbolId, i, varHash);
-                if (_evalCache.TryGetValue(cacheKey, out var cached))
+                // Converte variáveis multi-output para variáveis simples
+                var convertedVars = new Dictionary<string, T>();
+                if (variables != null)
                 {
-                    results[i] = cached;
+                    foreach (var kvp in variables)
+                    {
+                        if (kvp.Value != null && kvp.Value.Count > 0)
+                            convertedVars[kvp.Key] = kvp.Value[0];
+                    }
                 }
-                else
-                {
-                    var value = EvaluateNode(outputNode, variables);
-                    _evalCache[cacheKey] = value;
-                    results[i] = value;
-                }
+                
+                results[i] = EvaluateNode(_outputNodes[i], convertedVars);
             }
             else
             {
                 results[i] = default(T)!;
             }
         }
+        
         return results;
-
-    }
-
-    // Função utilitária para gerar um hash rápido das variáveis
-    private static int ComputeVariablesHash(IDictionary<string, T> variables)
-    {
-        unchecked
-        {
-            int hash = 17;
-            foreach (var kvp in variables.OrderBy(x => x.Key))
-            {
-                hash = hash * 23 + kvp.Key.GetHashCode();
-                hash = hash * 23 + (kvp.Value?.GetHashCode() ?? 0);
-            }
-            return hash;
-        }
-    }
-    
-    public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
-    {
-        // Converte variáveis multi-output para variáveis simples
-        var convertedVars = new Dictionary<string, T>();
-        if (variables != null)
-        {
-            foreach (var kvp in variables)
-            {
-                if (kvp.Value != null && kvp.Value.Count > 0)
-                    convertedVars[kvp.Key] = kvp.Value[0];
-            }
-        }
-        return Evaluate(Array.Empty<T>(), convertedVars);
     }
     /// <summary>
     /// Evaluates all outputs with the given variables using a simple interpreter.
@@ -97,8 +59,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     {
         return Evaluate(new IReadOnlyList<T>[0], variables);
     }
-    private readonly int _outputCount;
-    private readonly ISymbolicExpressionTreeNode<T>[] _outputNodes;
+    
     private ISymbolicExpressionTreeNode<IReadOnlyList<T>>? _parent;
 
     /// <summary>
@@ -296,3 +257,4 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     public void ResetLocalParameters(IRandom random) { }
     public void ShakeLocalParameters(IRandom random, double shakingFactor) { }
 }
+
