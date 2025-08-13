@@ -21,33 +21,18 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     
     public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
     {
-        // Avalia cada output individualmente
-        var results = new T[_outputCount];
+        // Convert multi-output variables to single-output variables explicitly
+        var convertedVars = variables?.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value != null && kvp.Value.Any() ? kvp.Value.First() : throw new InvalidOperationException($"Variable '{kvp.Key}' is empty.")
+        ) ?? new Dictionary<string, T>();
+
+        // Evaluate each output node individually using LINQ
         
-        for (int i = 0; i < _outputCount; i++)
-        {
-            if (_outputNodes[i] != null)
-            {
-                // Converte variáveis multi-output para variáveis simples
-                var convertedVars = new Dictionary<string, T>();
-                if (variables != null)
-                {
-                    foreach (var kvp in variables)
-                    {
-                        if (kvp.Value != null && kvp.Value.Count > 0)
-                            convertedVars[kvp.Key] = kvp.Value[0];
-                    }
-                }
-                
-                results[i] = EvaluateNode(_outputNodes[i], convertedVars);
-            }
-            else
-            {
-                results[i] = default(T)!;
-            }
-        }
-        
-        return results;
+        return _outputNodes
+  //            .AsParallel()
+            .Select(node => node != null ? EvaluateNode(node, convertedVars) : throw new InvalidOperationException("Output node is null."))
+            .ToArray();
     }
     /// <summary>
     /// Evaluates all outputs with the given variables using a simple interpreter.
@@ -55,10 +40,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     /// <param name="variables">Variable assignments for evaluation</param>
     /// <returns>List of evaluated values for each output</returns>
     /// <exception cref="ArgumentNullException">Thrown when variables is null</exception>
-    public IReadOnlyList<T> Evaluate(IDictionary<string, IReadOnlyList<T>> variables)
-    {
-        return Evaluate(new IReadOnlyList<T>[0], variables);
-    }
+    public IReadOnlyList<T> Evaluate(IDictionary<string, IReadOnlyList<T>> variables)=>  Evaluate(new IReadOnlyList<T>[0], variables);
     
     private ISymbolicExpressionTreeNode<IReadOnlyList<T>>? _parent;
 

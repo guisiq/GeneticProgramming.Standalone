@@ -50,8 +50,9 @@ namespace GeneticProgramming.Operators
         /// <summary>
         /// Initializes a new instance of the SubtreeMutator class
         /// </summary>
-        public SubtreeMutator() : base()
+        public SubtreeMutator(SymbolicExpressionTreeGrammar<T> grammar) : base()
         {
+            this.SymbolicExpressionTreeGrammar = grammar ?? throw new ArgumentNullException(nameof(grammar));
         }
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace GeneticProgramming.Operators
 
             // Create a new subtree using the grow method
             var creator = new GrowTreeCreator<T>();
-            creator.SymbolicExpressionTreeGrammar = SymbolicExpressionTreeGrammar;
+            creator.SymbolicExpressionTreeGrammar = SymbolicExpressionTreeGrammar;//TODO batPather informando gramatica e passando ela como atributo 
             var newSubtree = creator.CreateTree(random, SymbolicExpressionTreeGrammar, _maxTreeLength, _maxTreeDepth);
 
             // Replace the selected node

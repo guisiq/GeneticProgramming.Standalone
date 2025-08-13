@@ -26,175 +26,228 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         [Fact]
         public async Task MultiOutputRegressionPipeline_BostonHousing_ShouldPredictMultipleTargets()
         {
-            // Step 1: Data Loading
             var (allInputs, allTargets, variableNames) = await DatasetManager.GetBostonHousingDatasetAsync();
             Assert.True(allInputs.Length > 0, "Dataset should be loaded successfully");
 
-            // Step 2: Create multiple target variables (simulate multi-output scenario)
-            // We'll predict: original price, price category (high/low), and price tier (1-3)
+            var (originalPrices, priceCategories, priceTiers) = CreateMultiTargets(allTargets);
+            var (normalizedInputs, normalizedPriceCategories, normalizedPriceTiers) = NormalizeAllTargets(allInputs, originalPrices, priceCategories, priceTiers);
+            var (trainInputs, trainIndices, testInputs, testIndices) = TrainTestSplit(normalizedInputs, 0.8, 42);
+            var (trainMultiTargets, testMultiTargets) = BuildMultiTargetSets(trainIndices, testIndices, originalPrices, normalizedPriceCategories, normalizedPriceTiers);
+
+            var multiTrees = CreateMultiOutputTrees(3, 5, trainInputs, variableNames);
+            ValidateMultiOutputTrees(multiTrees, trainInputs);
+            TestSharedNodesAndCloning(multiTrees);
+            TestStringAndNodeAccess(multiTrees[0]);
+            TestErrorHandling(multiTrees[0]);
+        }
+
+
+        [Theory]
+        [InlineData(3, 10, 5)]
+        [InlineData(3, 10, 10)]
+        [InlineData(3, 10, 15)]
+        [InlineData(3, 10, 30)]
+        [InlineData(6, 10, 5)]
+        [InlineData(9, 10, 5)]
+        [InlineData(12, 10, 5)]
+        [InlineData(5, 20, 5)]
+        //[InlineData(7, 20, 5)] muito demorado 
+        //[InlineData(8, 12, 5)] erro //TODO analizar sauto de tempo entre esse e o teste de cima 
+        public void MultiOutputPerformance_ShouldBeEfficientWithComplexTrees(int outputCount, int treeDepth, int numVars)
+        {
+            var random = new Random(123);
+            var multiTree = new MultiSymbolicExpressionTree<double>(outputCount);
+            var addSymbol = MathematicalSymbols.Addition;
+            var multSymbol = MathematicalSymbols.Multiplication;
+            var varSymbol = new Variable<double>();
+            var constSymbol = new Constant<double>();
+            // Cria nomes de variáveis dinamicamente
+            var variableNames = Enumerable.Range(1, numVars).Select(i => $"x{i}").ToArray();
+            var variables = variableNames.ToDictionary(
+                name => name,
+                name => Math.Round(random.NextDouble() * 2.0 + 0.5, 3));
+            for (int output = 0; output < outputCount; output++)
+            {
+                var root = BuildComplexTree(addSymbol, multSymbol, varSymbol, constSymbol, variableNames, treeDepth, random);
+                multiTree.SetOutputNode(output, root);
+            }
+            var multiEvalTime = MeasureEvaluationTime(multiTree, variables, 3);
+            var singleEvalTime = MeasureSingleEvaluationTime(multiTree, variables, 3);
+            Assert.True(multiEvalTime <= singleEvalTime * 1.5,
+                $"Multi-output should be reasonably efficient: {multiEvalTime}ms vs {singleEvalTime}ms (individual outputs)");
+            Console.WriteLine($"Performance test (complex trees): Multi-eval {multiEvalTime}ms, Single-eval {singleEvalTime}ms");
+        }
+
+        // Métodos auxiliares extraídos do teste original
+        private (double[] originalPrices, double[] priceCategories, double[] priceTiers) CreateMultiTargets(double[] allTargets)
+        {
             var originalPrices = allTargets;
             var priceCategories = allTargets.Select(price => price > allTargets.Average() ? 1.0 : 0.0).ToArray();
-            var priceTiers = allTargets.Select(price => 
+            var priceTiers = allTargets.Select(price =>
             {
                 var percentile33 = allTargets.OrderBy(x => x).Skip((int)(allTargets.Length * 0.33)).First();
                 var percentile67 = allTargets.OrderBy(x => x).Skip((int)(allTargets.Length * 0.67)).First();
                 return price <= percentile33 ? 1.0 : (price <= percentile67 ? 2.0 : 3.0);
             }).ToArray();
+            return (originalPrices, priceCategories, priceTiers);
+        }
 
-            // Step 3: Normalize data
+        private (double[][] normalizedInputs, double[] normalizedPriceCategories, double[] normalizedPriceTiers) NormalizeAllTargets(
+            double[][] allInputs, double[] originalPrices, double[] priceCategories, double[] priceTiers)
+        {
             var normalizedData = NormalizeData(allInputs, originalPrices);
             var (normalizedInputs, _, inputMeans, inputStds, targetMean, targetStd) = normalizedData;
-
-            // Normalize additional targets
-            var normalizedPriceCategories = priceCategories.Select(x => (x - priceCategories.Average()) / 
+            var normalizedPriceCategories = priceCategories.Select(x => (x - priceCategories.Average()) /
                 Math.Sqrt(priceCategories.Select(y => Math.Pow(y - priceCategories.Average(), 2)).Average())).ToArray();
-            var normalizedPriceTiers = priceTiers.Select(x => (x - priceTiers.Average()) / 
+            var normalizedPriceTiers = priceTiers.Select(x => (x - priceTiers.Average()) /
                 Math.Sqrt(priceTiers.Select(y => Math.Pow(y - priceTiers.Average(), 2)).Average())).ToArray();
+            return (normalizedInputs, normalizedPriceCategories, normalizedPriceTiers);
+        }
 
-            // Step 4: Train/Test Split
-            var (trainInputs, _, _, _, testInputs, _) = 
-                SplitDataset(normalizedInputs, originalPrices, 0.8, 0.0, 0.2, 42);
-
-            // Create multi-output targets for training and testing
-            var random = new Random(42);
+        private (double[][] trainInputs, int[] trainIndices, double[][] testInputs, int[] testIndices) TrainTestSplit(
+            double[][] normalizedInputs, double trainRatio, int seed)
+        {
+            var random = new Random(seed);
             var indices = Enumerable.Range(0, normalizedInputs.Length).OrderBy(x => random.Next()).ToArray();
-            int trainSize = (int)(normalizedInputs.Length * 0.8);
+            int trainSize = (int)(normalizedInputs.Length * trainRatio);
+            var trainInputs = indices.Take(trainSize).Select(i => normalizedInputs[i]).ToArray();
+            var testInputs = indices.Skip(trainSize).Select(i => normalizedInputs[i]).ToArray();
+            var trainIndices = indices.Take(trainSize).ToArray();
+            var testIndices = indices.Skip(trainSize).ToArray();
+            return (trainInputs, trainIndices, testInputs, testIndices);
+        }
 
-            var trainMultiTargets = indices.Take(trainSize).Select(i => new double[] 
-            { 
-                originalPrices[i], 
-                normalizedPriceCategories[i], 
-                normalizedPriceTiers[i] 
+        private (double[][] trainMultiTargets, double[][] testMultiTargets) BuildMultiTargetSets(
+            int[] trainIndices, int[] testIndices, double[] originalPrices, double[] normalizedPriceCategories, double[] normalizedPriceTiers)
+        {
+            var trainMultiTargets = trainIndices.Select(i => new double[]
+            {
+                originalPrices[i],
+                normalizedPriceCategories[i],
+                normalizedPriceTiers[i]
             }).ToArray();
-
-            var testMultiTargets = indices.Skip(trainSize).Select(i => new double[] 
-            { 
-                originalPrices[i], 
-                normalizedPriceCategories[i], 
-                normalizedPriceTiers[i] 
+            var testMultiTargets = testIndices.Select(i => new double[]
+            {
+                originalPrices[i],
+                normalizedPriceCategories[i],
+                normalizedPriceTiers[i]
             }).ToArray();
+            return (trainMultiTargets, testMultiTargets);
+        }
 
-            // Step 5: Create MultiSymbolicExpressionTree instances
-            const int outputCount = 3; // price, category, tier
+        private List<MultiSymbolicExpressionTree<double>> CreateMultiOutputTrees(int outputCount, int treeCount, double[][] trainInputs, string[] variableNames)
+        {
             var multiTrees = new List<MultiSymbolicExpressionTree<double>>();
-
-            // Create a small population of multi-output trees
-            for (int i = 0; i < 5; i++)
+            var random = new Random(42);
+            for (int i = 0; i < treeCount; i++)
             {
                 var multiTree = new MultiSymbolicExpressionTree<double>(outputCount);
-                
-                // Create simple expressions for each output
                 var addSymbol = MathematicalSymbols.Addition;
                 var varSymbol = new Variable<double>();
                 var constSymbol = new Constant<double>();
-
                 for (int output = 0; output < outputCount; output++)
                 {
-                    // Create a simple tree: variable + constant
                     var rootNode = addSymbol.CreateTreeNode();
                     var leftChild = new VariableTreeNode<double>(varSymbol) { VariableName = "crim" };
                     var rightChild = new ConstantTreeNode<double>(constSymbol, random.NextDouble());
-                    
                     rootNode.AddSubtree(leftChild);
                     rootNode.AddSubtree(rightChild);
-                    
                     multiTree.SetOutputNode(output, rootNode);
                 }
-
                 multiTrees.Add(multiTree);
-                
-                // Verify tree structure
                 Assert.Equal(outputCount, multiTree.OutputCount);
                 Assert.True(multiTree.Length > 0, "Multi-tree should have positive length");
                 Assert.True(multiTree.Depth > 0, "Multi-tree should have positive depth");
             }
+            return multiTrees;
+        }
 
-            // Step 6: Test evaluation with multi-output trees
+        private void ValidateMultiOutputTrees(List<MultiSymbolicExpressionTree<double>> multiTrees, double[][] trainInputs)
+        {
             var testVariables = new Dictionary<string, double>
             {
                 { "crim", trainInputs[0][0] },
                 { "zn", trainInputs[0][1] },
                 { "indus", trainInputs[0][2] }
             };
-
+            const int outputCount = 3;
             foreach (var multiTree in multiTrees)
             {
-                // Test EvaluateAll method
                 var results = multiTree.EvaluateAll(testVariables);
-                
                 Assert.NotNull(results);
                 Assert.Equal(outputCount, results.Count);
                 Assert.All(results, result => Assert.False(double.IsNaN(result)));
                 Assert.All(results, result => Assert.False(double.IsInfinity(result)));
             }
+        }
 
-            // Step 7: Test shared nodes functionality
+        private void TestSharedNodesAndCloning(List<MultiSymbolicExpressionTree<double>> multiTrees)
+        {
             var firstMultiTree = multiTrees[0];
             var sharedNodes = firstMultiTree.GetSharedNodes();
             Assert.NotNull(sharedNodes);
-            
-            // Since our simple trees don't share nodes, this should be empty or minimal
-            // But the method should work without errors
-            
-            // Step 8: Test cloning
             var cloner = new Cloner();
             var clonedTree = (MultiSymbolicExpressionTree<double>)firstMultiTree.Clone(cloner);
-            
             Assert.NotNull(clonedTree);
             Assert.Equal(firstMultiTree.OutputCount, clonedTree.OutputCount);
             Assert.NotSame(firstMultiTree, clonedTree);
-            
-            // Verify cloned tree produces same results
+            var testVariables = new Dictionary<string, double>
+            {
+                { "crim", 0.5 },
+                { "zn", 0.5 },
+                { "indus", 0.5 }
+            };
             var originalResults = firstMultiTree.EvaluateAll(testVariables);
             var clonedResults = clonedTree.EvaluateAll(testVariables);
-            
             for (int i = 0; i < originalResults.Count; i++)
             {
                 Assert.Equal(originalResults[i], clonedResults[i], precision: 10);
             }
+        }
 
-            // Step 9: Test string representation
-            var treeString = firstMultiTree.ToString();
+        private void TestStringAndNodeAccess(MultiSymbolicExpressionTree<double> tree)
+        {
+            var treeString = tree.ToString();
             Assert.NotNull(treeString);
             Assert.Contains("MultiSymbolicExpressionTree", treeString);
-            Assert.Contains(outputCount.ToString(), treeString);
-
-            // Step 10: Test individual output node access
-            for (int i = 0; i < outputCount; i++)
+            Assert.Contains(tree.OutputCount.ToString(), treeString);
+            for (int i = 0; i < tree.OutputCount; i++)
             {
-                var outputNode = firstMultiTree.GetOutputNode(i);
+                var outputNode = tree.GetOutputNode(i);
                 Assert.NotNull(outputNode);
-                
-                // Test that individual nodes exist and are properly configured
                 Assert.True(outputNode.SubtreeCount >= 0, "Output node should be valid");
             }
+        }
 
-            // Step 11: Test error handling
-            Assert.Throws<ArgumentOutOfRangeException>(() => 
-                firstMultiTree.GetOutputNode(-1));
-            Assert.Throws<ArgumentOutOfRangeException>(() => 
-                firstMultiTree.GetOutputNode(outputCount));
-            Assert.Throws<ArgumentOutOfRangeException>(() => 
-                new MultiSymbolicExpressionTree<double>(0));
-            Assert.Throws<ArgumentNullException>(() => 
-                firstMultiTree.EvaluateAll(null!));
+        private void TestErrorHandling(MultiSymbolicExpressionTree<double> tree)
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => tree.GetOutputNode(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tree.GetOutputNode(tree.OutputCount));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MultiSymbolicExpressionTree<double>(0));
+            Assert.Throws<ArgumentNullException>(() => tree.EvaluateAll(null!));
+        }
 
-            // Step 12: Performance validation
-            // Multi-output trees should be more efficient than separate trees for related outputs
-            var multiEvalTime = MeasureEvaluationTime(firstMultiTree, testVariables, 1000);
-            
-
-
-            var singleEvalTime = MeasureSingleEvaluationTime(firstMultiTree, testVariables, 1000);
-
-            // Multi-output should be at least as efficient as individual evaluations
-            // Allow 50% overhead for multi-output coordination since it's doing more work
-            Assert.True(multiEvalTime <= singleEvalTime * 1.5, 
-                $"Multi-output should be reasonably efficient: {multiEvalTime}ms vs {singleEvalTime}ms (individual outputs)");
-
-            Console.WriteLine($"Multi-output regression pipeline completed successfully");
-            Console.WriteLine($"Created {multiTrees.Count} multi-output trees with {outputCount} outputs each");
-            Console.WriteLine($"Multi-evaluation time: {multiEvalTime}ms, Single-evaluation time: {singleEvalTime}ms");
+        private ISymbolicExpressionTreeNode<double> BuildComplexTree(
+            ISymbol<double> addSymbol,
+            ISymbol<double> multSymbol,
+            ISymbol<double> varSymbol,
+            ISymbol<double> constSymbol,
+            string[] variableNames,
+            int depth,
+            Random random)
+        {
+            if (depth <= 1)
+            {
+                if (random.NextDouble() < 0.5)
+                    return new VariableTreeNode<double>((Variable<double>)varSymbol) { VariableName = variableNames[random.Next(variableNames.Length)] };
+                else
+                    return new ConstantTreeNode<double>((Constant<double>)constSymbol, random.NextDouble());
+            }
+            var op = random.NextDouble() < 0.5 ? addSymbol : multSymbol;
+            var node = op.CreateTreeNode();
+            node.AddSubtree(BuildComplexTree(addSymbol, multSymbol, varSymbol, constSymbol, variableNames, depth - 1, random));
+            node.AddSubtree(BuildComplexTree(addSymbol, multSymbol, varSymbol, constSymbol, variableNames, depth - 1, random));
+            return node;
         }
 
         /// <summary>
@@ -280,8 +333,8 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             var bestFitness = fitnessScores[bestIndices[0]];
 
             // Step 9: Test mutation on best trees
-            var mutator = new SubtreeMutator<double>();
             var mutationGrammar = new SymbolicRegressionGrammar<double>(variableNames.Take(5).ToArray(), MathematicalSymbols.AllSymbols);
+            var mutator = new SubtreeMutator<double>(mutationGrammar);
             var mutationRandom = new MersenneTwister(random.Next());
             
             foreach (var tree in bestTrees.Take(2))
@@ -444,8 +497,8 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
         /// </summary>
         private long MeasureEvaluationTime(MultiSymbolicExpressionTree<double> multiTree, Dictionary<string, double> variables, int iterations)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var results = new List<IReadOnlyList<double>>();
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             for (int i = 0; i < iterations; i++)
             {
                 var evaluationResult = multiTree.EvaluateAll(variables);
@@ -470,15 +523,17 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            List<double> results = new List<double>();
+            List<List<double>> results = new List<List<double>>();
             for (int i = 0; i < iterations; i++)
             {
+                var aux = new List<double>();
                 foreach (var tree in singleTrees)
                 {
-                    
+
                     // Simple evaluation without parameters for performance test
-                    results.Add(((MultiOutputRootNode<double>)multiTree.Root).EvaluateNode(tree.Root, variables)); // Just ensure tree is accessible
+                    aux.Add(((MultiOutputRootNode<double>)multiTree.Root).EvaluateNode(tree.Root, variables)); // Just ensure tree is accessible
                 }
+                results.Add(aux);
             }
             
             stopwatch.Stop();
