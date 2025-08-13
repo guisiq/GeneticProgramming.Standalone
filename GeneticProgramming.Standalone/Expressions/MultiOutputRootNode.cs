@@ -247,7 +247,7 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
         }
     }
     
-    protected virtual T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
+    public virtual T EvaluateNode(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables)
     {
         // Avalia recursivamente os filhos do nó
         var childValues = node.Subtrees
