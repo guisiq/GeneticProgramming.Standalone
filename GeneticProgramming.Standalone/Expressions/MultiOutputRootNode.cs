@@ -16,8 +16,11 @@ namespace GeneticProgramming.Standalone.Expressions;
 /// </summary>
 /// <typeparam name="T">The base value type for each output (must be a struct)</typeparam>
 public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTreeNode<IReadOnlyList<T>>
+
     where T : notnull
 {
+    // Cache de avaliação: chave = (symbolId, outputIndex, hash das variáveis)
+    private readonly Dictionary<(long, int, int), T> _evalCache = new();
     /// <summary>
     /// Implementa ISymbolicExpressionTreeNode<IReadOnlyList<T>>.Evaluate.
     /// Avalia usando variáveis multi-output, convertendo para variáveis simples quando necessário.
@@ -32,7 +35,19 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
             var outputNode = _outputNodes[i];
             if (outputNode != null)
             {
-                results[i] = EvaluateNode(outputNode, variables);
+                var symbolId = outputNode.Symbol is ISymbol s ? s.GetHashCode() : outputNode.GetHashCode();
+                var varHash = ComputeVariablesHash(variables);
+                var cacheKey = (symbolId, i, varHash);
+                if (_evalCache.TryGetValue(cacheKey, out var cached))
+                {
+                    results[i] = cached;
+                }
+                else
+                {
+                    var value = EvaluateNode(outputNode, variables);
+                    _evalCache[cacheKey] = value;
+                    results[i] = value;
+                }
             }
             else
             {
@@ -40,7 +55,24 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
             }
         }
         return results;
+
     }
+
+    // Função utilitária para gerar um hash rápido das variáveis
+    private static int ComputeVariablesHash(IDictionary<string, T> variables)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var kvp in variables.OrderBy(x => x.Key))
+            {
+                hash = hash * 23 + kvp.Key.GetHashCode();
+                hash = hash * 23 + (kvp.Value?.GetHashCode() ?? 0);
+            }
+            return hash;
+        }
+    }
+    
     public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
     {
         // Converte variáveis multi-output para variáveis simples
