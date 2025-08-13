@@ -254,13 +254,8 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
             .Select(child => EvaluateNode(child, variables))
             .ToArray();
 
-        // Verifica se o símbolo do nó implementa IEvaluable<T>
-        if (node.Symbol is IEvaluable<T> evaluableSymbol)
-        {
-            return evaluableSymbol.Evaluate(childValues, variables);
-        }
-
-        throw new NotSupportedException($"Unsupported node type or symbol: {node.Symbol.GetType().Name}");
+        // Usa o método Evaluate do próprio nó que implementa IEvaluable<T>
+        return node.Evaluate(childValues, variables);
     }
 
     private IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix(ISymbolicExpressionTreeNode<T> node)
