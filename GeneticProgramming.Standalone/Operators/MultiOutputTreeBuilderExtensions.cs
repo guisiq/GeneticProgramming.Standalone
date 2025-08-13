@@ -48,6 +48,7 @@ namespace GeneticProgramming.Operators
             if (random == null)
                 random = new Random();
 
+            var functionalSymbols = symbols.Where(s => s is FunctionalSymbol<T>).ToList();
             switch (creationMode)
             {
                 case TreeCreationMode.Random:
@@ -56,10 +57,22 @@ namespace GeneticProgramming.Operators
                     break;
                 case TreeCreationMode.SharedBase:
                     var sharedBase = CreateRandomTreeNode(symbols, variableNames, treeDepth - 1, treeLength / 2, random);
+                    // busca todos os sybolos funcionais
                     for (int i = 0; i < tree.OutputCount; i++)
                     {
                         var specialized = CreateRandomTreeNode(symbols, variableNames, 2, treeLength / 2, random);
-                        var compositeSymbol = (ISymbol<T>)Activator.CreateInstance(typeof(CompositeSymbol<T>), true)!;
+                        // Cria um CompositeSymbol com aridade 2 e um builder trivial (apenas conecta os filhos)
+                        // pega uma funcao aleatoria
+                        var randomFunctionalSymbol = functionalSymbols[random.Next(functionalSymbols.Count)];
+                        var compositeSymbol = GeneticProgramming.Expressions.SymbolFactory<T>.CreateComposite(
+                            "Composite", "Composite symbol for multi-output trees", 2,
+                            placeholders =>
+                            {
+                                var node = randomFunctionalSymbol.CreateTreeNode(); // Placeholder, será substituído
+                                node.AddSubtree(placeholders[0]);
+                                node.AddSubtree(placeholders[1]);
+                                return node;
+                            });
                         var root = compositeSymbol.CreateTreeNode();
                         root.AddSubtree(sharedBase);
                         root.AddSubtree(specialized);
@@ -73,7 +86,15 @@ namespace GeneticProgramming.Operators
                         var node = CreateRandomTreeNode(symbols, variableNames, treeDepth, treeLength, random);
                         if (prev != null)
                         {
-                            var compositeSymbol = (ISymbol<T>)Activator.CreateInstance(typeof(CompositeSymbol<T>), true)!;
+                            var randomFunctionalSymbol = functionalSymbols[random.Next(functionalSymbols.Count)];
+                            var compositeSymbol = GeneticProgramming.Expressions.SymbolFactory<T>.CreateComposite(
+                                "Composite", "Composite symbol for multi-output trees", 2,
+                                placeholders => {
+                                    var n = randomFunctionalSymbol.CreateTreeNode(); // Placeholder, será substituído
+                                    n.AddSubtree(placeholders[0]);
+                                    n.AddSubtree(placeholders[1]);
+                                    return n;
+                                });
                             var composite = compositeSymbol.CreateTreeNode();
                             composite.AddSubtree(prev);
                             composite.AddSubtree(node);
