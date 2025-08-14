@@ -11,7 +11,7 @@ namespace GeneticProgramming.Expressions
     /// the ability for genetic operators to mutate and crossover within the generated subtree.
     /// </summary>
     /// <typeparam name="T">The data type this symbol operates on.</typeparam>
-    public class CompositeSymbol<T> : Symbol<T> where T : struct
+    public class CompositeSymbol<T> : Symbol<T> where T : notnull
     
     {
         /// <summary>
@@ -116,7 +116,7 @@ namespace GeneticProgramming.Expressions
     /// These nodes will be replaced with actual child nodes during tree building.
     /// </summary>
     /// <typeparam name="T">The data type this node operates on.</typeparam>
-    internal class ParameterPlaceholderNode<T> : SymbolicExpressionTreeNode<T>, IEvaluable<T> where T : struct
+    internal class ParameterPlaceholderNode<T> : SymbolicExpressionTreeNode<T>, IEvaluable<T> where T : notnull
     {
         /// <summary>
         /// The parameter index this placeholder represents.
@@ -153,7 +153,7 @@ namespace GeneticProgramming.Expressions
         /// <param name="childValues">Not used for placeholder nodes.</param>
         /// <param name="variables">Variable context containing parameter values.</param>
         /// <returns>The parameter value from the variables dictionary.</returns>
-        public T Evaluate(T[] childValues, IDictionary<string, T> variables)
+        public override T Evaluate(T[] childValues, IDictionary<string, T> variables)
         {
             var paramKey = $"param_{ParameterIndex}";
             if (variables.TryGetValue(paramKey, out var value))
@@ -168,7 +168,7 @@ namespace GeneticProgramming.Expressions
     /// Symbol representing a parameter placeholder in composite symbol subtrees.
     /// </summary>
     /// <typeparam name="T">The data type this symbol operates on.</typeparam>
-    internal class ParameterPlaceholderSymbol<T> : Symbol<T> where T : struct
+    internal class ParameterPlaceholderSymbol<T> : Symbol<T> where T : notnull
     {
         /// <summary>
         /// The parameter index this symbol represents.

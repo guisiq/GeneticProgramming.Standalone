@@ -7,7 +7,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Base class for terminal symbols (symbols with no children)
     /// </summary>
-    public abstract class TerminalSymbol<T> : Symbol<T> where T : struct, IConvertible
+    public abstract class TerminalSymbol<T> : Symbol<T> where T : notnull
     {
         public override int MinimumArity => 0;
         public override int MaximumArity => 0;
@@ -42,7 +42,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a variable in the expression
     /// </summary>
-    public sealed class Variable<T> : TerminalSymbol<T>, IEvaluable<T> where T : struct , IConvertible
+    public sealed class Variable<T> : TerminalSymbol<T>, IEvaluable<T> where T : notnull 
     {
         public Variable() : base("Variable", "A variable symbol")
         {
@@ -89,7 +89,7 @@ namespace GeneticProgramming.Expressions.Symbols
     /// <summary>
     /// Symbol representing a numeric constant in the expression
     /// </summary>
-    public sealed class Constant<T> : TerminalSymbol<T>, IEvaluable<T> where T : struct, IConvertible 
+    public sealed class Constant<T> : TerminalSymbol<T> where T : notnull 
     {
         public Constant() : base("Constant", "A numeric constant symbol")
         {
@@ -111,11 +111,6 @@ namespace GeneticProgramming.Expressions.Symbols
         /// <param name="childValues">Not used for terminal symbols.</param>
         /// <param name="variables">Not used for constants.</param>
         /// <returns>Default value (should not be called directly).</returns>
-        public T Evaluate(T[] childValues, IDictionary<string, T> variables)
-        {
-
-            throw new InvalidOperationException("Constant evaluation should be handled by ConstantTreeNode.");
-        }
 
         public override ISymbolicExpressionTreeNode<T> CreateTreeNode()
         {

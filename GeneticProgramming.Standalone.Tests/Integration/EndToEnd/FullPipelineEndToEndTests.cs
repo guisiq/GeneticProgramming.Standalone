@@ -59,7 +59,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 Grammar = grammar,
                 TreeCreator = bestConfig.TreeCreator,
                 Crossover = bestConfig.Crossover,
-                Mutator = new SubtreeMutator<double>(),
+                Mutator = new SubtreeMutator<double>(grammar),
                 Selector = new TournamentSelector(),
                 Random = new MersenneTwister(42),
                 PopulationSize = bestConfig.PopulationSize,
@@ -73,6 +73,13 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             {
                 var valFitness = valEvaluator.Evaluate(e.BestIndividual);
                 trainingHistory.Add((e.Generation, e.BestFitness, valFitness));
+
+                // Add a breakpoint when efficiency exceeds 0.97
+                if (e.BestFitness > 0.97)
+                {
+                    Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                    finalAlgorithm.Stop();
+                }
             };
 
             finalAlgorithm.GenerationCompleted += (s, e) =>
@@ -175,7 +182,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                         Grammar = grammar,
                         TreeCreator = new GrowTreeCreator<double>(),
                         Crossover = new SubtreeCrossover<double>(),
-                        Mutator = new SubtreeMutator<double>(),
+                        Mutator = new SubtreeMutator<double>(grammar),
                         Selector = new TournamentSelector(),
                         Random = new MersenneTwister(42 + fold),
                         PopulationSize = 100,  // Increased from 30
@@ -188,6 +195,12 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                         var bestIndividual = e.BestIndividual;
                         if (bestIndividual != null)
                         {
+                            // Add a breakpoint when efficiency exceeds 0.97
+                            if (e.BestFitness > 0.80)
+                            {
+                                Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                                algorithm.Stop();
+                            }
 
                             Console.WriteLine($"Generation {e.Generation}: {bestIndividual.ToMathString()}");
                             
@@ -208,7 +221,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 }
 
                 // Average accuracy across folds
-                var avgAccuracy = foldAccuracies.Last();
+                var avgAccuracy = foldAccuracies.Average();
                 classResults[targetClass] = avgAccuracy;
 
                 Assert.True(avgAccuracy >= 0.6, 
@@ -220,7 +233,6 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
             Assert.True(overallAccuracy >= 0.7, 
                 $"Overall multi-class performance should be good: {overallAccuracy:F3}");
         }
-
         /// <summary>
         /// Regression pipeline with feature selection and model ensemble
         /// </summary>
@@ -262,7 +274,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                     Grammar = grammar,
                     TreeCreator = new GrowTreeCreator<double>(),
                     Crossover = new SubtreeCrossover<double>(),
-                    Mutator = new SubtreeMutator<double>(),
+                    Mutator = new SubtreeMutator<double>(grammar),
                     Selector = new TournamentSelector(),
                     Random = new MersenneTwister(123),
                     PopulationSize = 25,
@@ -271,6 +283,15 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                 };
 
                 algorithm.Run();
+                algorithm.GenerationCompleted += (s, e) =>
+                {
+                    // Add a breakpoint when efficiency exceeds 0.97
+                    if (e.BestFitness > 0.97)
+                    {
+                        Console.WriteLine($"Stopping early at generation {e.Generation} with efficiency {e.BestFitness:F3}");
+                        algorithm.Stop();
+                    }
+                };
 
                 // Evaluate on test set
                 var testEvaluator = new RegressionFitnessEvaluator(testInputs, testTargets, selectedVariableNames);
@@ -378,7 +399,7 @@ namespace GeneticProgramming.Standalone.Tests.Integration.EndToEnd
                     Grammar = grammar,
                     TreeCreator = config.TreeCreator,
                     Crossover = config.Crossover,
-                    Mutator = new SubtreeMutator<double>(),
+                    Mutator = new SubtreeMutator<double>(grammar),
                     Selector = new TournamentSelector(),
                     Random = new MersenneTwister(42),
                     PopulationSize = config.PopSize,

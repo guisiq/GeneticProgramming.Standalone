@@ -52,9 +52,11 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Generic interface for symbols that represent operations or values in symbolic expression trees
     /// </summary>
-    /// <typeparam name="T">The value type that the symbol operates on (must be a struct)</typeparam>
-    public interface ISymbol<T> : ISymbol where T : struct
+    /// <typeparam name="T">The value type that the symbol operates on (must be non-null)</typeparam>
+    public interface ISymbol<T> : ISymbol where T : notnull
     {
+        public long UniqueId { get; }
+
         /// <summary>
         /// Gets the types that this symbol accepts as input
         /// </summary>

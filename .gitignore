@@ -5,3 +5,6 @@ bin/
 bin
 bin/*
 .vs/
+.github/
+
+docs/

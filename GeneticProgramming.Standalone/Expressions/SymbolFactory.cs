@@ -9,7 +9,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Factory for creating reusable functional symbols of type T.
     /// </summary>
-    public static class SymbolFactory<T> where T : struct
+    public static class SymbolFactory<T> where T : notnull
     {
         private static readonly Dictionary<string, FunctionalSymbol<T>> _cache = new();
 
@@ -47,7 +47,7 @@ namespace GeneticProgramming.Expressions
                 {
                     // Be more defensive - return default value instead of throwing
                     if (args.Length == 0)
-                        return default(T);
+                        return default!;
                     if (args.Length == 1)
                         return args[0];
                     // If more than 2 args, use first two

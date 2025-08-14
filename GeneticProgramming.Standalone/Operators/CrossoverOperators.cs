@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Performs subtree crossover between two symbolic expression trees
     /// </summary>
-    public class SubtreeCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
+    public class SubtreeCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : notnull
     {
         private double _internalNodeProbability = 0.9;
 
@@ -154,7 +154,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Performs one-point crossover at the same depth level
     /// </summary>
-    public class OnePointCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : struct
+    public class OnePointCrossover<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCrossover<T> where T : notnull
     {
         /// <summary>
         /// Initializes a new instance of the OnePointCrossover class

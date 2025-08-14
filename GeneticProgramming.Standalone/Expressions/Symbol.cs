@@ -7,8 +7,17 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Base class for all symbols in symbolic expression trees
     /// </summary>
-    public abstract class Symbol<T> : Item, ISymbol<T> where T : struct
+    public abstract class Symbol<T> : Item, ISymbol<T> where T : notnull
     {
+        private static long _nextUniqueId = 1;
+        private long? _uniqueId ;
+        public long UniqueId {
+            get
+            {
+                return _uniqueId ??= _nextUniqueId++;
+            }
+            private set { _uniqueId = value; }
+        }
         private double initialFrequency = 1.0;
         private double weight = 1.0;
         private bool enabled = true;

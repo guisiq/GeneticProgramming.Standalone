@@ -6,7 +6,7 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Symbol that executes a provided delegate when evaluated, operating on generic type T.
     /// </summary>
-    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T> where T : struct
+    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T> where T : notnull
     {
         /// <summary>
         /// Delegate representing the operation of this symbol.

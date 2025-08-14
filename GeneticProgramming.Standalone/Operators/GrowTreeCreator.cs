@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Creates random symbolic expression trees using the grow method
     /// </summary>
-    public class GrowTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : struct
+    public class GrowTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : notnull
     {
         /// <summary>
         /// Initializes a new instance of the GrowTreeCreator class

@@ -42,97 +42,101 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Generic interface for symbolic expression tree nodes
     /// </summary>
-    /// <typeparam name="T">The value type that the node evaluates to (must be a struct)</typeparam>
-    public interface ISymbolicExpressionTreeNode<T> : ISymbolicExpressionTreeNode where T : struct
+    /// <typeparam name="T">The value type that the node evaluates to (must be non-null)</typeparam>
+    public interface ISymbolicExpressionTreeNode<T> : ISymbolicExpressionTreeNode, IEvaluable<T> where T : notnull
     {
         new ISymbolicExpressionTreeGrammar<T>? Grammar { get; }
+        new ISymbolicExpressionTreeNode<T>? Parent { get; set; }
+        new ISymbol<T> Symbol { get; }
+        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesBreadth();
+        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix();
+        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPrefix();
+        new IEnumerable<ISymbolicExpressionTreeNode<T>> Subtrees { get; }
+        new ISymbolicExpressionTreeNode<T> GetSubtree(int index);
+
+        void ForEachNodePostfix(Action<ISymbolicExpressionTreeNode<T>> action);
+        void ForEachNodePrefix(Action<ISymbolicExpressionTreeNode<T>> action);
+        int IndexOfSubtree(ISymbolicExpressionTreeNode<T> tree);
+        void AddSubtree(ISymbolicExpressionTreeNode<T> tree);
+        void InsertSubtree(int index, ISymbolicExpressionTreeNode<T> tree);
+        void ReplaceSubtree(int index, ISymbolicExpressionTreeNode<T> tree);
+        void ReplaceSubtree(ISymbolicExpressionTreeNode<T> original, ISymbolicExpressionTreeNode<T> replacement);
+
+        T Evaluate(T[] childValues, IDictionary<string, T> variables);
+
         ISymbolicExpressionTreeGrammar? ISymbolicExpressionTreeNode.Grammar
         {
             get { return Grammar; }
         }
         
-        new ISymbolicExpressionTreeNode<T>? Parent { get; set; }
         ISymbolicExpressionTreeNode? ISymbolicExpressionTreeNode.Parent
         {
             get { return Parent; }
             set { Parent = (ISymbolicExpressionTreeNode<T>?)value; }
         }
         
-        new ISymbol<T> Symbol { get; }
         ISymbol ISymbolicExpressionTreeNode.Symbol
         {
             get { return Symbol; }
         }
 
-        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesBreadth();
         IEnumerable<ISymbolicExpressionTreeNode> ISymbolicExpressionTreeNode.IterateNodesBreadth()
         {
             return IterateNodesBreadth().Cast<ISymbolicExpressionTreeNode>();
         }
         
-        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPostfix();
         IEnumerable<ISymbolicExpressionTreeNode> ISymbolicExpressionTreeNode.IterateNodesPostfix()
         {
             return IterateNodesPostfix().Cast<ISymbolicExpressionTreeNode>();
         }
         
-        new IEnumerable<ISymbolicExpressionTreeNode<T>> IterateNodesPrefix();
         IEnumerable<ISymbolicExpressionTreeNode> ISymbolicExpressionTreeNode.IterateNodesPrefix()
         {
             return IterateNodesPrefix().Cast<ISymbolicExpressionTreeNode>();
         }
-        void ForEachNodePostfix(Action<ISymbolicExpressionTreeNode<T>> action);
         void ISymbolicExpressionTreeNode.ForEachNodePostfix(Action<ISymbolicExpressionTreeNode> action)
         {
             ForEachNodePostfix(n => action(n));
         }
-        void ForEachNodePrefix(Action<ISymbolicExpressionTreeNode<T>> action);
         void ISymbolicExpressionTreeNode.ForEachNodePrefix(Action<ISymbolicExpressionTreeNode> action)
         {
             ForEachNodePrefix(n => action(n));
         }
 
-        new IEnumerable<ISymbolicExpressionTreeNode<T>> Subtrees { get; }
         IEnumerable<ISymbolicExpressionTreeNode> ISymbolicExpressionTreeNode.Subtrees
         {
             get { return Subtrees.Cast<ISymbolicExpressionTreeNode>(); }
         }
         
-        new ISymbolicExpressionTreeNode<T> GetSubtree(int index);
         ISymbolicExpressionTreeNode ISymbolicExpressionTreeNode.GetSubtree(int index)
         {
             return GetSubtree(index);
         }
         
-        int IndexOfSubtree(ISymbolicExpressionTreeNode<T> tree);
         int ISymbolicExpressionTreeNode.IndexOfSubtree(ISymbolicExpressionTreeNode tree)
         {
             if (tree is not ISymbolicExpressionTreeNode<T> genericTree)
                 return -1;
             return IndexOfSubtree(genericTree);
         }
-        void AddSubtree(ISymbolicExpressionTreeNode<T> tree);
         void ISymbolicExpressionTreeNode.AddSubtree(ISymbolicExpressionTreeNode tree)
         {
             if (tree is not ISymbolicExpressionTreeNode<T> genericTree)
                 throw new ArgumentException("Tree is not of the correct generic type", nameof(tree));
             AddSubtree(genericTree);
         }
-        void InsertSubtree(int index, ISymbolicExpressionTreeNode<T> tree);
         void ISymbolicExpressionTreeNode.InsertSubtree(int index, ISymbolicExpressionTreeNode tree)
         {
             if (tree is not ISymbolicExpressionTreeNode<T> genericTree)
                 throw new ArgumentException("Tree is not of the correct generic type", nameof(tree));
             InsertSubtree(index, genericTree);
         }
-        void ReplaceSubtree(int index, ISymbolicExpressionTreeNode<T> tree);
         void ISymbolicExpressionTreeNode.ReplaceSubtree(int index, ISymbolicExpressionTreeNode tree)
         {
             if (tree is not ISymbolicExpressionTreeNode<T> genericTree)
                 throw new ArgumentException("Tree is not of the correct generic type", nameof(tree));
             ReplaceSubtree(index, genericTree);
         }
-        void ReplaceSubtree(ISymbolicExpressionTreeNode<T> original, ISymbolicExpressionTreeNode<T> replacement);
         void ISymbolicExpressionTreeNode.ReplaceSubtree(ISymbolicExpressionTreeNode original, ISymbolicExpressionTreeNode replacement)
         {
             if (original is not ISymbolicExpressionTreeNode<T> genericOriginal || replacement is not ISymbolicExpressionTreeNode<T> genericReplacement)
@@ -175,8 +179,8 @@ namespace GeneticProgramming.Expressions
     /// <summary>
     /// Generic interface for symbolic expression trees
     /// </summary>
-    /// <typeparam name="T">The value type that the tree evaluates to (must be a struct)</typeparam>
-    public interface ISymbolicExpressionTree<T> : ISymbolicExpressionTree where T : struct
+    /// <typeparam name="T">The value type that the tree evaluates to (must be non-null)</typeparam>
+    public interface ISymbolicExpressionTree<T> : ISymbolicExpressionTree where T : notnull
     {
         new ISymbolicExpressionTreeNode<T> Root { get; set; }
         ISymbolicExpressionTreeNode ISymbolicExpressionTree.Root

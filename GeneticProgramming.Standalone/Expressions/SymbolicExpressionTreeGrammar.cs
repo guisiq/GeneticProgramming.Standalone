@@ -11,7 +11,7 @@ namespace GeneticProgramming.Expressions
     /// Base implementation of a symbolic expression tree grammar.
     /// </summary>
     [Serializable]
-    public class SymbolicExpressionTreeGrammar<T> : Core.Item, ISymbolicExpressionTreeGrammar<T> where T : struct
+    public class SymbolicExpressionTreeGrammar<T> : Core.Item, ISymbolicExpressionTreeGrammar<T> where T : notnull
     {
         private readonly Dictionary<ISymbol<T>, ReadOnlyCollection<ISymbol<T>>> _allowedChildSymbols;
         private readonly Dictionary<string, ISymbol<T>> _symbolsByName;

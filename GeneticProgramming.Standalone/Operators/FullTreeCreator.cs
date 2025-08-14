@@ -9,7 +9,7 @@ namespace GeneticProgramming.Operators
     /// <summary>
     /// Creates random symbolic expression trees using the full method
     /// </summary>
-    public class FullTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : struct
+    public class FullTreeCreator<T> : SymbolicExpressionTreeOperator<T>, ISymbolicExpressionTreeCreator<T> where T : notnull
     {
         /// <summary>
         /// Initializes a new instance of the FullTreeCreator class

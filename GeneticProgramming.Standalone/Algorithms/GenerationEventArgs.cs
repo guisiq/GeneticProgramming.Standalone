@@ -6,7 +6,7 @@ namespace GeneticProgramming.Algorithms
     /// <summary>
     /// Event arguments for generation completed events
     /// </summary>
-    public class GenerationEventArgs<T> : EventArgs where T : struct
+    public class GenerationEventArgs<T> : EventArgs where T : notnull
     {
         /// <summary>
         /// Gets the generation number
