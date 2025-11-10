@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using GeneticProgramming.Expressions;
+using GeneticProgramming.Expressions.Compilation;
 using GeneticProgramming.Standalone.Performance;
 
 namespace GeneticProgramming.Problems.Evaluators
@@ -16,6 +17,7 @@ namespace GeneticProgramming.Problems.Evaluators
         private readonly double[][] _inputs;
         private readonly double[] _targets;
         private readonly ExpressionInterpreter _interpreter = new();
+    private readonly TreeCompiler<double> _treeCompiler = new();
         private readonly string[] _variableNames;
         
         // Controlar paralelização
@@ -103,6 +105,7 @@ namespace GeneticProgramming.Problems.Evaluators
         {
             double mse = 0.0;
             var vars = ObjectPools.RentDictionary();
+            var compiled = GetCompiledEvaluator(tree);
             
             try
             {
@@ -111,8 +114,8 @@ namespace GeneticProgramming.Problems.Evaluators
                     vars.Clear();
                     for (int j = 0; j < _variableNames.Length; j++)
                         vars[_variableNames[j]] = _inputs[i][j];
-                        
-                    double prediction = _interpreter.Evaluate(tree, vars);
+                    
+                    double prediction = compiled(vars);
                     double error = prediction - _targets[i];
                     mse += error * error;
                 }
@@ -134,6 +137,7 @@ namespace GeneticProgramming.Problems.Evaluators
         {
             // Array para armazenar erros de cada amostra
             var errors = new double[_inputs.Length];
+            var compiled = GetCompiledEvaluator(tree);
             
             // Processar amostras em paralelo
             Parallel.For(0, _inputs.Length, i =>
@@ -143,8 +147,8 @@ namespace GeneticProgramming.Problems.Evaluators
                 {
                     for (int j = 0; j < _variableNames.Length; j++)
                         vars[_variableNames[j]] = _inputs[i][j];
-                        
-                    double prediction = _interpreter.Evaluate(tree, vars);
+                    
+                    double prediction = compiled(vars);
                     errors[i] = prediction - _targets[i];
                 }
                 finally
@@ -162,6 +166,18 @@ namespace GeneticProgramming.Problems.Evaluators
             
             double mse = sumSquaredErrors / _inputs.Length;
             return -mse;
+        }
+
+        private Func<IDictionary<string, double>, double> GetCompiledEvaluator(ISymbolicExpressionTree<double> tree)
+        {
+            try
+            {
+                return _treeCompiler.Compile(tree);
+            }
+            catch
+            {
+                return vars => _interpreter.Evaluate(tree, vars);
+            }
         }
     }
 }

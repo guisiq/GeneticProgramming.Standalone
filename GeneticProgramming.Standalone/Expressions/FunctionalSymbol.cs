@@ -1,12 +1,14 @@
 using System;
+using System.Linq.Expressions;
 using GeneticProgramming.Core;
+using GeneticProgramming.Expressions.Abstractions;
 
 namespace GeneticProgramming.Expressions
 {
     /// <summary>
     /// Symbol that executes a provided delegate when evaluated, operating on generic type T.
     /// </summary>
-    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T> where T : notnull
+    public class FunctionalSymbol<T> : Symbol<T>, IEvaluable<T>, ICompilableSymbol<T> where T : notnull
     {
         /// <summary>
         /// Delegate representing the operation of this symbol.
@@ -128,6 +130,24 @@ namespace GeneticProgramming.Expressions
         public T Evaluate(T[] childValues, System.Collections.Generic.IDictionary<string, T> variables)
         {
             return Operation(childValues);
+        }
+
+        /// <inheritdoc />
+        public Expression BuildExpression(Expression[] childExpressions, ParameterExpression variablesParameter)
+        {
+            if (childExpressions == null)
+                throw new ArgumentNullException(nameof(childExpressions));
+
+            var normalizedChildren = new Expression[childExpressions.Length];
+            for (int i = 0; i < childExpressions.Length; i++)
+            {
+                var expr = childExpressions[i];
+                normalizedChildren[i] = expr.Type == typeof(T) ? expr : Expression.Convert(expr, typeof(T));
+            }
+
+            var argsArray = Expression.NewArrayInit(typeof(T), normalizedChildren);
+            var operationConstant = Expression.Constant(Operation);
+            return Expression.Invoke(operationConstant, argsArray);
         }
     }
 }
