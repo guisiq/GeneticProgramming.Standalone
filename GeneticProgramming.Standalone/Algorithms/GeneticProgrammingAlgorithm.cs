@@ -40,6 +40,7 @@ namespace GeneticProgramming.Algorithms
         private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator<T>? _fitnessEvaluator;
         private bool _enableParallelEvaluation = true;
         private Dictionary<int, T> _fitnessCache = new Dictionary<int, T>();
+        private Dictionary<ISymbolicExpressionTree<T>, int> _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
 
         /// <summary>
         /// Gets or sets the population size
@@ -367,6 +368,7 @@ namespace GeneticProgramming.Algorithms
             _fitnessEvaluator = cloner.Clone(original._fitnessEvaluator);
             _enableParallelEvaluation = original._enableParallelEvaluation;
             _fitnessCache = new Dictionary<int, T>(original._fitnessCache);
+            _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
         }
 
         /// <summary>
@@ -443,6 +445,23 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets the index of an individual in the population using cached map (O(1) lookup).
+        /// Falls back to IndexOf if individual is not in the map.
+        /// </summary>
+        /// <param name="individual">Individual to find</param>
+        /// <returns>Index of individual or -1 if not found</returns>
+        private int GetIndividualIndex(ISymbolicExpressionTree<T> individual)
+        {
+            if (_populationIndexMap.TryGetValue(individual, out int index))
+            {
+                return index;
+            }
+            
+            // Fallback para IndexOf se não estiver no mapa (não deveria acontecer)
+            return _population.IndexOf(individual);
+        }
+
+        /// <summary>
         /// Evaluates the fitness of an individual
         /// </summary>
         /// <param name="individual">The individual to evaluate</param>
@@ -483,6 +502,7 @@ namespace GeneticProgramming.Algorithms
             _bestIndividual = null;
             _population.Clear();
             _fitnessCache.Clear();
+            _populationIndexMap.Clear();
 
             // Set operator grammars
             _treeCreator!.SymbolicExpressionTreeGrammar = _grammar;
@@ -494,6 +514,7 @@ namespace GeneticProgramming.Algorithms
             {
                 var individual = _treeCreator.CreateTree(_random!, _grammar!, _maxTreeLength, _maxTreeDepth);
                 _population.Add(individual);
+                _populationIndexMap[individual] = i;
             }
         }
 
@@ -591,11 +612,11 @@ namespace GeneticProgramming.Algorithms
                 {
                     // Crossover normal com seleção por torneio - use cached fitness
                     var parent1 = _selector!.Select(_random!, _population, (ind) => {
-                        var idx = _population.IndexOf(ind);
+                        var idx = GetIndividualIndex(ind);
                         return GetCachedFitness(idx);
                     });
                     var parent2 = _selector!.Select(_random!, _population, (ind) => {
-                        var idx = _population.IndexOf(ind);
+                        var idx = GetIndividualIndex(ind);
                         return GetCachedFitness(idx);
                     });
                     var offspring = _crossover!.Crossover(_random, parent1, parent2);
@@ -611,7 +632,7 @@ namespace GeneticProgramming.Algorithms
                 {
                     // Mutação apenas - use cached fitness for selection
                     var parent = _selector!.Select(_random!, _population, (ind) => {
-                        var idx = _population.IndexOf(ind);
+                        var idx = GetIndividualIndex(ind);
                         return GetCachedFitness(idx);
                     });
                     var offspring = _mutator!.Mutate(_random, parent);
@@ -626,6 +647,13 @@ namespace GeneticProgramming.Algorithms
             }
 
             _population = newPopulation;
+            
+            // Reconstruir mapa de índices para a nova população
+            _populationIndexMap.Clear();
+            for (int i = 0; i < _population.Count; i++)
+            {
+                _populationIndexMap[_population[i]] = i;
+            }
         }
 
         private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
