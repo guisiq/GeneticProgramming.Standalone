@@ -17,7 +17,7 @@ namespace GeneticProgramming.Problems.Evaluators
         private readonly double[][] _inputs;
         private readonly double[] _targets;
         private readonly ExpressionInterpreter _interpreter = new();
-    private readonly TreeCompiler<double> _treeCompiler = new();
+        private readonly TreeCompiler<double> _treeCompiler = new();
         private readonly string[] _variableNames;
         
         // Controlar paralelização
