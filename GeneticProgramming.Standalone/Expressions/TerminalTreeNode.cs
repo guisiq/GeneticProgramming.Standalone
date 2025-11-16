@@ -257,7 +257,7 @@ namespace GeneticProgramming.Expressions
 
         public VariableTreeNode(ISymbol<T> symbol) : base(symbol)
         {
-            variableName = "X0";
+            variableName = symbol?.Name ?? "X0";
         }
 
         public VariableTreeNode(ISymbol<T> symbol, string variableName) : base(symbol)
@@ -284,14 +284,13 @@ namespace GeneticProgramming.Expressions
         {
             if (variables == null)
                 throw new ArgumentNullException(nameof(variables));
-            
+            // Tenta usar o nome do símbolo como fallback
+            if (Symbol is Variable<T> varSymbol && variables.TryGetValue(varSymbol.Name, out T symbolValue))
+                return symbolValue;
             // Tenta encontrar a variável por diferentes nomes
             if (variables.TryGetValue(variableName, out T value))
                 return value;
             
-            // Tenta usar o nome do símbolo como fallback
-            if (Symbol is Variable<T> varSymbol && variables.TryGetValue(varSymbol.Name, out T symbolValue))
-                return symbolValue;
             
             throw new KeyNotFoundException($"Variable '{variableName}' not found.");
         }
