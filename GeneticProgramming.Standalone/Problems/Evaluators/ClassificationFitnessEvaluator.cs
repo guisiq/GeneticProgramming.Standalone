@@ -84,7 +84,7 @@ namespace GeneticProgramming.Problems.Evaluators
                 UsedParallelProcessing = useParallel,
                 SamplesEvaluated = _inputs.Length,
                 EvaluationTime = sw.Elapsed,
-                ThreadsUsed = useParallel ? Environment.ProcessorCount : 1
+                ThreadsUsed = useParallel ? System.Environment.ProcessorCount : 1
             };
             
             return result;
@@ -126,7 +126,8 @@ namespace GeneticProgramming.Problems.Evaluators
         {
             var predictions = new int[_inputs.Length];
             
-            Parallel.For(0, _inputs.Length, i =>
+            var po = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, System.Environment.ProcessorCount) };
+            Parallel.For(0, _inputs.Length, po, i =>
             {
                 var vars = ObjectPools.RentDictionary();
                 try

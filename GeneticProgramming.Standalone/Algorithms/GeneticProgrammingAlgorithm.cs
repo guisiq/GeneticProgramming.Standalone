@@ -34,12 +34,13 @@ namespace GeneticProgramming.Algorithms
         private ISymbolicExpressionTreeSelector? _selector;
         private int _generation;
         private List<ISymbolicExpressionTree<T>> _population;
+    private IList<ISymbolicExpressionTree<T>>? _initialPopulationOverride;
         private ISymbolicExpressionTree<T>? _bestIndividual;
         private T _bestFitness = default!;
         private bool _stopRequested;
         private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator<T>? _fitnessEvaluator;
         private bool _enableParallelEvaluation = true;
-        private Dictionary<int, T> _fitnessCache = new Dictionary<int, T>();
+    private System.Collections.Concurrent.ConcurrentDictionary<int, T> _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>();
         private Dictionary<ISymbolicExpressionTree<T>, int> _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
 
         /// <summary>
@@ -293,6 +294,16 @@ namespace GeneticProgramming.Algorithms
         public IList<ISymbolicExpressionTree<T>> Population => _population.AsReadOnly();
 
         /// <summary>
+        /// Optional initial population provided by caller. If set before Run(), Initialize()
+        /// will use this population instead of creating new random individuals.
+        /// </summary>
+        public IList<ISymbolicExpressionTree<T>>? InitialPopulation
+        {
+            get => _initialPopulationOverride;
+            set => _initialPopulationOverride = value;
+        }
+
+        /// <summary>
         /// Gets the best individual found so far
         /// </summary>
         public ISymbolicExpressionTree<T>? BestIndividual => _bestIndividual;
@@ -367,7 +378,7 @@ namespace GeneticProgramming.Algorithms
             _stopRequested = original._stopRequested;
             _fitnessEvaluator = cloner.Clone(original._fitnessEvaluator);
             _enableParallelEvaluation = original._enableParallelEvaluation;
-            _fitnessCache = new Dictionary<int, T>(original._fitnessCache);
+            _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>(original._fitnessCache);
             _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
         }
 
@@ -509,12 +520,37 @@ namespace GeneticProgramming.Algorithms
             _crossover!.SymbolicExpressionTreeGrammar = _grammar;
             _mutator!.SymbolicExpressionTreeGrammar = _grammar;
 
-            // Create initial population
-            for (int i = 0; i < _populationSize; i++)
+            // Create initial population. If caller provided an InitialPopulation, use it (cloned)
+            if (_initialPopulationOverride != null && _initialPopulationOverride.Count > 0)
             {
-                var individual = _treeCreator.CreateTree(_random!, _grammar!, _maxTreeLength, _maxTreeDepth);
-                _population.Add(individual);
-                _populationIndexMap[individual] = i;
+                // Respect PopulationSize: trim or expand
+                var provided = _initialPopulationOverride;
+                int take = Math.Min(provided.Count, _populationSize);
+                for (int i = 0; i < take; i++)
+                {
+                    // Clone to avoid sharing instances
+                    var cloned = provided[i] is IDeepCloneable dc ? (ISymbolicExpressionTree<T>)dc.Clone(new Cloner()) : provided[i];
+                    _population.Add(cloned);
+                    _populationIndexMap[cloned] = _population.Count - 1;
+                }
+
+                // If we still need more individuals, create randomly
+                for (int i = _population.Count; i < _populationSize; i++)
+                {
+                    var individual = _treeCreator.CreateTree(_random!, _grammar!, _maxTreeLength, _maxTreeDepth);
+                    _population.Add(individual);
+                    _populationIndexMap[individual] = _population.Count - 1;
+                }
+            }
+            else
+            {
+                // Create initial population randomly
+                for (int i = 0; i < _populationSize; i++)
+                {
+                    var individual = _treeCreator.CreateTree(_random!, _grammar!, _maxTreeLength, _maxTreeDepth);
+                    _population.Add(individual);
+                    _populationIndexMap[individual] = i;
+                }
             }
         }
 
@@ -525,15 +561,55 @@ namespace GeneticProgramming.Algorithms
             
             if (_enableParallelEvaluation)
             {
-                // Parallel evaluation with proper caching
-                Parallel.For(0, _population.Count, i =>
+                // Allow overriding the MaxDegreeOfParallelism using env var GP_MAX_PARALLELISM for tuning
+                int maxDegree = System.Environment.ProcessorCount;
+                try
                 {
-                    var fitness = EvaluateFitness(_population[i]);
-                    lock (_fitnessCache)
+                    var envVal = System.Environment.GetEnvironmentVariable("GP_MAX_PARALLELISM");
+                    if (!string.IsNullOrEmpty(envVal) && int.TryParse(envVal, out var parsed))
+                        maxDegree = Math.Max(1, parsed);
+                }
+                catch { }
+
+                var po = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, maxDegree) };
+
+                // Log debug diagnostics for tuning
+                try
+                {
+                    System.Threading.ThreadPool.GetAvailableThreads(out var workerAvail, out var compAvail);
+                    System.Threading.ThreadPool.GetMaxThreads(out var workerMax, out var compMax);
+                    //System.Diagnostics.Debug.WriteLine($"[GP] ParallelEval: MaxDegree={po.MaxDegreeOfParallelism}, ThreadPoolAvailableWorkers={workerAvail}/{workerMax}");
+                }
+                catch { }
+
+                // Chunked/batch parallel evaluation: split population into 'po.MaxDegreeOfParallelism' chunks
+                // and let each worker process its chunk sequentially. This reduces scheduling overhead when
+                // EvaluateFitness is relatively fast per individual.
+                int workers = po.MaxDegreeOfParallelism;
+                int popCount = _population.Count;
+                int chunkSize = Math.Max(1, (int)Math.Ceiling((double)popCount / workers));
+
+                var swTotal = System.Diagnostics.Stopwatch.StartNew();
+
+                Parallel.For(0, workers, po, workerId =>
+                {
+                    int start = workerId * chunkSize;
+                    int end = Math.Min(start + chunkSize, popCount);
+                    for (int i = start; i < end; i++)
                     {
+                        var fitness = EvaluateFitness(_population[i]);
                         _fitnessCache[i] = fitness;
                     }
                 });
+
+                swTotal.Stop();
+                // Log debug: average time per evaluation (ms)
+                try
+                {
+                    double avgMs = popCount > 0 ? (swTotal.Elapsed.TotalMilliseconds / popCount) : 0.0;
+                    //System.Diagnostics.Debug.WriteLine($"[GP] ChunkedEval: workers={workers}, pop={popCount}, totalMs={swTotal.Elapsed.TotalMilliseconds:F2}, avgMs={avgMs:F4}");
+                }
+                catch { }
             }
             else
             {
@@ -548,13 +624,13 @@ namespace GeneticProgramming.Algorithms
         private void UpdateBestIndividual()
         {
             // Use cached fitness values - no re-evaluation needed
-            T currentGenBestFitness = default;
+            T? currentGenBestFitness = default;
             ISymbolicExpressionTree<T>? currentGenBestIndividual = null;
 
             for (int i = 0; i < _population.Count; i++)
             {
                 var fitness = GetCachedFitness(i);
-                if (currentGenBestIndividual == null || fitness.CompareTo(currentGenBestFitness) > 0)
+                if (currentGenBestIndividual == null || fitness.CompareTo(currentGenBestFitness!) > 0)
                 {
                     currentGenBestFitness = fitness;
                     currentGenBestIndividual = _population[i];
@@ -562,10 +638,13 @@ namespace GeneticProgramming.Algorithms
             }
 
             // Update global best if this generation's best is better or if we don't have a best yet
-            if (currentGenBestIndividual != null && (_bestIndividual == null || currentGenBestFitness.CompareTo(_bestFitness) > 0))
+            if (currentGenBestIndividual != null)
             {
-                _bestFitness = currentGenBestFitness;
-                _bestIndividual = (ISymbolicExpressionTree<T>)currentGenBestIndividual.Clone(new Cloner());
+                if (_bestIndividual == null || currentGenBestFitness!.CompareTo(_bestFitness) > 0)
+                {
+                    _bestFitness = currentGenBestFitness!;
+                    _bestIndividual = (ISymbolicExpressionTree<T>)currentGenBestIndividual.Clone(new Cloner());
+                }
             }
         }
 

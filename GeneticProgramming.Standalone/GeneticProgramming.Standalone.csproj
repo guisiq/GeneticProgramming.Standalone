@@ -8,6 +8,8 @@
     <Description>Standalone Genetic Programming library extracted from HeuristicLab</Description>
     <Copyright>Based on HeuristicLab - GNU GPL v3</Copyright>
     <OutputType>Library</OutputType>
+    <!-- Prevent duplicate auto-generated assembly attributes when building inside a larger repo -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
   </PropertyGroup>
 
