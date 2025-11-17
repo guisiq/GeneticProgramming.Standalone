@@ -563,24 +563,15 @@ namespace GeneticProgramming.Algorithms
             {
                 // Allow overriding the MaxDegreeOfParallelism using env var GP_MAX_PARALLELISM for tuning
                 int maxDegree = System.Environment.ProcessorCount;
-                try
-                {
-                    var envVal = System.Environment.GetEnvironmentVariable("GP_MAX_PARALLELISM");
-                    if (!string.IsNullOrEmpty(envVal) && int.TryParse(envVal, out var parsed))
-                        maxDegree = Math.Max(1, parsed);
-                }
-                catch { }
-
                 var po = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, maxDegree) };
-
                 // Log debug diagnostics for tuning
-                try
-                {
-                    System.Threading.ThreadPool.GetAvailableThreads(out var workerAvail, out var compAvail);
-                    System.Threading.ThreadPool.GetMaxThreads(out var workerMax, out var compMax);
-                    //System.Diagnostics.Debug.WriteLine($"[GP] ParallelEval: MaxDegree={po.MaxDegreeOfParallelism}, ThreadPoolAvailableWorkers={workerAvail}/{workerMax}");
-                }
-                catch { }
+                // try
+                // {
+                //     System.Threading.ThreadPool.GetAvailableThreads(out var workerAvail, out var compAvail);
+                //     System.Threading.ThreadPool.GetMaxThreads(out var workerMax, out var compMax);
+                //     //System.Diagnostics.Debug.WriteLine($"[GP] ParallelEval: MaxDegree={po.MaxDegreeOfParallelism}, ThreadPoolAvailableWorkers={workerAvail}/{workerMax}");
+                // }
+                // catch { }
 
                 // Chunked/batch parallel evaluation: split population into 'po.MaxDegreeOfParallelism' chunks
                 // and let each worker process its chunk sequentially. This reduces scheduling overhead when
@@ -589,12 +580,12 @@ namespace GeneticProgramming.Algorithms
                 int popCount = _population.Count;
                 int chunkSize = Math.Max(1, (int)Math.Ceiling((double)popCount / workers));
 
-                var swTotal = System.Diagnostics.Stopwatch.StartNew();
+                //var swTotal = System.Diagnostics.Stopwatch.StartNew();
 
                 Parallel.For(0, workers, po, workerId =>
                 {
                     int start = workerId * chunkSize;
-                    int end = Math.Min(start + chunkSize, popCount);
+                    int end = Math.Min((workerId + 1) * chunkSize, popCount);
                     for (int i = start; i < end; i++)
                     {
                         var fitness = EvaluateFitness(_population[i]);
@@ -602,14 +593,14 @@ namespace GeneticProgramming.Algorithms
                     }
                 });
 
-                swTotal.Stop();
+                //swTotal.Stop();
                 // Log debug: average time per evaluation (ms)
-                try
-                {
-                    double avgMs = popCount > 0 ? (swTotal.Elapsed.TotalMilliseconds / popCount) : 0.0;
-                    //System.Diagnostics.Debug.WriteLine($"[GP] ChunkedEval: workers={workers}, pop={popCount}, totalMs={swTotal.Elapsed.TotalMilliseconds:F2}, avgMs={avgMs:F4}");
-                }
-                catch { }
+                // try
+                // {
+                //     double avgMs = popCount > 0 ? (swTotal.Elapsed.TotalMilliseconds / popCount) : 0.0;
+                //     //System.Diagnostics.Debug.WriteLine($"[GP] ChunkedEval: workers={workers}, pop={popCount}, totalMs={swTotal.Elapsed.TotalMilliseconds:F2}, avgMs={avgMs:F4}");
+                // }
+                // catch { }
             }
             else
             {
@@ -720,41 +711,23 @@ namespace GeneticProgramming.Algorithms
             }
 
             // Garantir tamanho exato da população
-            while (newPopulation.Count > _populationSize)
+            if(newPopulation.Count > _populationSize)
             {
-                newPopulation.RemoveAt(newPopulation.Count - 1);
+                //fica com os primeiros N indivíduos
+                newPopulation= newPopulation.Take(_populationSize).ToList();
+                _eliteBreedingRatio = _eliteBreedingRatio * 0.95; // reduzir ligeiramente a razão de elite breeding se ultrapassar para a procima geracao
             }
 
             _population = newPopulation;
             
             // Reconstruir mapa de índices para a nova população
             _populationIndexMap.Clear();
+            //_populationIndexMap = _population.ToDictionary(ind => ind, ind => 0); // Inicializa com 0
             for (int i = 0; i < _population.Count; i++)
             {
                 _populationIndexMap[_population[i]] = i;
             }
         }
-
-        private ISymbolicExpressionTree TournamentSelection(int tournamentSize = 3)
-        {
-            ISymbolicExpressionTree? best = null;
-            T bestFitness = default!;
-
-            for (int i = 0; i < tournamentSize; i++)
-            {
-                var candidate = _population[_random!.Next(_population.Count)];
-                var fitness = EvaluateFitness(candidate);
-
-                if (fitness.CompareTo(bestFitness) > 0)
-                {
-                    bestFitness = fitness;
-                    best = candidate;
-                }
-            }
-
-            return (ISymbolicExpressionTree)best!.Clone(new Cloner());
-        }
-
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new GeneticProgrammingAlgorithm<T>(this, cloner);
