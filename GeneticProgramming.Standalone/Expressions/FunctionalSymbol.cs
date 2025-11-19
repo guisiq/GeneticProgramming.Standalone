@@ -130,6 +130,13 @@ namespace GeneticProgramming.Expressions
         /// <returns>The result of applying the operation to the child values.</returns>
         public T Evaluate(T[] childValues, System.Collections.Generic.IDictionary<string, T> variables)
         {
+            // Corrige erro: para símbolos unários, garantir que só um valor seja passado
+            if (MinArity == 1 && MaxArity == 1)
+            {
+                if (childValues.Length != 1)
+                    throw new ArgumentException($"Symbol '{Name}' expects 1 argument, but got {childValues.Length}");
+                return Operation(new T[] { childValues[0] });
+            }
             return Operation(childValues);
         }
     }

@@ -11,26 +11,26 @@ namespace GeneticProgramming.Expressions
     /// </summary>
     public static class SymbolFactory<T> where T : notnull
     {
-        private static readonly Dictionary<string, FunctionalSymbol<T>> _cache = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, FunctionalSymbol<T>> _cache = new();
 
         /// <summary>
         /// Creates or retrieves a unary functional symbol.
         /// </summary>
         public static FunctionalSymbol<T> CreateUnary(string name, string description, Func<T, T> op)
         {
-            if (_cache.TryGetValue(name, out var existing))
-                return existing;
-
-            T Wrapper(T[] args)
+            FunctionalSymbol<T> Factory()
             {
-                if (args.Length != 1)
-                    throw new ArgumentException("Unary operator requires 1 argument");
-                return op(args[0]);
+                T Wrapper(T[] args)
+                {
+                    if (args.Length != 1)
+                        throw new ArgumentException("Unary operator requires 1 argument");
+                    return op(args[0]);
+                }
+
+                return new FunctionalSymbol<T>(name, description, Wrapper, 1, 1);
             }
 
-            var sym = new FunctionalSymbol<T>(name, description, Wrapper, 1, 1);
-            _cache[name] = sym;
-            return sym;
+            return _cache.GetOrAdd(name, _ => Factory());
         }
 
         /// <summary>
@@ -38,38 +38,34 @@ namespace GeneticProgramming.Expressions
         /// </summary>
         public static FunctionalSymbol<T> CreateBinary(string name, string description, Func<T, T, T> op)
         {
-            if (_cache.TryGetValue(name, out var existing))
-                return existing;
-
-            T Wrapper(T[] args)
+            FunctionalSymbol<T> Factory()
             {
-                if (args.Length != 2)
+                T Wrapper(T[] args)
                 {
-                    // Be more defensive - return default value instead of throwing
-                    if (args.Length == 0)
-                        return default!;
-                    if (args.Length == 1)
-                        return args[0];
-                    // If more than 2 args, use first two
+                    if (args.Length != 2)
+                    {
+                        // Be more defensive - return default value instead of throwing
+                        if (args.Length == 0)
+                            return default!;
+                        if (args.Length == 1)
+                            return args[0];
+                        // If more than 2 args, use first two
+                        return op(args[0], args[1]);
+                    }
                     return op(args[0], args[1]);
                 }
-                return op(args[0], args[1]);
+
+                return new FunctionalSymbol<T>(name, description, Wrapper, 2, 2);
             }
 
-            var sym = new FunctionalSymbol<T>(name, description, Wrapper, 2, 2);
-            _cache[name] = sym;
-            return sym;
+            return _cache.GetOrAdd(name, _ => Factory());
         }
         /// <summary>
         /// Creates or retrieves a variadic functional symbol.
         /// </summary>
         public static FunctionalSymbol<T> CreateVariadic(string name, string description, Func<T[], T> op, int minArgs, int maxArgs)
         {
-            if (_cache.TryGetValue(name, out var existing))
-                return existing;
-            var sym = new FunctionalSymbol<T>(name, description, op, minArgs, maxArgs);
-            _cache[name] = sym;
-            return sym;
+            return _cache.GetOrAdd(name, _ => new FunctionalSymbol<T>(name, description, op, minArgs, maxArgs));
         }
 
         /// <summary>

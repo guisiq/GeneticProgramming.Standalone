@@ -40,7 +40,9 @@ namespace GeneticProgramming.Algorithms
         private bool _stopRequested;
         private GeneticProgramming.Problems.Evaluators.IFitnessEvaluator<T>? _fitnessEvaluator;
         private bool _enableParallelEvaluation = true;
-    private System.Collections.Concurrent.ConcurrentDictionary<int, T> _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>();
+        private int? _maxDegreeOfParallelism = null;
+        private T[] _fitnessCache = System.Array.Empty<T>();
+        private bool[] _fitnessComputed = System.Array.Empty<bool>();
         private Dictionary<ISymbolicExpressionTree<T>, int> _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
         
         // Cache de fitness por assinatura de árvore (ToMathString) para evitar reavaliação de duplicatas
@@ -342,6 +344,24 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets or sets the maximum degree of parallelism for fitness evaluations.
+        /// If null (default), uses Environment.ProcessorCount.
+        /// Can also be overridden by GP_MAX_PARALLELISM environment variable.
+        /// </summary>
+        public int? MaxDegreeOfParallelism
+        {
+            get => _maxDegreeOfParallelism;
+            set
+            {
+                if (_maxDegreeOfParallelism != value && (value == null || value > 0))
+                {
+                    _maxDegreeOfParallelism = value;
+                    OnPropertyChanged(nameof(MaxDegreeOfParallelism));
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets whether duplicate removal is enabled (replaces duplicates with new random individuals before breeding)
         /// </summary>
         public bool EnableDuplicateRemoval
@@ -398,8 +418,10 @@ namespace GeneticProgramming.Algorithms
             _stopRequested = original._stopRequested;
             _fitnessEvaluator = cloner.Clone(original._fitnessEvaluator);
             _enableParallelEvaluation = original._enableParallelEvaluation;
+            _maxDegreeOfParallelism = original._maxDegreeOfParallelism;
             _enableDuplicateRemoval = original._enableDuplicateRemoval;
-            _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>(original._fitnessCache);
+            _fitnessCache = (T[])original._fitnessCache.Clone();
+            _fitnessComputed = (bool[])original._fitnessComputed.Clone();
             _signatureFitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<string, T>(original._signatureFitnessCache);
             _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
         }
@@ -429,10 +451,10 @@ namespace GeneticProgramming.Algorithms
 
                 // Raise generation completed event
                 var averageCalculator = _fitnessEvaluator?.AverageCalculator;
+                var fitnessSequence = System.Linq.Enumerable.Range(0, _population.Count)
+                    .Select(i => GetCachedFitness(i));
                 var averageFitness = averageCalculator != null
-                    ? (_enableParallelEvaluation
-                        ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
-                        : averageCalculator(_fitnessCache.Values))
+                    ? averageCalculator(fitnessSequence)
                     : default(T)!;
 
                 var generationArgs = new GenerationEventArgs<T>(_generation, _bestFitness, averageFitness, _bestIndividual!);
@@ -470,11 +492,36 @@ namespace GeneticProgramming.Algorithms
         /// <returns>Fitness value</returns>
         private T GetCachedFitness(int index)
         {
-            if (!_fitnessCache.ContainsKey(index))
+            EnsureFitnessCacheSize(_population.Count);
+
+            if (!_fitnessComputed[index])
             {
                 _fitnessCache[index] = EvaluateFitness(_population[index]);
+                _fitnessComputed[index] = true;
             }
             return _fitnessCache[index];
+        }
+
+        private void EnsureFitnessCacheSize(int requiredSize)
+        {
+            if (_fitnessCache.Length < requiredSize)
+            {
+                System.Array.Resize(ref _fitnessCache, requiredSize);
+            }
+            if (_fitnessComputed.Length < requiredSize)
+            {
+                System.Array.Resize(ref _fitnessComputed, requiredSize);
+            }
+        }
+
+        private void ResetFitnessCache()
+        {
+            var count = _population.Count;
+            EnsureFitnessCacheSize(count);
+            if (count > 0)
+            {
+                System.Array.Fill(_fitnessComputed, false, 0, count);
+            }
         }
 
         /// <summary>
@@ -556,7 +603,7 @@ namespace GeneticProgramming.Algorithms
             _bestFitness = default!;
             _bestIndividual = null;
             _population.Clear();
-            _fitnessCache.Clear();
+            ResetFitnessCache();
             _populationIndexMap.Clear();
             _signatureFitnessCache.Clear(); // Limpar cache de assinaturas
 
@@ -602,12 +649,20 @@ namespace GeneticProgramming.Algorithms
         private void EvaluatePopulation()
         {
             // Clear cache for new generation
-            _fitnessCache.Clear();
+            ResetFitnessCache();
             
             if (_enableParallelEvaluation)
             {
-                // Allow overriding the MaxDegreeOfParallelism using env var GP_MAX_PARALLELISM for tuning
-                int maxDegree = System.Environment.ProcessorCount;
+                // Determine MaxDegreeOfParallelism: Property > Environment Variable > ProcessorCount
+                int maxDegree = _maxDegreeOfParallelism ?? System.Environment.ProcessorCount;
+                
+                // Allow overriding via GP_MAX_PARALLELISM environment variable
+                var envMaxParallel = System.Environment.GetEnvironmentVariable("GP_MAX_PARALLELISM");
+                if (!string.IsNullOrEmpty(envMaxParallel) && int.TryParse(envMaxParallel, out int customMaxDegree) && customMaxDegree > 0)
+                {
+                    maxDegree = customMaxDegree;
+                }
+                
                 var po = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, maxDegree) };
                 // Log debug diagnostics for tuning
                 // try
@@ -635,6 +690,7 @@ namespace GeneticProgramming.Algorithms
                     {
                         var fitness = EvaluateFitness(_population[i]);
                         _fitnessCache[i] = fitness;
+                        _fitnessComputed[i] = true;
                     }
                 });
 
@@ -653,6 +709,7 @@ namespace GeneticProgramming.Algorithms
                 for (int i = 0; i < _population.Count; i++)
                 {
                     _fitnessCache[i] = EvaluateFitness(_population[i]);
+                    _fitnessComputed[i] = true;
                 }
             }
         }
