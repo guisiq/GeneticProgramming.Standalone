@@ -42,6 +42,10 @@ namespace GeneticProgramming.Algorithms
         private bool _enableParallelEvaluation = true;
     private System.Collections.Concurrent.ConcurrentDictionary<int, T> _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>();
         private Dictionary<ISymbolicExpressionTree<T>, int> _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
+        
+        // Cache de fitness por assinatura de árvore (ToMathString) para evitar reavaliação de duplicatas
+        private System.Collections.Concurrent.ConcurrentDictionary<string, T> _signatureFitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<string, T>();
+        private bool _enableDuplicateRemoval = true; // Flag para habilitar remoção de duplicatas
 
         /// <summary>
         /// Gets or sets the population size
@@ -338,6 +342,22 @@ namespace GeneticProgramming.Algorithms
         }
 
         /// <summary>
+        /// Gets or sets whether duplicate removal is enabled (replaces duplicates with new random individuals before breeding)
+        /// </summary>
+        public bool EnableDuplicateRemoval
+        {
+            get => _enableDuplicateRemoval;
+            set
+            {
+                if (_enableDuplicateRemoval != value)
+                {
+                    _enableDuplicateRemoval = value;
+                    OnPropertyChanged(nameof(EnableDuplicateRemoval));
+                }
+            }
+        }
+
+        /// <summary>
         /// Predicate to determine if the algorithm should stop based on GenerationEventArgs.
         /// </summary>
         public Predicate<GenerationEventArgs<T>>? StopCondition { get; set; }
@@ -378,7 +398,9 @@ namespace GeneticProgramming.Algorithms
             _stopRequested = original._stopRequested;
             _fitnessEvaluator = cloner.Clone(original._fitnessEvaluator);
             _enableParallelEvaluation = original._enableParallelEvaluation;
+            _enableDuplicateRemoval = original._enableDuplicateRemoval;
             _fitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<int, T>(original._fitnessCache);
+            _signatureFitnessCache = new System.Collections.Concurrent.ConcurrentDictionary<string, T>(original._signatureFitnessCache);
             _populationIndexMap = new Dictionary<ISymbolicExpressionTree<T>, int>();
         }
 
@@ -411,7 +433,7 @@ namespace GeneticProgramming.Algorithms
                     ? (_enableParallelEvaluation
                         ? averageCalculator(_fitnessCache.Values.AsParallel().AsEnumerable())
                         : averageCalculator(_fitnessCache.Values))
-                    : default;
+                    : default(T)!;
 
                 var generationArgs = new GenerationEventArgs<T>(_generation, _bestFitness, averageFitness, _bestIndividual!);
                 GenerationCompleted?.Invoke(this, generationArgs);
@@ -481,6 +503,28 @@ namespace GeneticProgramming.Algorithms
         {
             if (_fitnessEvaluator != null)
             {
+                // Se habilitado, usar cache por assinatura para evitar reavaliação de duplicatas
+                if (_enableDuplicateRemoval)
+                {
+                    try
+                    {
+                        var signature = individual.ToMathString();
+                        if (_signatureFitnessCache.TryGetValue(signature, out var cachedFitness))
+                        {
+                            return cachedFitness;
+                        }
+                        
+                        var fitness = _fitnessEvaluator.Evaluate(individual);
+                        _signatureFitnessCache[signature] = fitness;
+                        return fitness;
+                    }
+                    catch
+                    {
+                        // Fallback se ToMathString falhar
+                        return _fitnessEvaluator.Evaluate(individual);
+                    }
+                }
+                
                 return _fitnessEvaluator.Evaluate(individual);
             }
 
@@ -514,6 +558,7 @@ namespace GeneticProgramming.Algorithms
             _population.Clear();
             _fitnessCache.Clear();
             _populationIndexMap.Clear();
+            _signatureFitnessCache.Clear(); // Limpar cache de assinaturas
 
             // Set operator grammars
             _treeCreator!.SymbolicExpressionTreeGrammar = _grammar;
@@ -718,6 +763,12 @@ namespace GeneticProgramming.Algorithms
                 _eliteBreedingRatio = _eliteBreedingRatio * 0.95; // reduzir ligeiramente a razão de elite breeding se ultrapassar para a procima geracao
             }
 
+            // DEDUPLIAÇÃO: Remover duplicatas e substituir por indivíduos novos
+            if (_enableDuplicateRemoval)
+            {
+                newPopulation = RemoveDuplicates(newPopulation);
+            }
+
             _population = newPopulation;
             
             // Reconstruir mapa de índices para a nova população
@@ -728,6 +779,53 @@ namespace GeneticProgramming.Algorithms
                 _populationIndexMap[_population[i]] = i;
             }
         }
+
+        /// <summary>
+        /// Remove duplicatas da população (baseado em ToMathString) e substitui por indivíduos novos gerados aleatoriamente.
+        /// Mantém apenas a primeira ocorrência de cada assinatura única.
+        /// </summary>
+        /// <param name="population">População para deduplicar</param>
+        /// <returns>População sem duplicatas, com tamanho preservado</returns>
+        private List<ISymbolicExpressionTree<T>> RemoveDuplicates(List<ISymbolicExpressionTree<T>> population)
+        {
+            var seenSignatures = new HashSet<string>();
+            var uniquePopulation = new List<ISymbolicExpressionTree<T>>();
+            int duplicatesReplaced = 0;
+
+            foreach (var individual in population)
+            {
+                try
+                {
+                    var signature = individual.ToMathString();
+                    if (seenSignatures.Add(signature))
+                    {
+                        // Primeira ocorrência - manter
+                        uniquePopulation.Add(individual);
+                    }
+                    else
+                    {
+                        // Duplicata - substituir por novo indivíduo aleatório
+                        var newIndividual = _treeCreator!.CreateTree(_random!, _grammar!, _maxTreeLength, _maxTreeDepth);
+                        uniquePopulation.Add(newIndividual);
+                        duplicatesReplaced++;
+                    }
+                }
+                catch
+                {
+                    // Se ToMathString falhar, manter o indivíduo (conservador)
+                    uniquePopulation.Add(individual);
+                }
+            }
+
+            // Log de duplicatas substituídas (opcional, pode ser habilitado para debug)
+            if (duplicatesReplaced > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GP] Generation {_generation}: Replaced {duplicatesReplaced} duplicates with new random individuals");
+            }
+
+            return uniquePopulation;
+        }
+
         protected override IDeepCloneable CreateCloneInstance(Cloner cloner)
         {
             return new GeneticProgrammingAlgorithm<T>(this, cloner);

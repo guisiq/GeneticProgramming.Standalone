@@ -11,12 +11,6 @@ namespace GeneticProgramming.Expressions.Symbols
     /// </summary>
     public static class StatisticsSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Mean,
-            Variance,
-            Median
-        };
         public static readonly FunctionalSymbol<double> Mean =
             SymbolFactory<double>.CreateVariadic(
                 "Mean", "Média de sequência",
@@ -52,7 +46,14 @@ namespace GeneticProgramming.Expressions.Symbols
                     return n % 2 == 0
                         ? (sorted[n/2 - 1] + sorted[n/2]) / 2.0
                         : sorted[n/2];
+
                 },
                 1, int.MaxValue);
+            public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
+            {
+                Mean,
+                Variance,
+                Median
+            };
     }
 }

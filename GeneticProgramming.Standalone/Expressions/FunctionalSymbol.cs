@@ -59,8 +59,11 @@ namespace GeneticProgramming.Expressions
             // Default input types to T for all arguments
             if (inputTypes == null)
             {
-                _inputTypes = new Type[maxArity];
-                for (int i = 0; i < maxArity; i++)
+                // For variadic symbols (maxArity = int.MaxValue), only allocate a reasonable size
+                // The actual array will be created at runtime with the correct size
+                int arraySize = maxArity == int.MaxValue ? minArity : maxArity;
+                _inputTypes = new Type[arraySize];
+                for (int i = 0; i < arraySize; i++)
                 {
                     _inputTypes[i] = typeof(T);
                 }
@@ -70,8 +73,8 @@ namespace GeneticProgramming.Expressions
                 _inputTypes = inputTypes;
             }
             
-            // Validate input types array length
-            if (_inputTypes.Length < maxArity)
+            // Validate input types array length (skip validation for variadic symbols)
+            if (maxArity != int.MaxValue && _inputTypes.Length < maxArity)
             {
                 throw new ArgumentException($"InputTypes array must have at least {maxArity} elements");
             }

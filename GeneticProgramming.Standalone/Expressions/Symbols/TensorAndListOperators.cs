@@ -14,11 +14,6 @@ namespace GeneticProgramming.Expressions.Symbols
     // Símbolos para operações em arrays de double
     public static class ArraySymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Sum,
-            Multiply
-        };
         public static readonly FunctionalSymbol<double> Sum =
             SymbolFactory<double>.CreateVariadic(
                 "ArraySum", "Soma de elementos de um array",
@@ -34,16 +29,17 @@ namespace GeneticProgramming.Expressions.Symbols
                     ? args.Aggregate(1.0, (acc, v) => acc * v)
                     : throw new ArgumentException("Array não pode ser vazio."),
                 1, int.MaxValue);
+
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
+        {
+            Sum,
+            Multiply
+        };
     }
 
     // Símbolos para operações em listas de double
     public static class ListSymbols
     {
-        public static readonly List<ISymbol> AllSymbols = new List<ISymbol>
-        {
-            Sum,
-            Average
-        };
         public static readonly FunctionalSymbol<double> Sum =
             SymbolFactory<double>.CreateVariadic(
                 "ListSum", "Soma de elementos de uma lista",
@@ -59,6 +55,12 @@ namespace GeneticProgramming.Expressions.Symbols
                     ? args.Average()
                     : throw new ArgumentException("Lista não pode ser vazia."),
                 1, int.MaxValue);
+
+        public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
+        {
+            Sum,
+            Average
+        };
     }
 
     // Símbolos para operações em matrizes
