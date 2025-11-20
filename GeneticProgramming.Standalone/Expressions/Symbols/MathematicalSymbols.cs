@@ -39,12 +39,31 @@ namespace GeneticProgramming.Expressions.Symbols
         public static readonly FunctionalSymbol<double> SafeDivision = SymbolFactory<double>.CreateBinary(
             "SafeDivision", "sdiv", 
             (a, b) => Math.Abs(b) < double.Epsilon ? double.MaxValue : a / b);
+
+        public static readonly FunctionalSymbol<double> Abs =
+            SymbolFactory<double>.CreateUnary(
+                "Abs", "Absolute value",
+                Math.Abs);
+
+        public static readonly FunctionalSymbol<double> Square =
+            SymbolFactory<double>.CreateUnary(
+                "Square", "Square (x²)",
+                x => x * x);
+
+        public static readonly FunctionalSymbol<double> SquareRoot =
+            SymbolFactory<double>.CreateUnary(
+                "SquareRoot", "Protected square root",
+                x => x < 0 ? 0.0 : Math.Sqrt(x));
+
         public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             Addition,
             Subtraction,
             Multiplication,
-            ProtectedDivision
+            ProtectedDivision,
+            Abs,
+            Square,
+            SquareRoot
         };
     }
 
@@ -119,11 +138,18 @@ namespace GeneticProgramming.Expressions.Symbols
             SymbolFactory<double>.CreateUnary(
                 "HyperbolicTangent", "Hyperbolic tangent operation (tanh)",
                 Math.Tanh);
+
+        public static readonly FunctionalSymbol<double> Sigmoid =
+            SymbolFactory<double>.CreateUnary(
+                "Sigmoid", "Sigmoid function (1 / (1 + exp(-x)))",
+                x => 1.0 / (1.0 + Math.Exp(-x)));
+
         public static readonly List<ISymbol<double>> AllSymbols = new List<ISymbol<double>>
         {
             HyperbolicSine,
             HyperbolicCosine,
-            HyperbolicTangent
+            HyperbolicTangent,
+            Sigmoid
         };
     }
     //mathematica discreta 
