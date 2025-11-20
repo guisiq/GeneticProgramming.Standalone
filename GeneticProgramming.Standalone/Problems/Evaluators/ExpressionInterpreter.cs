@@ -32,13 +32,47 @@ namespace GeneticProgramming.Problems.Evaluators
         
         private static T EvaluateNodeRecursively<T>(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables) where T : notnull
         {
-            // Avalia recursivamente todos os filhos primeiro
-            var childValues = node.Subtrees
-                .Select(child => EvaluateNodeRecursively(child, variables))
-                .ToArray();
+            // Optimization: Avoid LINQ allocations
+            var subtrees = node.Subtrees;
+            int count = node.SubtreeCount;
+            
+            // Use ArrayPool to avoid allocations for child values array
+            var childValues = System.Buffers.ArrayPool<T>.Shared.Rent(count);
+            
+            try 
+            {
+                int i = 0;
+                foreach (var child in subtrees)
+                {
+                     if (child is ISymbolicExpressionTreeNode<T> typedChild)
+                     {
+                         childValues[i] = EvaluateNodeRecursively(typedChild, variables);
+                     }
+                     i++;
+                }
                 
-            // Depois avalia o nó atual com os valores dos filhos
-            return node.Evaluate(childValues, variables);
+                // We need to pass exact array size to Evaluate because some implementations might iterate the whole array
+                // If count is 0, we can pass empty array
+                T[] exactChildValues;
+                if (count == 0)
+                {
+                    exactChildValues = Array.Empty<T>();
+                }
+                else
+                {
+                    // Unfortunately we have to allocate here to be safe with the interface contract T[]
+                    // unless we are sure implementations use Length or we change interface to Span/ArraySegment
+                    // However, this is still better than LINQ Select + ToArray which allocates enumerators
+                    exactChildValues = new T[count];
+                    Array.Copy(childValues, exactChildValues, count);
+                }
+                
+                return node.Evaluate(exactChildValues, variables);
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<T>.Shared.Return(childValues);
+            }
         }
     }
 }

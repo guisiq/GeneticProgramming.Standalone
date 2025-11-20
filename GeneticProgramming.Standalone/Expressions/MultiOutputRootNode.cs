@@ -4,6 +4,7 @@ using System.Linq;
 using GeneticProgramming.Standalone.Abstractions;
 using GeneticProgramming.Standalone.Expressions.Symbols;
 using GeneticProgramming.Core;
+using GeneticProgramming.Standalone.Performance;
 
 namespace GeneticProgramming.Standalone.Expressions;
 
@@ -21,18 +22,100 @@ public class MultiOutputRootNode<T> : IMultiOutputNode<T>, ISymbolicExpressionTr
     
     public IReadOnlyList<T> Evaluate(IReadOnlyList<T>[] arguments, IDictionary<string, IReadOnlyList<T>> variables)
     {
-        // Convert multi-output variables to single-output variables explicitly
-        var convertedVars = variables?.ToDictionary(
-            kvp => kvp.Key,
-            kvp => kvp.Value != null && kvp.Value.Any() ? kvp.Value.First() : throw new InvalidOperationException($"Variable '{kvp.Key}' is empty.")
-        ) ?? new Dictionary<string, T>();
-
-        // Evaluate each output node individually using LINQ
+        // Use ObjectPools to avoid allocations
+        var convertedVars = ObjectPools.RentDictionary<T>();
+        var memoizationCache = ObjectPools.RentDictionary<ISymbolicExpressionTreeNode<T>, T>();
         
-        return _outputNodes
-  //            .AsParallel()
-            .Select(node => node != null ? EvaluateNode(node, convertedVars) : throw new InvalidOperationException("Output node is null."))
-            .ToArray();
+        try
+        {
+            // Convert multi-output variables to single-output variables explicitly
+            if (variables != null)
+            {
+                foreach (var kvp in variables)
+                {
+                    if (kvp.Value != null && kvp.Value.Count > 0)
+                    {
+                        convertedVars[kvp.Key] = kvp.Value[0];
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Variable '{kvp.Key}' is empty.");
+                    }
+                }
+            }
+
+            // Evaluate each output node individually using memoization
+            var results = new T[_outputCount];
+            for (int i = 0; i < _outputCount; i++)
+            {
+                var node = _outputNodes[i];
+                if (node != null)
+                {
+                    results[i] = EvaluateNodeWithCache(node, convertedVars, memoizationCache);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Output node is null.");
+                }
+            }
+            
+            return results;
+        }
+        finally
+        {
+            ObjectPools.ReturnDictionary(convertedVars);
+            ObjectPools.ReturnDictionary(memoizationCache);
+        }
+    }
+    
+    // Helper for memoized evaluation
+    protected T EvaluateNodeWithCache(ISymbolicExpressionTreeNode<T> node, IDictionary<string, T> variables, Dictionary<ISymbolicExpressionTreeNode<T>, T> cache)
+    {
+        if (cache.TryGetValue(node, out var cachedVal)) return cachedVal;
+
+        // Evaluate children (recursively with cache)
+        // Optimization: Avoid LINQ Select/ToArray
+        var subtrees = node.Subtrees;
+        int count = node.SubtreeCount;
+        
+        // Use ArrayPool to avoid allocations for child values array
+        var childValues = System.Buffers.ArrayPool<T>.Shared.Rent(count);
+        
+        try 
+        {
+            int i = 0;
+            foreach (var child in subtrees)
+            {
+                 if (child is ISymbolicExpressionTreeNode<T> typedChild)
+                 {
+                     childValues[i] = EvaluateNodeWithCache(typedChild, variables, cache);
+                 }
+                 i++;
+            }
+            
+            // We need to pass exact array size to Evaluate because some implementations might iterate the whole array
+            // If count is 0, we can pass empty array
+            T[] exactChildValues;
+            if (count == 0)
+            {
+                exactChildValues = Array.Empty<T>();
+            }
+            else
+            {
+                // Unfortunately we have to allocate here to be safe with the interface contract T[]
+                // unless we are sure implementations use Length or we change interface to Span/ArraySegment
+                exactChildValues = new T[count];
+                Array.Copy(childValues, exactChildValues, count);
+            }
+            
+            var result = node.Evaluate(exactChildValues, variables);
+            cache[node] = result;
+            return result;
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<T>.Shared.Return(childValues);
+        }
     }
     /// <summary>
     /// Evaluates all outputs with the given variables using a simple interpreter.

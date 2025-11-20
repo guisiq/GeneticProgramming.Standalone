@@ -42,8 +42,8 @@ namespace GeneticProgramming.Expressions
         private ISymbol? symbol;
 
         // Cached values to prevent unnecessary tree iterations
-        private ushort length;
-        private ushort depth;
+        private int length;
+        private int depth;
         
         /// <summary>
         /// Strategy to use when arity violations occur
@@ -157,12 +157,12 @@ namespace GeneticProgramming.Expressions
         {
             if (length > 0) return length;
             
-            ushort l = 1;
+            int l = 1;
             if (subtrees != null)
             {
                 for (int i = 0; i < subtrees.Count; i++)
                 {
-                    checked { l += (ushort)subtrees[i].GetLength(); }
+                    checked { l += subtrees[i].GetLength(); }
                 }
             }
             length = l;
@@ -173,12 +173,12 @@ namespace GeneticProgramming.Expressions
         {
             if (depth > 0) return depth;
             
-            ushort d = 0;
+            int d = 0;
             if (subtrees != null)
             {
                 for (int i = 0; i < subtrees.Count; i++)
                 {
-                    d = Math.Max(d, (ushort)subtrees[i].GetDepth());
+                    d = Math.Max(d, subtrees[i].GetDepth());
                 }
             }
             d++;

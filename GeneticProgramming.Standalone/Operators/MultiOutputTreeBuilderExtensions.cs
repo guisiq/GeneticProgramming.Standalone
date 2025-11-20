@@ -48,19 +48,30 @@ namespace GeneticProgramming.Operators
             if (random == null)
                 random = new Random();
 
-            var functionalSymbols = symbols.Where(s => s is FunctionalSymbol<T>).ToList();
+            // Cache symbol lists to avoid repeated LINQ queries
+            var symbolList = symbols.ToList();
+            var functionalSymbols = symbolList.Where(s => s is FunctionalSymbol<T>).ToList();
+            var terminalSymbols = symbolList.Where(s => s.MaximumArity == 0).ToList();
+            var variableSymbols = terminalSymbols.OfType<Variable<T>>().ToList();
+            var constantSymbols = terminalSymbols.OfType<Constant<T>>().ToList();
+            var operatorSymbols = symbolList.Where(s => s.MaximumArity > 0).ToList();
+
+            // Helper to pass cached lists
+            ISymbolicExpressionTreeNode<T> CreateNode(int depth, int length) => 
+                CreateRandomTreeNodeOptimized(variableSymbols, constantSymbols, operatorSymbols, variableNames, depth, length, random);
+
             switch (creationMode)
             {
                 case TreeCreationMode.Random:
                     for (int i = 0; i < tree.OutputCount; i++)
-                        tree.SetOutputNode(i, CreateRandomTreeNode(symbols, variableNames, treeDepth, treeLength, random));
+                        tree.SetOutputNode(i, CreateNode(treeDepth, treeLength));
                     break;
                 case TreeCreationMode.SharedBase:
-                    var sharedBase = CreateRandomTreeNode(symbols, variableNames, treeDepth - 1, treeLength / 2, random);
+                    var sharedBase = CreateNode(treeDepth - 1, treeLength / 2);
                     // busca todos os sybolos funcionais
                     for (int i = 0; i < tree.OutputCount; i++)
                     {
-                        var specialized = CreateRandomTreeNode(symbols, variableNames, 2, treeLength / 2, random);
+                        var specialized = CreateNode(2, treeLength / 2);
                         // Cria um CompositeSymbol com aridade 2 e um builder trivial (apenas conecta os filhos)
                         // pega uma funcao aleatoria
                         var randomFunctionalSymbol = functionalSymbols[random.Next(functionalSymbols.Count)];
@@ -83,7 +94,7 @@ namespace GeneticProgramming.Operators
                     ISymbolicExpressionTreeNode<T> prev = default!;
                     for (int i = 0; i < tree.OutputCount; i++)
                     {
-                        var node = CreateRandomTreeNode(symbols, variableNames, treeDepth, treeLength, random);
+                        var node = CreateNode(treeDepth, treeLength);
                         if (prev != null)
                         {
                             var randomFunctionalSymbol = functionalSymbols[random.Next(functionalSymbols.Count)];
@@ -113,8 +124,10 @@ namespace GeneticProgramming.Operators
             }
         }
 
-        private static ISymbolicExpressionTreeNode<T> CreateRandomTreeNode<T>(
-            IEnumerable<ISymbol<T>> symbols,
+        private static ISymbolicExpressionTreeNode<T> CreateRandomTreeNodeOptimized<T>(
+            List<Variable<T>> variableSymbols,
+            List<Constant<T>> constantSymbols,
+            List<ISymbol<T>> operatorSymbols,
             string[] variableNames,
             int depth,
             int length,
@@ -123,28 +136,58 @@ namespace GeneticProgramming.Operators
             if (depth <= 1 || length <= 1)
             {
                 // Terminal: variable ou constante
-                if (random.NextDouble() < 0.5)
+                // Check if we have variables or constants available
+                bool hasVariables = variableSymbols.Count > 0;
+                bool hasConstants = constantSymbols.Count > 0;
+                
+                if (!hasVariables && !hasConstants)
+                    throw new InvalidOperationException("No terminal symbols available");
+
+                bool pickVariable = hasVariables && (!hasConstants || random.NextDouble() < 0.5);
+
+                if (pickVariable)
                 {
-                    var varSymbol = symbols.OfType<Variable<T>>().FirstOrDefault();
-                    return new VariableTreeNode<T>(varSymbol ?? throw new InvalidOperationException("No variable symbol"))
+                    var varSymbol = variableSymbols[random.Next(variableSymbols.Count)];
+                    return new VariableTreeNode<T>(varSymbol)
                     { VariableName = variableNames[random.Next(variableNames.Length)] };
                 }
                 else
                 {
-                    var constSymbol = symbols.OfType<Constant<T>>().FirstOrDefault();
-                    return new ConstantTreeNode<T>(constSymbol ?? throw new InvalidOperationException("No constant symbol"), (T)Convert.ChangeType(random.NextDouble(), typeof(T)));
+                    var constSymbol = constantSymbols[random.Next(constantSymbols.Count)];
+                    return new ConstantTreeNode<T>(constSymbol, (T)Convert.ChangeType(random.NextDouble(), typeof(T)));
                 }
             }
+            
             // Non-terminal: pick a random operator
-            var opSymbols = symbols.Where(s => s.MaximumArity > 0).ToList();
-            var op = opSymbols[random.Next(opSymbols.Count)];
+            if (operatorSymbols.Count == 0)
+                 throw new InvalidOperationException("No operator symbols available");
+                 
+            var op = operatorSymbols[random.Next(operatorSymbols.Count)];
             var node = op.CreateTreeNode();
             int arity = op.MinimumArity == op.MaximumArity ? op.MinimumArity : random.Next(op.MinimumArity, op.MaximumArity + 1);
             for (int i = 0; i < arity; i++)
             {
-                node.AddSubtree(CreateRandomTreeNode(symbols, variableNames, depth - 1, length - 1, random));
+                node.AddSubtree(CreateRandomTreeNodeOptimized(variableSymbols, constantSymbols, operatorSymbols, variableNames, depth - 1, length - 1, random));
             }
             return node;
+        }
+
+        private static ISymbolicExpressionTreeNode<T> CreateRandomTreeNode<T>(
+            IEnumerable<ISymbol<T>> symbols,
+            string[] variableNames,
+            int depth,
+            int length,
+            Random random) where T : notnull
+        {
+            // Fallback for backward compatibility or if called directly (though private)
+            // Re-implement using optimized version by filtering symbols here
+            var symbolList = symbols.ToList();
+            var terminalSymbols = symbolList.Where(s => s.MaximumArity == 0).ToList();
+            return CreateRandomTreeNodeOptimized(
+                terminalSymbols.OfType<Variable<T>>().ToList(),
+                terminalSymbols.OfType<Constant<T>>().ToList(),
+                symbolList.Where(s => s.MaximumArity > 0).ToList(),
+                variableNames, depth, length, random);
         }
     }
 }

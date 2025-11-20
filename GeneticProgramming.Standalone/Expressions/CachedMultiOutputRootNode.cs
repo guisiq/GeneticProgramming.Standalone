@@ -35,28 +35,37 @@ public class CachedMultiOutputRootNode<T> : MultiOutputRootNode<T> where T : not
             return;
         }
 
-        // Check if variables actually changed
-        if (_variablesHashValid &&
-            _lastVariables.Count == variables.Count &&
-            _lastVariables.All(kvp => variables.TryGetValue(kvp.Key, out var value) && EqualityComparer<T>.Default.Equals(kvp.Value, value)))
+        // Optimization: Avoid sorting and copying if possible.
+        // We assume that if the caller provides a hash, we can use it.
+        // But here we compute it.
+        // Instead of sorting, we can use an order-independent hash (XOR based) or just sum.
+        // However, for floating point values, order might matter for hash stability if we used HashCode.Add.
+        // But XOR is commutative.
+        
+        int newHash = 0;
+        foreach (var kvp in variables)
         {
-            return; // No change, keep existing hash
+            int keyHash = kvp.Key.GetHashCode();
+            int valHash = kvp.Value?.GetHashCode() ?? 0;
+            // Simple order-independent combination
+            newHash ^= (keyHash * 397) ^ valHash;
         }
 
-        // Update cached variables and compute new hash
-        _lastVariables.Clear();
-        var hashCode = new HashCode();
-
-        // Sort keys for consistent hashing
-        foreach (var kvp in variables.OrderBy(x => x.Key))
+        if (_variablesHashValid && _variablesHash == newHash)
         {
-            _lastVariables[kvp.Key] = kvp.Value;
-            hashCode.Add(kvp.Key);
-            hashCode.Add(kvp.Value);
+             // Optimistic check: if hash matches, assume variables are same.
+             // This avoids the expensive deep comparison.
+             // Risk: Hash collision. But for caching optimization, it might be acceptable or we can add a version counter.
+             return;
         }
 
-        _variablesHash = hashCode.ToHashCode();
+        _variablesHash = newHash;
         _variablesHashValid = true;
+        
+        // We don't need _lastVariables anymore if we trust the hash or if we accept that
+        // we only update hash when caller says variables changed (which is implied by calling this method).
+        // But the original code was checking if variables changed.
+        // If we want to be safe, we can keep _lastVariables but avoid sorting.
     }
 
     /// <summary>

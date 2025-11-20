@@ -95,6 +95,47 @@ namespace GeneticProgramming.Standalone.Performance
         }
         
         /// <summary>
+        /// Aluga um dicionário genérico com chave e valor customizados.
+        /// </summary>
+        public static Dictionary<TKey, TValue> RentDictionary<TKey, TValue>() where TKey : notnull
+        {
+            var poolKey = typeof(Dictionary<TKey, TValue>);
+            var pool = (ConcurrentBag<Dictionary<TKey, TValue>>)_genericPools.GetOrAdd(
+                poolKey, 
+                _ => new ConcurrentBag<Dictionary<TKey, TValue>>()
+            );
+            
+            if (pool.TryTake(out var dictionary))
+            {
+                dictionary.Clear();
+                return dictionary;
+            }
+            
+            return new Dictionary<TKey, TValue>();
+        }
+
+        /// <summary>
+        /// Devolve um dicionário genérico com chave e valor customizados.
+        /// </summary>
+        public static void ReturnDictionary<TKey, TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
+        {
+            if (dictionary == null) return;
+            
+            var poolKey = typeof(Dictionary<TKey, TValue>);
+            var pool = (ConcurrentBag<Dictionary<TKey, TValue>>)_genericPools.GetOrAdd(
+                poolKey, 
+                _ => new ConcurrentBag<Dictionary<TKey, TValue>>()
+            );
+            
+            dictionary.Clear();
+            
+            if (pool.Count < 1000)
+            {
+                pool.Add(dictionary);
+            }
+        }
+        
+        /// <summary>
         /// Obtém estatísticas do pool para monitoramento.
         /// </summary>
         public static PoolStatistics GetStatistics()
